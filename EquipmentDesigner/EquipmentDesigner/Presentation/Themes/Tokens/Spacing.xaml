@@ -1,0 +1,120 @@
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- ============================================================
+         Spacing & Layout Tokens
+         간격, 크기, 모서리 반경 정의
+         ============================================================ -->
+
+    <!-- =========================
+         Spacing Scale (4px base)
+         ========================= -->
+    <sys:Double x:Key="Spacing.0">0</sys:Double>
+    <sys:Double x:Key="Spacing.0.5">2</sys:Double>
+    <sys:Double x:Key="Spacing.1">4</sys:Double>
+    <sys:Double x:Key="Spacing.1.5">6</sys:Double>
+    <sys:Double x:Key="Spacing.2">8</sys:Double>
+    <sys:Double x:Key="Spacing.2.5">10</sys:Double>
+    <sys:Double x:Key="Spacing.3">12</sys:Double>
+    <sys:Double x:Key="Spacing.4">16</sys:Double>
+    <sys:Double x:Key="Spacing.5">20</sys:Double>
+    <sys:Double x:Key="Spacing.6">24</sys:Double>
+    <sys:Double x:Key="Spacing.8">32</sys:Double>
+    <sys:Double x:Key="Spacing.10">40</sys:Double>
+    <sys:Double x:Key="Spacing.12">48</sys:Double>
+    <sys:Double x:Key="Spacing.16">64</sys:Double>
+    <sys:Double x:Key="Spacing.20">80</sys:Double>
+    <sys:Double x:Key="Spacing.24">96</sys:Double>
+
+    <!-- =========================
+         Semantic Spacing
+         ========================= -->
+    <Thickness x:Key="Spacing.Padding.None">0</Thickness>
+    <Thickness x:Key="Spacing.Padding.XS">2</Thickness>
+    <Thickness x:Key="Spacing.Padding.SM">4</Thickness>
+    <Thickness x:Key="Spacing.Padding.MD">8</Thickness>
+    <Thickness x:Key="Spacing.Padding.LG">16</Thickness>
+    <Thickness x:Key="Spacing.Padding.XL">24</Thickness>
+    <Thickness x:Key="Spacing.Padding.2XL">32</Thickness>
+
+    <Thickness x:Key="Spacing.Margin.None">0</Thickness>
+    <Thickness x:Key="Spacing.Margin.XS">2</Thickness>
+    <Thickness x:Key="Spacing.Margin.SM">4</Thickness>
+    <Thickness x:Key="Spacing.Margin.MD">8</Thickness>
+    <Thickness x:Key="Spacing.Margin.LG">16</Thickness>
+    <Thickness x:Key="Spacing.Margin.XL">24</Thickness>
+    <Thickness x:Key="Spacing.Margin.2XL">32</Thickness>
+
+    <!-- Component-specific Padding -->
+    <Thickness x:Key="Spacing.Padding.Button">8,6</Thickness>
+    <Thickness x:Key="Spacing.Padding.Button.Small">6,4</Thickness>
+    <Thickness x:Key="Spacing.Padding.Button.Large">12,10</Thickness>
+    <Thickness x:Key="Spacing.Padding.Input">8,6</Thickness>
+    <Thickness x:Key="Spacing.Padding.Card">16</Thickness>
+    <Thickness x:Key="Spacing.Padding.Dialog">24</Thickness>
+    <Thickness x:Key="Spacing.Padding.Section">16,12</Thickness>
+
+    <!-- =========================
+         Border Radius
+         ========================= -->
+    <CornerRadius x:Key="Radius.None">0</CornerRadius>
+    <CornerRadius x:Key="Radius.SM">2</CornerRadius>
+    <CornerRadius x:Key="Radius.MD">4</CornerRadius>
+    <CornerRadius x:Key="Radius.LG">8</CornerRadius>
+    <CornerRadius x:Key="Radius.XL">12</CornerRadius>
+    <CornerRadius x:Key="Radius.2XL">16</CornerRadius>
+    <CornerRadius x:Key="Radius.Full">9999</CornerRadius>
+
+    <!-- =========================
+         Border Thickness
+         ========================= -->
+    <Thickness x:Key="Border.None">0</Thickness>
+    <Thickness x:Key="Border.Thin">1</Thickness>
+    <Thickness x:Key="Border.Medium">2</Thickness>
+    <Thickness x:Key="Border.Thick">4</Thickness>
+
+    <!-- =========================
+         Icon Sizes
+         ========================= -->
+    <sys:Double x:Key="Icon.Size.XS">12</sys:Double>
+    <sys:Double x:Key="Icon.Size.SM">16</sys:Double>
+    <sys:Double x:Key="Icon.Size.MD">20</sys:Double>
+    <sys:Double x:Key="Icon.Size.LG">24</sys:Double>
+    <sys:Double x:Key="Icon.Size.XL">32</sys:Double>
+    <sys:Double x:Key="Icon.Size.2XL">48</sys:Double>
+
+    <!-- =========================
+         Component Sizes
+         ========================= -->
+    
+    <!-- Button Heights -->
+    <sys:Double x:Key="Size.Button.Height.SM">28</sys:Double>
+    <sys:Double x:Key="Size.Button.Height.MD">36</sys:Double>
+    <sys:Double x:Key="Size.Button.Height.LG">44</sys:Double>
+
+    <!-- Input Heights -->
+    <sys:Double x:Key="Size.Input.Height.SM">28</sys:Double>
+    <sys:Double x:Key="Size.Input.Height.MD">36</sys:Double>
+    <sys:Double x:Key="Size.Input.Height.LG">44</sys:Double>
+
+    <!-- Sidebar -->
+    <sys:Double x:Key="Size.Sidebar.Width">240</sys:Double>
+    <sys:Double x:Key="Size.Sidebar.Width.Collapsed">64</sys:Double>
+
+    <!-- Header -->
+    <sys:Double x:Key="Size.Header.Height">56</sys:Double>
+
+    <!-- =========================
+         Z-Index (for Popup, Tooltip, etc.)
+         ========================= -->
+    <sys:Int32 x:Key="ZIndex.Dropdown">1000</sys:Int32>
+    <sys:Int32 x:Key="ZIndex.Sticky">1020</sys:Int32>
+    <sys:Int32 x:Key="ZIndex.Fixed">1030</sys:Int32>
+    <sys:Int32 x:Key="ZIndex.ModalBackdrop">1040</sys:Int32>
+    <sys:Int32 x:Key="ZIndex.Modal">1050</sys:Int32>
+    <sys:Int32 x:Key="ZIndex.Popover">1060</sys:Int32>
+    <sys:Int32 x:Key="ZIndex.Tooltip">1070</sys:Int32>
+
+</ResourceDictionary>
