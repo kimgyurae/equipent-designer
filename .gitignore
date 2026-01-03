@@ -1,0 +1,213 @@
+# ===========================================
+# .NET 5.0 WPF Project - Equipment Designer
+# ===========================================
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Visual Studio cache/options directory
+.vs/*
+!.vs/launch.json
+!.vs/tasks.json
+
+# MSBuild Binary and Structured Log
+*.binlog
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+!**/[Pp]ackages/repositories.config
+
+# Chutzpah Test files
+_Chutzpah*
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# Installshield output folder
+[Ee]xpress/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# CodeRush personal settings
+.cr/
+
+# ReSharper is a .NET coding add-in
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# TeamCity is a build add-in
+_TeamCity*
+
+# DotCover is a Code Coverage Tool
+*.dotCover
+
+# AxoCover is a Code Coverage Tool
+.axoCover/*
+!.axoCover/settings.json
+
+# Coverlet is a free, cross platform Code Coverage Tool
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backup & Temporary files
+*~
+*.swp
+*.bak
+*.tmp
+*.temp
+
+# User-specific files
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdf
+*.ldf
+
+# mono.posix file
+*.exe.so
+
+# Windows Store app package directories
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# Local settings
+local.settings.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# WPF: Designer files
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.sdf
+*.aps
+
+# WPF: Generated files
+*.g.cs
+*.g.i.cs
+*.designer.cs
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Visual Studio Trace Files
+*.e2e
+
+# TFS local workspace
+$tf/
+
+# Publish/Web Publish
+*.Publish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+PublishScripts/
+
+# Microsoft Azure Build Output
+csx/
+*.build.csdef
+
+# SQL Server files
+*.scc
+*.dacpac
+
+# Office files
+~$*
+
+# StyleCop
+StyleCopReport.xml
+
+# dotnet tool installs
+.store/
+
+# .NET CLI
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# SpecFlow
+*.feature.cs
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# LLM/AI Working Directories
+.workingdir/
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+.top-ai-os

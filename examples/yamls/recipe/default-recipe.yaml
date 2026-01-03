@@ -1,0 +1,156 @@
+# LaserBurrMachine Default Recipe File (YAML Format)
+# This file defines the recipe schema with explicit Valid Ranges for each parameter
+# Schema Version: 2 - Includes ValidRange as structured fields
+
+# =============================================================================
+# IRecipeData Interface Fields (Required)
+# =============================================================================
+RecipeId: DEFAULT_RECIPE
+RecipeName: Default Recipe Template
+CreatedAt: 2025-12-04T00:00:00
+ModifiedAt: 2025-12-04T00:00:00
+SchemaVersion: 2
+
+# =============================================================================
+# Model Information
+# =============================================================================
+ModelName: DEFAULT_MODEL
+
+# =============================================================================
+# Gasket Parameters (mm)
+# Each parameter includes Value, Min, Max fields for validation
+# =============================================================================
+GasketSizeX:
+  Value: 125.0
+  Min: 100.0
+  Max: 150.0
+  Unit: mm
+  Description: Gasket width in X direction
+
+GasketSizeY:
+  Value: 420.0
+  Min: 400.0
+  Max: 450.0
+  Unit: mm
+  Description: Gasket length in Y direction
+
+GasketSizeT:
+  Value: 2.5
+  Min: 1.0
+  Max: 5.0
+  Unit: mm
+  Description: Gasket thickness
+
+# =============================================================================
+# Inspection Parameters
+# =============================================================================
+InspStartOffset:
+  Value: 10.0
+  Min: 0.0
+  Max: 50.0
+  Unit: mm
+  Description: Vision inspection start offset
+
+InspVisionScanCnt:
+  Value: 5
+  Min: 1
+  Max: 20
+  Unit: count
+  Description: Number of vision scans
+
+InspDistance:
+  Value: 80.0
+  Min: 10.0
+  Max: 200.0
+  Unit: mm
+  Description: Distance between scans
+
+InspDelay:
+  Value: 0.5
+  Min: 0.1
+  Max: 5.0
+  Unit: seconds
+  Description: Delay between scans
+
+# =============================================================================
+# Measurement Parameters
+# =============================================================================
+MeasNotUse:
+  Value: false
+  Description: Set to true to skip measurement step
+
+MeasPosOffsetX:
+  Value: 0.0
+  Min: -50.0
+  Max: 50.0
+  Unit: mm
+  Description: Measurement position offset in X direction
+
+MeasPosOffsetY:
+  Value: 0.0
+  Min: -50.0
+  Max: 50.0
+  Unit: mm
+  Description: Measurement position offset in Y direction
+
+MeasBurrHSpec:
+  Value: 0.15
+  Min: 0.05
+  Max: 0.50
+  Unit: mm
+  Description: Burr height specification threshold
+
+MeasDelay:
+  Value: 0.3
+  Min: 0.1
+  Max: 2.0
+  Unit: seconds
+  Description: Delay after measurement
+
+# =============================================================================
+# Laser Parameters
+# =============================================================================
+LaserPosOffsetX:
+  Value: 0.0
+  Min: -100.0
+  Max: 100.0
+  Unit: mm
+  Description: Laser position offset in X direction
+
+LaserPosOffsetY:
+  Value: 0.0
+  Min: -100.0
+  Max: 100.0
+  Unit: mm
+  Description: Laser position offset in Y direction
+
+LaserHeightOffset:
+  Value: 0.0
+  Min: -10.0
+  Max: 10.0
+  Unit: mm
+  Description: Laser height offset (Z direction)
+
+# =============================================================================
+# Clean Parameters
+# =============================================================================
+CleanPosOffsetX:
+  Value: 0.0
+  Min: -50.0
+  Max: 50.0
+  Unit: mm
+  Description: Clean position offset in X direction
+
+CleanPosOffsetY:
+  Value: 0.0
+  Min: -50.0
+  Max: 50.0
+  Unit: mm
+  Description: Clean position offset in Y direction
+
+CleanCo2OnTime:
+  Value: 1.0
+  Min: 0.5
+  Max: 10.0
+  Unit: seconds
+  Description: CO2 cleaning duration

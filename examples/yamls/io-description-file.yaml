@@ -1,0 +1,881 @@
+# LaserBurr I/O Definitions - 7-System Architecture Version
+# This YAML defines the complete I/O mapping for the LaserBurr equipment
+# Synchronized with hardware-description-file3.yaml (7-System functional architecture)
+# Generated from: D:\SW\laser-burr\LaserBurr\IO.cs
+# Last updated: 2025-12-23 - 7-System functional architecture version
+
+EquipmentName: LaserBurrMachine
+DocumentType: IODescriptionFile
+
+# ============================================================
+# Global Constants
+# ============================================================
+Constants:
+  IO_MODULE_SLAVEID: 16
+  IO_MODULE_INDEXNO: 0x8070
+  MAX_IO_ADDRESS: 7
+  MAX_IO_ADDRESS_IN: 4
+  MAX_IO_ADDRESS_OUT: 3
+  SIZE_IO_ADDRESS: 16          # Number of I/O per unit
+  SIZE_WMX_IO_ADDRESS: 8       # Byte
+  MODULE_START_ADDRESS_INPUT: 56
+  MODULE_START_ADDRESS_OUTPUT: 0
+
+# ============================================================
+# Digital Inputs
+# ============================================================
+# All digital input signals grouped by functional area
+# Source: IO.cs #region IN (lines 41-116)
+Inputs:
+  # ===== Power & Key Switch Area (0x0000 ~ 0x0005) =====
+  - Name: IN_POWER_ON
+    Address: 0x0000
+    Description: Power ON signal
+    Group: PowerAndKeySwitch
+
+  - Name: IN_KEY_SW_RESET
+    Address: 0x0001
+    Description: Reset key switch
+    Group: PowerAndKeySwitch
+
+  - Name: IN_KEY_SW_AUTO
+    Address: 0x0002
+    Description: Auto mode key switch
+    Group: PowerAndKeySwitch
+
+  - Name: IN_KEY_SW_MANU
+    Address: 0x0003
+    Description: Manual mode key switch
+    Group: PowerAndKeySwitch
+
+  - Name: IN_MAIN_CDA
+    Address: 0x0004
+    Description: Main CDA pressure sensor
+    Group: PowerAndKeySwitch
+
+  - Name: IN_SUB_CDA
+    Address: 0x0005
+    Description: Sub CDA pressure sensor
+    Group: PowerAndKeySwitch
+
+  # ===== Emergency Stop Area (0x0006 ~ 0x0009) =====
+  - Name: IN_EMO1
+    Address: 0x0006
+    Description: Emergency stop button 1
+    Group: EmergencyStop
+
+  - Name: IN_EMO2
+    Address: 0x0007
+    Description: Emergency stop button 2
+    Group: EmergencyStop
+
+  - Name: IN_EMO3
+    Address: 0x0008
+    Description: Emergency stop button 3
+    Group: EmergencyStop
+
+  - Name: IN_EMO4
+    Address: 0x0009
+    Description: Emergency stop button 4
+    Group: EmergencyStop
+
+  # ===== Door Sensor Area (0x000A ~ 0x000F) =====
+  - Name: IN_DOOR1
+    Address: 0x000A
+    Description: Door 1 open sensor
+    Group: DoorInterlock
+
+  - Name: IN_DOOR2
+    Address: 0x000B
+    Description: Door 2 open sensor
+    Group: DoorInterlock
+
+  - Name: IN_DOOR3
+    Address: 0x000C
+    Description: Door 3 open sensor
+    Group: DoorInterlock
+
+  - Name: IN_DOOR1_LOCK
+    Address: 0x000D
+    Description: Door 1 lock sensor
+    Group: DoorInterlock
+
+  - Name: IN_DOOR2_LOCK
+    Address: 0x000E
+    Description: Door 2 lock sensor
+    Group: DoorInterlock
+
+  - Name: IN_DOOR3_LOCK
+    Address: 0x000F
+    Description: Door 3 lock sensor
+    Group: DoorInterlock
+
+  # ===== Electric Box Monitoring Area (0x0010 ~ 0x001E) =====
+  - Name: IN_EBT_ALARM
+    Address: 0x0010
+    Description: Electric box temperature alarm
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBT_WARNING
+    Address: 0x0011
+    Description: Electric box temperature warning
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBF1_RUN
+    Address: 0x0012
+    Description: Electric box fan #1 running
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBF2_RUN
+    Address: 0x0013
+    Description: Electric box fan #2 running
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBF3_RUN
+    Address: 0x0014
+    Description: Electric box fan #3 running
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBF4_RUN
+    Address: 0x0015
+    Description: Electric box fan #4 running
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBS_STATE_OK
+    Address: 0x0016
+    Description: Electric box SPD state OK
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBS_TRIP_ALARM
+    Address: 0x0017
+    Description: Electric box SPD trip alarm
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_EBD_CLOSE
+    Address: 0x0018
+    Description: Electric box door closed
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_ELCB_TRIP_PC
+    Address: 0x0019
+    Description: ELCB trip - Main PC outlet
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_ELCB_TRIP_LASER
+    Address: 0x001A
+    Description: ELCB trip - Laser outlet
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_ELCB_TRIP_FUME_
+    Address: 0x001B
+    Description: ELCB trip - Fume collector
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_ELCB_TRIP_CO2_UNIT
+    Address: 0x001C
+    Description: ELCB trip - CO2 controller
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_ELCB_TRIP_EBOX
+    Address: 0x001D
+    Description: ELCB trip - E-Box outlet
+    Group: ElectricBoxMonitoring
+
+  - Name: IN_ELCB_TRIP_SERVO
+    Address: 0x001E
+    Description: ELCB trip - Servo line
+    Group: ElectricBoxMonitoring
+
+  # ===== OP Shutter & Safety Area (0x0020 ~ 0x0027) =====
+  - Name: IN_OP_SIDE_SHUTTER_UP
+    Address: 0x0020
+    Description: OP side shutter UP position sensor
+    Group: OPShutter
+
+  - Name: IN_OP_SIDE_SHUTTER_DN
+    Address: 0x0021
+    Description: OP side shutter DOWN position sensor
+    Group: OPShutter
+
+  - Name: IN_LDS_DETECT
+    Address: 0x0023
+    Description: LDS detection sensor
+    Group: HeightMeasurement
+
+  - Name: IN_GASKET_DETECT
+    Address: 0x0024
+    Description: Gasket detection sensor
+    Group: GasketHandling
+
+  - Name: IN_LIGHT_CURTAIN_OUT1
+    Address: 0x0025
+    Description: Light curtain output #1
+    Group: LightCurtain
+
+  - Name: IN_LIGHT_CURTAIN_OUT2
+    Address: 0x0026
+    Description: Light curtain output #2
+    Group: LightCurtain
+
+  - Name: IN_LIGHT_CURTAIN_DETECT
+    Address: 0x0027
+    Description: Light curtain detection sensor
+    Group: LightCurtain
+
+  # ===== Laser & CO2 Area (0x0030 ~ 0x003D) =====
+  - Name: IN_LASER_SHUTTER_OPEN
+    Address: 0x0030
+    Description: Laser shutter OPEN position sensor
+    Group: LaserControl
+
+  - Name: IN_LASER_SHUTTER_CLOSE
+    Address: 0x0031
+    Description: Laser shutter CLOSE position sensor
+    Group: LaserControl
+
+  - Name: IN_LASER_OK_SIGNAL
+    Address: 0x0032
+    Description: Laser ready OK signal
+    Group: LaserControl
+
+  - Name: IN_LASER_AORF_OVERTEMP_FLT
+    Address: 0x0033
+    Description: Laser AORF over-temperature fault
+    Group: LaserFaults
+
+  - Name: IN_LASER_AOM_CELL_OT_FLT
+    Address: 0x0034
+    Description: Laser AOM cell over-temperature fault
+    Group: LaserFaults
+
+  - Name: IN_LASER_AORF_VSMR_FAULT
+    Address: 0x0035
+    Description: Laser AORF VSMR fault
+    Group: LaserFaults
+
+  - Name: IN_LASER_SUPPLY_OT
+    Address: 0x0036
+    Description: Laser supply over-temperature
+    Group: LaserFaults
+
+  - Name: IN_LASER_SUPPLY_VSMR_FAULT
+    Address: 0x0037
+    Description: Laser supply VSMR fault
+    Group: LaserFaults
+
+  - Name: IN_LASER_AORF_POWER_FLT
+    Address: 0x0038
+    Description: Laser AORF power fault
+    Group: LaserFaults
+
+  - Name: IN_CO2_NOZZLE_UP
+    Address: 0x0039
+    Description: CO2 nozzle UP position sensor
+    Group: Co2Cleaning
+
+  - Name: IN_CO2_NOZZLE_DN
+    Address: 0x003A
+    Description: CO2 nozzle DOWN position sensor
+    Group: Co2Cleaning
+
+  - Name: IN_CHILLER_RUN
+    Address: 0x003B
+    Description: Chiller running status
+    Group: ChillerControl
+
+  - Name: IN_CHILLER_REMOTE
+    Address: 0x003C
+    Description: Chiller remote mode status
+    Group: ChillerControl
+
+  - Name: IN_CHILLER_ALARM
+    Address: 0x003D
+    Description: Chiller alarm status
+    Group: ChillerControl
+
+  # ===== Gasket Cylinder Sensors (Special addresses - from IO.cs) =====
+  - Name: IN_GASKET_CYL_UP
+    Address: 0x1011
+    Description: Gasket cylinder UP position sensor
+    Group: GasketHandling
+    Note: Extended address range
+
+  - Name: IN_GASKET_CYL_DN
+    Address: 0x1012
+    Description: Gasket cylinder DOWN position sensor
+    Group: GasketHandling
+    Note: Extended address range
+
+  - Name: IN_GASKET_VAC_ON
+    Address: 0x1013
+    Description: Gasket vacuum ON sensor
+    Group: GasketHandling
+    Note: Extended address range
+
+# ============================================================
+# Digital Outputs
+# ============================================================
+# All digital output signals grouped by functional area
+# Source: IO.cs #region OUT (lines 118-170)
+Outputs:
+  # ===== Switch Lamps & Indicators (0x0000 ~ 0x000F) =====
+  - Name: OUT_SW_RESET_LAMP
+    Address: 0x0000
+    Description: Reset switch lamp
+    Group: StatusIndicator
+
+  - Name: OUT_DOOR_LOCK_SOL
+    Address: 0x0001
+    Description: Door lock solenoid
+    Group: DoorInterlock
+
+  - Name: OUT_BUZZER_1
+    Address: 0x0004
+    Description: Buzzer #1 (long beep - ALARM)
+    Group: StatusIndicator
+
+  - Name: OUT_BUZZER_2
+    Address: 0x0005
+    Description: Buzzer #2 (short beep - WARNING)
+    Group: StatusIndicator
+
+  - Name: OUT_BUZZER_3
+    Address: 0x0006
+    Description: Buzzer #3 (beep - INITIAL)
+    Group: StatusIndicator
+
+  - Name: OUT_BUZZER_4
+    Address: 0x0007
+    Description: Buzzer #4
+    Group: StatusIndicator
+
+  - Name: OUT_EQP_SERVO_STOP
+    Address: 0x0008
+    Description: Equipment servo stop signal
+    Group: SafetyControl
+
+  - Name: OUT_LIGHT_CURTAIN_MUTE1
+    Address: 0x0009
+    Description: Light curtain mute #1
+    Group: LightCurtain
+
+  - Name: OUT_LIGHT_CURTAIN_MUTE2
+    Address: 0x000A
+    Description: Light curtain mute #2
+    Group: LightCurtain
+
+  - Name: OUT_TOWER_LAMP_RED
+    Address: 0x000D
+    Description: Tower lamp RED
+    Group: StatusIndicator
+
+  - Name: OUT_TOWER_LAMP_YELLOW
+    Address: 0x000E
+    Description: Tower lamp YELLOW
+    Group: StatusIndicator
+
+  - Name: OUT_TOWER_LAMP_GREEN
+    Address: 0x000F
+    Description: Tower lamp GREEN
+    Group: StatusIndicator
+
+  # ===== OP Shutter & Laser Area (0x0010 ~ 0x001F) =====
+  - Name: OUT_OP_SHUTTER_UP_SOL
+    Address: 0x0010
+    Description: OP side shutter UP solenoid
+    Group: OPShutter
+
+  - Name: OUT_OP_SHUTTER_DN_SOL
+    Address: 0x0011
+    Description: OP side shutter DOWN solenoid
+    Group: OPShutter
+
+  - Name: OUT_LASER_SHUTTER_OPEN_SOL
+    Address: 0x0012
+    Description: Laser shutter OPEN solenoid
+    Group: LaserControl
+
+  - Name: OUT_LASER_SHUTTER_CLOSE_SOL
+    Address: 0x0013
+    Description: Laser shutter CLOSE solenoid
+    Group: LaserControl
+
+  - Name: OUT_LDS_ZERO_SET
+    Address: 0x0014
+    Description: LDS zero set output
+    Group: HeightMeasurement
+
+  - Name: OUT_LASER_READY_OK
+    Address: 0x0015
+    Description: Laser ready OK output
+    Group: LaserControl
+
+  - Name: OUT_CHILLER_RUN_SIGNAL
+    Address: 0x0016
+    Description: Chiller run signal
+    Group: ChillerControl
+
+  - Name: OUT_CO2_NOZZLE_UP_SOL
+    Address: 0x0017
+    Description: CO2 nozzle UP solenoid
+    Group: Co2Cleaning
+
+  - Name: OUT_CO2_NOZZLE_DN_SOL
+    Address: 0x0018
+    Description: CO2 nozzle DOWN solenoid
+    Group: Co2Cleaning
+
+  - Name: OUT_CO2_ON
+    Address: 0x0019
+    Description: CO2 cleaning ON
+    Group: Co2Cleaning
+
+  - Name: OUT_CO2_VALVE_OPEN
+    Address: 0x001A
+    Description: CO2 valve open
+    Group: Co2Cleaning
+
+  - Name: OUT_CDA_VALVE_OPEN
+    Address: 0x001B
+    Description: CDA valve open
+    Group: Co2Cleaning
+
+  - Name: OUT_CO2_EMO
+    Address: 0x001C
+    Description: CO2 emergency off
+    Group: Co2Cleaning
+
+  - Name: OUT_FUME_RUN_SIGINAL
+    Address: 0x001D
+    Description: Fume collector run signal
+    Group: Co2Cleaning
+
+  # ===== Gasket Solenoids (0x0020 ~ 0x0022) =====
+  - Name: OUT_GASKET_VAC_SOL
+    Address: 0x0020
+    Description: Gasket table vacuum solenoid
+    Group: GasketHandling
+
+  - Name: OUT_GASKET_CYL_UP_SOL
+    Address: 0x0021
+    Description: Gasket cylinder UP solenoid
+    Group: GasketHandling
+
+  - Name: OUT_GASKET_CYL_DN_SOL
+    Address: 0x0022
+    Description: Gasket cylinder DOWN solenoid
+    Group: GasketHandling
+
+# ============================================================
+# Analog Inputs
+# ============================================================
+# Analog sensor inputs with measurement parameters
+AnalogInputs:
+  - Name: AD_BURR_HEIGHT_SENSOR
+    Address: 64
+    Description: Burr height measurement sensor
+    Unit: mm
+    Range:
+      Min: 0
+      Max: 10
+    Group: HeightMeasurement
+
+  - Name: AD_2
+    Address: 66
+    Description: Analog input #2
+    Unit: V
+    Group: Measurement
+
+  - Name: AD_3
+    Address: 68
+    Description: Analog input #3
+    Unit: V
+    Group: Measurement
+
+  - Name: AD_4
+    Address: 60
+    Description: Analog input #4
+    Unit: V
+    Group: Measurement
+
+AnalogOutputs: []
+
+# ============================================================
+# Device IO Bindings
+# ============================================================
+# All Device instances' IO bindings matching hardware-description-file3.yaml
+# Code generator reads this section to generate Device Partial Classes
+# Organized by System -> Unit -> Device hierarchy
+DeviceBindings:
+
+  # ==================== 1. Loading System ====================
+
+  # -------------------- OPShutter Unit --------------------
+  OPShutterCylinder:
+    Description: OP side shutter dual solenoid cylinder
+    System: Loading
+    Unit: OPShutter
+    Bindings:
+      Outputs:
+        - LogicalName: ExtendSolenoid
+          IoName: OUT_OP_SHUTTER_UP_SOL
+          Description: Shutter UP (open) solenoid
+
+        - LogicalName: RetractSolenoid
+          IoName: OUT_OP_SHUTTER_DN_SOL
+          Description: Shutter DOWN (close) solenoid
+
+      Inputs:
+        - LogicalName: ExtendedPosition
+          IoName: IN_OP_SIDE_SHUTTER_UP
+          Description: Shutter UP position sensor
+
+        - LogicalName: RetractedPosition
+          IoName: IN_OP_SIDE_SHUTTER_DN
+          Description: Shutter DOWN position sensor
+
+  # -------------------- SafetyInterlock Unit --------------------
+  Door1Sensor:
+    Description: Safety door 1 open detection
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_DOOR1
+          Description: Door 1 sensor input (0=closed, 1=open)
+
+  Door2Sensor:
+    Description: Safety door 2 open detection
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_DOOR2
+          Description: Door 2 sensor input (0=closed, 1=open)
+
+  Door3Sensor:
+    Description: Safety door 3 open detection
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_DOOR3
+          Description: Door 3 sensor input (0=closed, 1=open)
+
+  KeySwitch:
+    Description: Auto/Manual mode key switch
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_KEY_SW_AUTO
+          Description: Key switch input (0=AUTO, 1=MANUAL)
+
+  LightCurtainSensor:
+    Description: Light curtain detection sensor
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_LIGHT_CURTAIN_DETECT
+          Description: Light curtain detection (1=intrusion detected)
+
+  Mute1Output:
+    Description: Light curtain mute output channel 1
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_LIGHT_CURTAIN_MUTE1
+          Description: Mute output 1
+
+  Mute2Output:
+    Description: Light curtain mute output channel 2
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_LIGHT_CURTAIN_MUTE2
+          Description: Mute output 2 (set 500ms after Mute1)
+
+  ServoStopOutput:
+    Description: Equipment servo stop signal output
+    System: Loading
+    Unit: SafetyInterlock
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_EQP_SERVO_STOP
+          Description: Servo stop output
+
+  # ==================== 2. Unloading System ====================
+
+  # -------------------- MaterialDetection Unit --------------------
+  GasketDetectSensor:
+    Description: Gasket presence detection sensor
+    System: Unloading
+    Unit: MaterialDetection
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_GASKET_DETECT
+          Description: Gasket detect input (1=present, 0=absent)
+
+  # ==================== 3. Suction System ====================
+
+  # -------------------- Vacuum Unit --------------------
+  VacuumSolenoid:
+    Description: Gasket table vacuum solenoid valve
+    System: Suction
+    Unit: Vacuum
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_GASKET_VAC_SOL
+          Description: Vacuum solenoid output
+
+  VacuumSensor:
+    Description: Vacuum pressure confirmation sensor
+    System: Suction
+    Unit: Vacuum
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_GASKET_VAC_ON
+          Description: Vacuum sensor input (0=vacuum established)
+
+  # -------------------- Clamp Unit --------------------
+  ClampCylinder:
+    Description: Gasket guide clamping cylinder
+    System: Suction
+    Unit: Clamp
+    Bindings:
+      Outputs:
+        - LogicalName: ExtendSolenoid
+          IoName: OUT_GASKET_CYL_UP_SOL
+          Description: Clamp UP solenoid (release)
+
+        - LogicalName: RetractSolenoid
+          IoName: OUT_GASKET_CYL_DN_SOL
+          Description: Clamp DOWN solenoid (engage)
+
+      Inputs:
+        - LogicalName: ExtendedPosition
+          IoName: IN_GASKET_CYL_UP
+          Description: Clamp UP position sensor (released)
+
+        - LogicalName: RetractedPosition
+          IoName: IN_GASKET_CYL_DN
+          Description: Clamp DOWN position sensor (engaged)
+
+  # ==================== 4. Stage System ====================
+  # Note: Stage System uses WMX3 motion controller, no digital I/O bindings
+  # Axis control is handled via motion controller API, not discrete I/O
+
+  # ==================== 5. Vision System ====================
+
+  # -------------------- Alignment Unit --------------------
+  # Note: AlignCamera is a virtual device using MELSEC communication
+  # No direct I/O bindings - uses LW_MC/LW_VS register interface
+
+  # -------------------- Inspection Unit --------------------
+  # Note: InspectionCamera is a virtual device using MELSEC communication
+  # No direct I/O bindings - uses LW_MC/LW_VS register interface
+
+  # -------------------- Measurement Unit --------------------
+  HeightSensor:
+    Description: Laser displacement sensor for burr height measurement
+    System: Vision
+    Unit: Measurement
+    Bindings:
+      Inputs:
+        - LogicalName: DetectionSignal
+          IoName: IN_LDS_DETECT
+          Description: LDS detection input (1=target detected)
+
+      AnalogInputs:
+        - LogicalName: HeightValue
+          IoName: AD_BURR_HEIGHT_SENSOR
+          Description: Burr height analog value
+
+  LdsZeroSetOutput:
+    Description: LDS zero calibration output
+    System: Vision
+    Unit: Measurement
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_LDS_ZERO_SET
+          Description: LDS zero set output
+
+  # ==================== 6. Laser System ====================
+
+  # -------------------- LaserControl Unit --------------------
+  LaserShutter:
+    Description: Laser beam shutter with open/close solenoids
+    System: Laser
+    Unit: LaserControl
+    Bindings:
+      Outputs:
+        - LogicalName: ExtendSolenoid
+          IoName: OUT_LASER_SHUTTER_OPEN_SOL
+          Description: Shutter OPEN solenoid
+
+        - LogicalName: RetractSolenoid
+          IoName: OUT_LASER_SHUTTER_CLOSE_SOL
+          Description: Shutter CLOSE solenoid
+
+      Inputs:
+        - LogicalName: ExtendedPosition
+          IoName: IN_LASER_SHUTTER_OPEN
+          Description: Shutter OPEN position sensor
+
+        - LogicalName: RetractedPosition
+          IoName: IN_LASER_SHUTTER_CLOSE
+          Description: Shutter CLOSE position sensor
+
+  LaserReadySensor:
+    Description: Laser OK signal sensor
+    System: Laser
+    Unit: LaserControl
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_LASER_OK_SIGNAL
+          Description: Laser ready input (1=ready)
+
+  LaserReadyOutput:
+    Description: Laser ready OK output signal
+    System: Laser
+    Unit: LaserControl
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_LASER_READY_OK
+          Description: Laser ready OK output
+
+  # -------------------- Chiller Unit --------------------
+  ChillerRunSensor:
+    Description: Chiller running status sensor
+    System: Laser
+    Unit: Chiller
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_CHILLER_RUN
+          Description: Chiller run status input
+
+  ChillerRemoteSensor:
+    Description: Chiller remote mode status sensor
+    System: Laser
+    Unit: Chiller
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_CHILLER_REMOTE
+          Description: Chiller remote mode input
+
+  ChillerAlarmSensor:
+    Description: Chiller alarm status sensor
+    System: Laser
+    Unit: Chiller
+    Bindings:
+      Inputs:
+        - LogicalName: InputSignal
+          IoName: IN_CHILLER_ALARM
+          Description: Chiller alarm input
+
+  ChillerRunOutput:
+    Description: Chiller run signal output
+    System: Laser
+    Unit: Chiller
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_CHILLER_RUN_SIGNAL
+          Description: Chiller run signal output
+
+  # ==================== 7. CO2 Clean System ====================
+
+  # -------------------- Nozzle Unit --------------------
+  NozzleCylinder:
+    Description: CO2 nozzle Z-axis dual solenoid cylinder
+    System: Co2Clean
+    Unit: Nozzle
+    Bindings:
+      Outputs:
+        - LogicalName: ExtendSolenoid
+          IoName: OUT_CO2_NOZZLE_UP_SOL
+          Description: Nozzle UP solenoid
+
+        - LogicalName: RetractSolenoid
+          IoName: OUT_CO2_NOZZLE_DN_SOL
+          Description: Nozzle DOWN solenoid
+
+      Inputs:
+        - LogicalName: ExtendedPosition
+          IoName: IN_CO2_NOZZLE_UP
+          Description: Nozzle UP position sensor (inverted logic)
+
+        - LogicalName: RetractedPosition
+          IoName: IN_CO2_NOZZLE_DN
+          Description: Nozzle DOWN position sensor (inverted logic)
+
+  # -------------------- Valve Unit --------------------
+  Co2Valve:
+    Description: CO2 supply valve control
+    System: Co2Clean
+    Unit: Valve
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_CO2_VALVE_OPEN
+          Description: CO2 valve output
+
+  CdaValve:
+    Description: CDA (Clean Dry Air) valve control
+    System: Co2Clean
+    Unit: Valve
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_CDA_VALVE_OPEN
+          Description: CDA valve output
+
+  Co2SprayOutput:
+    Description: CO2 spray activation output
+    System: Co2Clean
+    Unit: Valve
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_CO2_ON
+          Description: CO2 spray output
+
+  Co2EmoOutput:
+    Description: CO2 system emergency stop output
+    System: Co2Clean
+    Unit: Valve
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_CO2_EMO
+          Description: CO2 EMO output
+
+  # -------------------- Fume Unit --------------------
+  FumeRunOutput:
+    Description: Fume collector activation signal
+    System: Co2Clean
+    Unit: Fume
+    Bindings:
+      Outputs:
+        - LogicalName: OutputSignal
+          IoName: OUT_FUME_RUN_SIGINAL
+          Description: Fume run output

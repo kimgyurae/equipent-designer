@@ -1,0 +1,37 @@
+EquipmentName: LaserBurrMachine
+EquipmentDisplayName: "PFS Laser Burr 사상기"
+DocumentType: EquipmentDescriptionFile
+ProcessDescriptionFilePath: "./process-description-file.yaml"
+HardwareDescriptionFilePath: "./hardware-description-file.yaml"
+StationDescriptionFilePath: "./station-description-file.yaml"
+LoggerDescriptionFilePath: "./logger-description-file.yaml"
+IODescriptionFilePath: "./io-description-file.yaml"
+DefaultRecipeFilePath: "./recipe/default-recipe.yaml"
+
+ProgramRoot: "D:/{{EquipmentName}}"
+
+PathDefinitions:
+  - Name: SystemDirectory
+    Path: "{{ProgramRoot}}/System"
+  - Name: TeachDirectory
+    Path: "{{ProgramRoot}}/Teach"
+  - Name: ListDirectory
+    Path: "{{ProgramRoot}}/List"
+  - Name: RecipeDirectory
+    Path: "{{ProgramRoot}}/Recipe"
+  - Name: DataDirectory
+    Path: "{{ProgramRoot}}/Data"
+  - Name: DefectDirectory
+    Path: "{{ProgramRoot}}/Defect"
+  - Name: LogDirectory
+    Path: "{{ProgramRoot}}/Log"
+  - Name: LastRecipeFilePath
+    Path: "{{SystemDirectory}}/LastRecipe.dat"
+  - Name: RecipeBackupDirectory
+    Path: "{{RecipeDirectory}}/Backup"
+  - Name: LastDataFilePath
+    Path: "{{SystemDirectory}}/LastData.dat"
+  - Name: TeachDataFilePath
+    Path: "{{TeachDirectory}}/TeachData.xml"
+  - Name: SystemConfigFilePath
+    Path: "{{SystemDirectory}}/SystemConfig.xml"

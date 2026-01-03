@@ -1,0 +1,1441 @@
+# LaserBurr Hardware Definitions - 7-System Architecture
+# This YAML defines the complete hardware hierarchy for the LaserBurr equipment
+# with a functional grouping approach (Loading, Unloading, Suction, Stage, Vision, Laser, CO2 Clean)
+# Based on: D:\SW\laser-burr\LaserBurr\Device.cs, IO.cs, Motion.cs, Initialize.cs analysis
+# Last updated: 2025-12-22 - 7-System functional architecture version
+
+EquipmentName: LaserBurrMachine
+DocumentType: HardwareDescriptionFile
+
+# Reference to Process Description File
+ProcessDescriptionFile: "./process-description-file.yaml"
+
+# IO Definition File Reference
+IoDefinitionFile: "./io-description-file.yaml"
+
+# ============================================================
+# Supported Device Types - LaserBurr Standard
+# ============================================================
+SupportedDeviceTypes:
+  - Name: Generic
+    Description: Generic device with no predefined Commands (fully customizable)
+    BaseClass: GenericDeviceBase
+    Commands: []
+
+# ============================================================
+# Systems (7-System Functional Architecture)
+# ============================================================
+Systems:
+  # ==================== 1. Loading System ====================
+  # Material loading from OP side with safety interlocks
+  - Name: Loading
+    DisplayName: Loading System
+    Description: Material loading system managing OP side shutter, gasket detection, and safety interlocks for material input
+    ImplementationInstructions:
+      - "This System handles material loading from the operator side."
+      - "Coordinates with Safety interlocks (doors, light curtains) during loading operations."
+      - "Reference: Device.cs OPSideShutter(), CheckGasketExist(), CheckDoorLockState()."
+    Commands:
+      - Name: OpenForLoading
+        Description: Open OP shutter and prepare for material loading
+        Parameters: []
+      - Name: CloseAfterLoading
+        Description: Close OP shutter after material loaded
+        Parameters: []
+      - Name: CheckLoadingReady
+        Description: Check if loading station is ready (safety interlocks OK)
+        Parameters: []
+      - Name: GetLoadingStatus
+        Description: Get current loading system status
+        Parameters: []
+    Units:
+      # OP Shutter Unit
+      - Name: OPShutter
+        DisplayName: OP Side Shutter Unit
+        Description: Operator side shutter for material access control
+        ImplementationInstructions:
+          - "Controls OP side shutter for gasket loading."
+          - "Shutter UP = Open (allow material access), DOWN = Closed (safety)."
+          - "Reference: Device.cs OPSideShutter(), CheckOPSideShutter()."
+        Commands:
+          - Name: Open
+            Description: Open OP side shutter (UP position)
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: Close
+            Description: Close OP side shutter (DOWN position)
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: CheckOpen
+            Description: Check if shutter is open
+            Parameters: []
+          - Name: CheckClosed
+            Description: Check if shutter is closed
+            Parameters: []
+          - Name: GetStatus
+            Description: Get current shutter position status
+            Parameters: []
+        Devices:
+          - Name: OPShutterCylinder
+            DisplayName: OP Shutter Cylinder
+            Description: OP side shutter dual solenoid cylinder
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding:"
+              - "  Output: OUT_OP_SHUTTER_UP_SOL(0x0010), OUT_OP_SHUTTER_DN_SOL(0x0011)"
+              - "  Input: IN_OP_SIDE_SHUTTER_UP(0x0020), IN_OP_SIDE_SHUTTER_DN(0x0021)"
+            Commands:
+              - Name: Extend
+                Description: Open shutter (UP)
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: Retract
+                Description: Close shutter (DOWN)
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: CheckExtended
+                Description: Check if shutter is open
+                Parameters: []
+              - Name: CheckRetracted
+                Description: Check if shutter is closed
+                Parameters: []
+              - Name: GetStatus
+                Description: Get current shutter status
+                Parameters: []
+
+      # Safety Interlock Unit (for Loading)
+      - Name: SafetyInterlock
+        DisplayName: Safety Interlock Unit
+        Description: Safety interlocks for loading operations (doors, light curtains)
+        ImplementationInstructions:
+          - "Manages door sensors, key switch, and light curtain during loading."
+          - "Reference: Device.cs CheckDoorLockState(), SafetyCtrl(), CheckAreaSensor()."
+        Commands:
+          - Name: CheckAllInterlocks
+            Description: Check all safety interlock conditions
+            Parameters: []
+          - Name: CheckAutoMode
+            Description: Check if in AUTO mode via key switch
+            Parameters: []
+          - Name: MuteForLoading
+            Description: Mute light curtain for material loading
+            Parameters:
+              - Name: enable
+                Type: bool
+                Description: true to mute, false to enable detection
+                Required: true
+          - Name: GetSafetyStatus
+            Description: Get safety status
+            Parameters: []
+        Devices:
+          - Name: Door1Sensor
+            DisplayName: Door 1 Sensor
+            Description: Safety door 1 open detection
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_DOOR1 (0x000A)"
+              - "Sensor logic: 0 = closed, 1 = open."
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if door is open
+                Parameters: []
+
+          - Name: Door2Sensor
+            DisplayName: Door 2 Sensor
+            Description: Safety door 2 open detection
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_DOOR2 (0x000B)"
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if door is open
+                Parameters: []
+
+          - Name: Door3Sensor
+            DisplayName: Door 3 Sensor
+            Description: Safety door 3 open detection
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_DOOR3 (0x000C)"
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if door is open
+                Parameters: []
+
+          - Name: KeySwitch
+            DisplayName: Auto Mode Key Switch
+            Description: Key switch for AUTO/MANUAL mode selection
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_KEY_SW_AUTO (0x0002)"
+              - "Logic: 0 = AUTO mode, 1 = MANUAL mode."
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if in AUTO mode
+                Parameters: []
+
+          - Name: LightCurtainSensor
+            DisplayName: Light Curtain Sensor
+            Description: Light curtain detection sensor
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_LIGHT_CURTAIN_DETECT (0x0027)"
+              - "Sensor logic: 1 = intrusion detected."
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if intrusion detected
+                Parameters: []
+
+          - Name: Mute1Output
+            DisplayName: Mute Output 1
+            Description: Light curtain mute output channel 1
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_LIGHT_CURTAIN_MUTE1 (0x0009)"
+            Commands:
+              - Name: TurnOn
+                Description: Activate mute
+                Parameters: []
+              - Name: TurnOff
+                Description: Deactivate mute
+                Parameters: []
+              - Name: SetState
+                Description: Set mute state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for ON, false for OFF
+                    Required: true
+
+          - Name: Mute2Output
+            DisplayName: Mute Output 2
+            Description: Light curtain mute output channel 2
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_LIGHT_CURTAIN_MUTE2 (0x000A)"
+              - "Must be set 500ms after Mute1Output."
+            Commands:
+              - Name: TurnOn
+                Description: Activate mute
+                Parameters: []
+              - Name: TurnOff
+                Description: Deactivate mute
+                Parameters: []
+              - Name: SetState
+                Description: Set mute state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for ON, false for OFF
+                    Required: true
+
+          - Name: ServoStopOutput
+            DisplayName: Servo Stop Output
+            Description: Equipment servo stop signal output
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_EQP_SERVO_STOP (0x0008)"
+            Commands:
+              - Name: TurnOn
+                Description: Activate servo stop
+                Parameters: []
+              - Name: TurnOff
+                Description: Deactivate servo stop
+                Parameters: []
+              - Name: SetState
+                Description: Set servo stop state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for stop, false for run
+                    Required: true
+
+  # ==================== 2. Unloading System ====================
+  # Material unloading from OP side (shares OP shutter with Loading)
+  - Name: Unloading
+    DisplayName: Unloading System
+    Description: Material unloading system managing material removal from OP side after processing
+    ImplementationInstructions:
+      - "This System handles material unloading from the operator side."
+      - "Shares OP Shutter with Loading System for material access."
+      - "Coordinates gasket release before unloading."
+    Commands:
+      - Name: PrepareForUnloading
+        Description: Prepare system for material unloading (release gasket, open shutter)
+        Parameters: []
+      - Name: CompleteUnloading
+        Description: Complete unloading sequence (close shutter after removal)
+        Parameters: []
+      - Name: CheckUnloadingReady
+        Description: Check if unloading station is ready
+        Parameters: []
+      - Name: GetUnloadingStatus
+        Description: Get current unloading system status
+        Parameters: []
+    Units:
+      # Material Detection Unit
+      - Name: MaterialDetection
+        DisplayName: Material Detection Unit
+        Description: Gasket presence detection for unloading confirmation
+        ImplementationInstructions:
+          - "Detects gasket presence to confirm material loaded/unloaded status."
+          - "Reference: Device.cs CheckGasketExist()."
+        Commands:
+          - Name: CheckMaterialPresent
+            Description: Check if gasket/material is present
+            Parameters: []
+          - Name: WaitMaterialRemoved
+            Description: Wait until material is removed
+            Parameters:
+              - Name: timeoutMs
+                Type: int
+                Description: Timeout in milliseconds
+                Required: false
+                DefaultValue: 30000
+        Devices:
+          - Name: GasketDetectSensor
+            DisplayName: Gasket Detection Sensor
+            Description: Sensor for detecting gasket presence
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_GASKET_DETECT (0x0024)"
+              - "Sensor logic: 1 = gasket present, 0 = no gasket."
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if gasket is detected
+                Parameters: []
+
+  # ==================== 3. Suction System ====================
+  # Vacuum suction and clamping for material fixation
+  - Name: Suction
+    DisplayName: Suction System
+    Description: Vacuum suction and mechanical clamping system for secure material fixation during processing
+    ImplementationInstructions:
+      - "This System manages vacuum suction and mechanical clamping."
+      - "Gasket must be secured before any motion or processing operations."
+      - "Reference: Device.cs GasKet_Table_Vac(), GasKet_Clamp(), CheckGaketClamp()."
+    Commands:
+      - Name: SecureMaterial
+        Description: Secure material with vacuum and clamp
+        Parameters: []
+      - Name: ReleaseMaterial
+        Description: Release material (turn off vacuum and unclamp)
+        Parameters: []
+      - Name: CheckSecured
+        Description: Check if material is properly secured
+        Parameters: []
+      - Name: GetSuctionStatus
+        Description: Get current suction system status
+        Parameters: []
+    Units:
+      # Vacuum Unit
+      - Name: Vacuum
+        DisplayName: Vacuum Unit
+        Description: Vacuum suction control for gasket table
+        ImplementationInstructions:
+          - "Controls vacuum solenoid for gasket table suction."
+          - "Reference: Device.cs GasKet_Table_Vac()."
+        Commands:
+          - Name: TurnOn
+            Description: Turn on vacuum suction
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for vacuum confirmation
+                Required: false
+                DefaultValue: true
+          - Name: TurnOff
+            Description: Turn off vacuum suction
+            Parameters: []
+          - Name: CheckVacuumOn
+            Description: Check if vacuum is on
+            Parameters: []
+          - Name: GetStatus
+            Description: Get vacuum status
+            Parameters: []
+        Devices:
+          - Name: VacuumSolenoid
+            DisplayName: Gasket Table Vacuum Solenoid
+            Description: Vacuum solenoid valve for gasket table
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_GASKET_VAC_SOL (0x0020)"
+            Commands:
+              - Name: TurnOn
+                Description: Activate vacuum
+                Parameters: []
+              - Name: TurnOff
+                Description: Deactivate vacuum
+                Parameters: []
+              - Name: SetState
+                Description: Set vacuum state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for ON, false for OFF
+                    Required: true
+              - Name: GetState
+                Description: Get current state
+                Parameters: []
+
+          - Name: VacuumSensor
+            DisplayName: Vacuum On Sensor
+            Description: Vacuum pressure confirmation sensor
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_GASKET_VAC_ON (0x1013)"
+              - "Sensor logic: 0 = vacuum established."
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if vacuum is established
+                Parameters: []
+
+      # Clamp Unit
+      - Name: Clamp
+        DisplayName: Clamp Unit
+        Description: Mechanical clamping for gasket guide
+        ImplementationInstructions:
+          - "Controls gasket guide clamping cylinder."
+          - "Reference: Device.cs GasKet_Clamp(), CheckGaketClamp()."
+        Commands:
+          - Name: ClampOn
+            Description: Engage clamp (DOWN position)
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: ClampOff
+            Description: Release clamp (UP position)
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: CheckClamped
+            Description: Check if clamp is engaged
+            Parameters: []
+          - Name: GetStatus
+            Description: Get clamp status
+            Parameters: []
+        Devices:
+          - Name: ClampCylinder
+            DisplayName: Gasket Guide Clamp Cylinder
+            Description: Gasket guide clamping cylinder
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding:"
+              - "  Output: OUT_GASKET_CYL_UP_SOL(0x0021), OUT_GASKET_CYL_DN_SOL(0x0022)"
+              - "  Input: IN_GASKET_CYL_UP(0x1011), IN_GASKET_CYL_DN(0x1012)"
+            Commands:
+              - Name: Extend
+                Description: Release clamp (UP)
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: Retract
+                Description: Engage clamp (DOWN)
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: CheckExtended
+                Description: Check if clamp is released
+                Parameters: []
+              - Name: CheckRetracted
+                Description: Check if clamp is engaged
+                Parameters: []
+              - Name: GetStatus
+                Description: Get current clamp status
+                Parameters: []
+
+  # ==================== 4. Stage System ====================
+  # All motion axes for positioning
+  - Name: Stage
+    DisplayName: Stage System
+    Description: Motion control system managing all 6 axes (Stage Y, Table XYT, Head XZ) for workpiece and head positioning
+    ImplementationInstructions:
+      - "This System controls all motion axes using WMX3 motion controller."
+      - "Homing sequence: Head Z -> Head X -> Stage Y -> Table X -> Table Y -> Table T"
+      - "Reference: Motion.cs, Initialize.cs for axis control and homing implementation."
+    Commands:
+      - Name: HomeAll
+        Description: Execute home sequence for all axes in defined order
+        Parameters: []
+      - Name: StopAll
+        Description: Stop all axis motion immediately
+        Parameters: []
+      - Name: QuickStopAll
+        Description: Emergency quick stop all axes
+        Parameters: []
+      - Name: GetAllPositions
+        Description: Get current positions of all axes
+        Parameters: []
+      - Name: CheckAllHomed
+        Description: Check if all axes are homed
+        Parameters: []
+    Units:
+      # Head Unit
+      - Name: Head
+        DisplayName: Head Unit
+        Description: Laser head positioning unit with Z (vertical) and X (horizontal) axes
+        ImplementationInstructions:
+          - "Controls Head Z axis (up/down) and Head X axis (left/right)."
+          - "Home sequence: Z-axis first (safety), then X-axis."
+          - "Reference: Motion.cs HomeStartHeadZ(), HomeStartHeadX()."
+        Commands:
+          - Name: Home
+            Description: Execute home sequence for Head axes (Z first, then X)
+            Parameters: []
+          - Name: MoveTo
+            Description: Move head to specified position
+            Parameters:
+              - Name: posZ
+                Type: double
+                Description: Z-axis target position (mm)
+                Required: true
+              - Name: posX
+                Type: double
+                Description: X-axis target position (mm)
+                Required: true
+          - Name: MoveToCleanPos
+            Description: Move head to CO2 cleaning position
+            Parameters:
+              - Name: seq
+                Type: int
+                Description: Cleaning sequence index
+                Required: true
+          - Name: MoveToMeasPos
+            Description: Move head to height measurement position
+            Parameters:
+              - Name: seq
+                Type: int
+                Description: Measurement sequence index
+                Required: true
+          - Name: GetPosition
+            Description: Get current head position (X, Z)
+            Parameters: []
+        Devices:
+          - Name: HeadZAxis
+            DisplayName: Head Z Axis
+            Description: Head vertical positioning axis
+            Type: Generic
+            ImplementationInstructions:
+              - "WMX3 axis control for Head Z movement."
+              - "Axis Index: AXIS_HEAD_Z = 5"
+              - "Home position is UP (away from workpiece for safety)."
+            Commands:
+              - Name: Home
+                Description: Execute home sequence for this axis
+                Parameters: []
+              - Name: MoveTo
+                Description: Move to target position
+                Parameters:
+                  - Name: position
+                    Type: double
+                    Description: Target position (mm)
+                    Required: true
+              - Name: Stop
+                Description: Stop axis motion
+                Parameters: []
+              - Name: GetPosition
+                Description: Get current position
+                Parameters: []
+              - Name: CheckHomeComplete
+                Description: Check if axis is homed
+                Parameters: []
+
+          - Name: HeadXAxis
+            DisplayName: Head X Axis
+            Description: Head horizontal positioning axis
+            Type: Generic
+            ImplementationInstructions:
+              - "WMX3 axis control for Head X movement."
+              - "Axis Index: AXIS_HEAD_X = 4"
+            Commands:
+              - Name: Home
+                Description: Execute home sequence for this axis
+                Parameters: []
+              - Name: MoveTo
+                Description: Move to target position
+                Parameters:
+                  - Name: position
+                    Type: double
+                    Description: Target position (mm)
+                    Required: true
+              - Name: Stop
+                Description: Stop axis motion
+                Parameters: []
+              - Name: GetPosition
+                Description: Get current position
+                Parameters: []
+              - Name: CheckHomeComplete
+                Description: Check if axis is homed
+                Parameters: []
+
+      # Stage Unit
+      - Name: StageY
+        DisplayName: Stage Y Unit
+        Description: Stage positioning unit with Y-axis for workpiece positioning
+        ImplementationInstructions:
+          - "Controls Stage Y axis for workpiece positioning."
+          - "Axis Index: AXIS_STAGE_Y = 0"
+          - "Used for alignment, inspection, laser, and cleaning positions."
+          - "Reference: Motion.cs Move_OpSidePos(), Move_AlignPos(), Move_VisionInspPos(), etc."
+        Commands:
+          - Name: Home
+            Description: Execute home sequence for Stage Y axis
+            Parameters: []
+          - Name: MoveTo
+            Description: Move stage to specified Y position
+            Parameters:
+              - Name: posY
+                Type: double
+                Description: Y-axis target position (mm)
+                Required: true
+          - Name: MoveToOpSidePos
+            Description: Move to OP side (loading/unloading) position
+            Parameters: []
+          - Name: MoveToAlignPos
+            Description: Move to alignment position
+            Parameters: []
+          - Name: MoveToInspPos
+            Description: Move to inspection position
+            Parameters:
+              - Name: seq
+                Type: int
+                Description: Scan sequence index
+                Required: true
+          - Name: MoveToLaserPos
+            Description: Move to laser processing position
+            Parameters:
+              - Name: seq
+                Type: int
+                Description: Processing sequence index
+                Required: true
+          - Name: GetPosition
+            Description: Get current stage Y position
+            Parameters: []
+        Devices:
+          - Name: StageYAxis
+            DisplayName: Stage Y Axis
+            Description: Stage Y-axis for workpiece positioning
+            Type: Generic
+            ImplementationInstructions:
+              - "WMX3 axis control for Stage Y movement."
+              - "Axis Index: AXIS_STAGE_Y = 0"
+            Commands:
+              - Name: Home
+                Description: Execute home sequence for this axis
+                Parameters: []
+              - Name: MoveTo
+                Description: Move to target position
+                Parameters:
+                  - Name: position
+                    Type: double
+                    Description: Target position (mm)
+                    Required: true
+              - Name: Stop
+                Description: Stop axis motion
+                Parameters: []
+              - Name: GetPosition
+                Description: Get current position
+                Parameters: []
+              - Name: CheckHomeComplete
+                Description: Check if axis is homed
+                Parameters: []
+
+      # Table Unit
+      - Name: Table
+        DisplayName: Table Unit
+        Description: Work table with XYT (X, Y, Theta) motion for precise alignment and positioning
+        ImplementationInstructions:
+          - "Controls Table X, Y, and T (Theta/rotation) axes."
+          - "Used for fine alignment adjustments based on vision feedback."
+          - "Reference: Motion.cs Move_Table_AlignPos(), Move_Table_Adjust()."
+        Commands:
+          - Name: Home
+            Description: Execute home sequence for Table axes (X, Y, T)
+            Parameters: []
+          - Name: MoveTo
+            Description: Move table to specified position
+            Parameters:
+              - Name: posX
+                Type: double
+                Description: X-axis target position (mm)
+                Required: true
+              - Name: posY
+                Type: double
+                Description: Y-axis target position (mm)
+                Required: true
+              - Name: posT
+                Type: double
+                Description: Theta (rotation) target position (degrees)
+                Required: true
+          - Name: MoveToAlignPos
+            Description: Move to alignment reference position
+            Parameters: []
+          - Name: Adjust
+            Description: Apply alignment adjustment offset
+            Parameters:
+              - Name: offsetX
+                Type: double
+                Description: X-axis offset (mm)
+                Required: true
+              - Name: offsetY
+                Type: double
+                Description: Y-axis offset (mm)
+                Required: true
+              - Name: offsetT
+                Type: double
+                Description: Theta offset (degrees)
+                Required: true
+          - Name: GetPosition
+            Description: Get current table position (X, Y, T)
+            Parameters: []
+        Devices:
+          - Name: TableXAxis
+            DisplayName: Table X Axis
+            Description: Table X-axis for horizontal adjustment
+            Type: Generic
+            ImplementationInstructions:
+              - "WMX3 axis control for Table X movement."
+              - "Axis Index: AXIS_TABLE_X = 1"
+            Commands:
+              - Name: Home
+                Description: Execute home sequence for this axis
+                Parameters: []
+              - Name: MoveTo
+                Description: Move to target position
+                Parameters:
+                  - Name: position
+                    Type: double
+                    Description: Target position (mm)
+                    Required: true
+              - Name: Stop
+                Description: Stop axis motion
+                Parameters: []
+              - Name: GetPosition
+                Description: Get current position
+                Parameters: []
+              - Name: CheckHomeComplete
+                Description: Check if axis is homed
+                Parameters: []
+
+          - Name: TableYAxis
+            DisplayName: Table Y Axis
+            Description: Table Y-axis for vertical adjustment
+            Type: Generic
+            ImplementationInstructions:
+              - "WMX3 axis control for Table Y movement."
+              - "Axis Index: AXIS_TABLE_Y = 2"
+            Commands:
+              - Name: Home
+                Description: Execute home sequence for this axis
+                Parameters: []
+              - Name: MoveTo
+                Description: Move to target position
+                Parameters:
+                  - Name: position
+                    Type: double
+                    Description: Target position (mm)
+                    Required: true
+              - Name: Stop
+                Description: Stop axis motion
+                Parameters: []
+              - Name: GetPosition
+                Description: Get current position
+                Parameters: []
+              - Name: CheckHomeComplete
+                Description: Check if axis is homed
+                Parameters: []
+
+          - Name: TableTAxis
+            DisplayName: Table Theta Axis
+            Description: Table rotation axis for angular adjustment
+            Type: Generic
+            ImplementationInstructions:
+              - "WMX3 axis control for Table T (Theta/rotation) movement."
+              - "Axis Index: AXIS_TABLE_T = 3"
+            Commands:
+              - Name: Home
+                Description: Execute home sequence for this axis
+                Parameters: []
+              - Name: MoveTo
+                Description: Move to target position
+                Parameters:
+                  - Name: position
+                    Type: double
+                    Description: Target position (degrees)
+                    Required: true
+              - Name: Stop
+                Description: Stop axis motion
+                Parameters: []
+              - Name: GetPosition
+                Description: Get current position
+                Parameters: []
+              - Name: CheckHomeComplete
+                Description: Check if axis is homed
+                Parameters: []
+
+  # ==================== 5. Vision System ====================
+  # Vision inspection and alignment via MELSEC/PLC interface
+  - Name: Vision
+    DisplayName: Vision System
+    Description: Vision inspection and alignment system communicating via MELSEC/PLC interface with external Vision PC
+    ImplementationInstructions:
+      - "This System manages all vision-related operations through MELSEC communication."
+      - "Vision PC is a separate system that receives requests and returns results via PLC memory."
+      - "Reference: Process.cs ALIGN, INSP, RINSP, MEAS steps for communication protocol."
+    Commands:
+      - Name: CheckVisionReady
+        Description: Check if vision system is ready
+        Parameters: []
+      - Name: GetVisionStatus
+        Description: Get overall vision system status
+        Parameters: []
+    Units:
+      # Alignment Unit
+      - Name: Alignment
+        DisplayName: Alignment Unit
+        Description: Workpiece alignment using vision feedback for XYT positioning
+        ImplementationInstructions:
+          - "Handles alignment request/response communication with Vision PC."
+          - "Receives alignment offset data (X, Y, T) and coordinates with Table Unit for adjustment."
+          - "Reference: Process.cs ALIGN_SEND_REQ through ALIGN_TABLE_ADJ steps."
+        Commands:
+          - Name: RequestAlign
+            Description: Request alignment measurement from vision system
+            Parameters: []
+          - Name: WaitAck
+            Description: Wait for alignment acknowledgment
+            Parameters: []
+          - Name: ReadAlignData
+            Description: Read alignment result data (X, Y, T offsets)
+            Parameters: []
+          - Name: CheckReady
+            Description: Check if alignment is ready
+            Parameters: []
+        Devices:
+          - Name: AlignCamera
+            DisplayName: Alignment Camera
+            Description: Camera for workpiece alignment (virtual device for MELSEC interface)
+            Type: Generic
+            ImplementationInstructions:
+              - "Virtual device representing MELSEC communication for alignment."
+              - "LW_MC.Align_Req for request, LW_VS.Align_Ack for acknowledgment."
+            Commands:
+              - Name: Capture
+                Description: Trigger alignment capture (sends request signal)
+                Parameters: []
+              - Name: GetResult
+                Description: Read alignment result
+                Parameters: []
+
+      # Inspection Unit
+      - Name: Inspection
+        DisplayName: Inspection Unit
+        Description: Burr detection inspection using area scan vision
+        ImplementationInstructions:
+          - "Handles burr detection inspection communication with Vision PC."
+          - "Supports multiple scan positions based on Vision_Scan_Cnt setting."
+          - "Reference: Process.cs INSP steps for inspection protocol."
+        Commands:
+          - Name: RequestInspection
+            Description: Request inspection at current position
+            Parameters:
+              - Name: scanIndex
+                Type: int
+                Description: Current scan position index
+                Required: true
+              - Name: isLastScan
+                Type: bool
+                Description: Whether this is the last scan position
+                Required: true
+          - Name: WaitAck
+            Description: Wait for inspection acknowledgment
+            Parameters: []
+          - Name: ReadInspectionData
+            Description: Read inspection result data (burr locations)
+            Parameters: []
+          - Name: CheckReady
+            Description: Check if inspection is ready
+            Parameters: []
+        Devices:
+          - Name: InspectionCamera
+            DisplayName: Inspection Camera
+            Description: Camera for burr detection (virtual device for MELSEC interface)
+            Type: Generic
+            ImplementationInstructions:
+              - "Virtual device representing MELSEC communication for inspection."
+              - "LW_MC.Insp_Req for request, LW_VS.Insp_Ack for acknowledgment."
+            Commands:
+              - Name: Capture
+                Description: Trigger inspection capture (sends request signal)
+                Parameters: []
+              - Name: GetResult
+                Description: Read inspection result
+                Parameters: []
+
+      # Height Measurement Unit
+      - Name: Measurement
+        DisplayName: Height Measurement Unit
+        Description: Burr height measurement using laser displacement sensor (LDS)
+        ImplementationInstructions:
+          - "Measures burr height at each detected burr position."
+          - "Uses analog input for height sensor and digital input for detection signal."
+          - "Reference: Process.cs MEAS steps."
+        Commands:
+          - Name: MeasureHeight
+            Description: Measure height at current position
+            Parameters: []
+          - Name: CheckSensorReady
+            Description: Check if height sensor detects target
+            Parameters: []
+          - Name: GetMeasurementData
+            Description: Get height measurement result
+            Parameters: []
+        Devices:
+          - Name: HeightSensor
+            DisplayName: Height Sensor (LDS)
+            Description: Laser displacement sensor for burr height measurement
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_LDS_DETECT(0x0023) for detection, AD_BURR_HEIGHT_SENSOR(64) for analog value."
+              - "Check detection first, then read analog value."
+            Commands:
+              - Name: Read
+                Description: Read height sensor analog value
+                Parameters: []
+              - Name: IsDetected
+                Description: Check if sensor detects target
+                Parameters: []
+
+          - Name: LdsZeroSetOutput
+            DisplayName: LDS Zero Set Output
+            Description: LDS zero calibration output
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_LDS_ZERO_SET (0x0014)"
+            Commands:
+              - Name: TurnOn
+                Description: Activate zero set
+                Parameters: []
+              - Name: TurnOff
+                Description: Deactivate zero set
+                Parameters: []
+              - Name: SetState
+                Description: Set zero set state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for ON, false for OFF
+                    Required: true
+
+  # ==================== 6. Laser System ====================
+  # Laser control, shutter, and cooling system
+  - Name: Laser
+    DisplayName: Laser System
+    Description: Laser processing system managing laser shutter, ready status, and chiller cooling
+    ImplementationInstructions:
+      - "This System controls laser operation and cooling."
+      - "Laser shutter must be closed during non-processing operations."
+      - "Chiller must be running before laser operation."
+      - "Reference: Device.cs LaserShutter(), CheckLaserShutter(), LaserReady()."
+    Commands:
+      - Name: PrepareForProcessing
+        Description: Prepare laser for processing (check ready, open shutter)
+        Parameters: []
+      - Name: StopProcessing
+        Description: Stop laser processing (close shutter)
+        Parameters: []
+      - Name: CheckLaserReady
+        Description: Check if laser and chiller are ready
+        Parameters: []
+      - Name: GetLaserStatus
+        Description: Get laser system status
+        Parameters: []
+    Units:
+      # Laser Control Unit
+      - Name: LaserControl
+        DisplayName: Laser Control Unit
+        Description: Laser shutter control and ready status monitoring
+        ImplementationInstructions:
+          - "Controls laser shutter and monitors laser ready signal."
+          - "Reference: Device.cs LaserShutter(), CheckLaserShutter(), LaserReady()."
+        Commands:
+          - Name: OpenShutter
+            Description: Open laser shutter
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: CloseShutter
+            Description: Close laser shutter
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: CheckLaserReady
+            Description: Check if laser is ready for operation
+            Parameters: []
+          - Name: GetShutterStatus
+            Description: Get current shutter position status
+            Parameters: []
+        Devices:
+          - Name: LaserShutter
+            DisplayName: Laser Shutter Device
+            Description: Laser beam shutter with open/close solenoids
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding:"
+              - "  Output: OUT_LASER_SHUTTER_OPEN_SOL(0x0012), OUT_LASER_SHUTTER_CLOSE_SOL(0x0013)"
+              - "  Input: IN_LASER_SHUTTER_OPEN(0x0030), IN_LASER_SHUTTER_CLOSE(0x0031)"
+            Commands:
+              - Name: Extend
+                Description: Open shutter
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: Retract
+                Description: Close shutter
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: CheckExtended
+                Description: Check if shutter is open
+                Parameters: []
+              - Name: CheckRetracted
+                Description: Check if shutter is closed
+                Parameters: []
+              - Name: GetStatus
+                Description: Get current shutter status
+                Parameters: []
+
+          - Name: LaserReadySensor
+            DisplayName: Laser Ready Sensor
+            Description: Laser OK signal sensor
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_LASER_OK_SIGNAL (0x0032)"
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if laser is ready
+                Parameters: []
+
+          - Name: LaserReadyOutput
+            DisplayName: Laser Ready Output
+            Description: Laser ready OK output signal
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_LASER_READY_OK (0x0015)"
+            Commands:
+              - Name: TurnOn
+                Description: Signal laser ready
+                Parameters: []
+              - Name: TurnOff
+                Description: Signal laser not ready
+                Parameters: []
+              - Name: SetState
+                Description: Set laser ready state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for ready, false for not ready
+                    Required: true
+
+      # Chiller Unit
+      - Name: Chiller
+        DisplayName: Chiller Unit
+        Description: Chiller control and monitoring for laser cooling
+        ImplementationInstructions:
+          - "Monitors and controls chiller for laser cooling."
+          - "Chiller must be running and in remote mode before laser operation."
+        Commands:
+          - Name: StartChiller
+            Description: Send chiller run signal
+            Parameters: []
+          - Name: StopChiller
+            Description: Stop chiller run signal
+            Parameters: []
+          - Name: CheckChillerReady
+            Description: Check if chiller is running and ready
+            Parameters: []
+          - Name: GetChillerStatus
+            Description: Get chiller status (run, remote, alarm)
+            Parameters: []
+        Devices:
+          - Name: ChillerRunSensor
+            DisplayName: Chiller Running Sensor
+            Description: Chiller running status input
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_CHILLER_RUN (0x003B)"
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if chiller is running
+                Parameters: []
+
+          - Name: ChillerRemoteSensor
+            DisplayName: Chiller Remote Mode Sensor
+            Description: Chiller remote mode status input
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_CHILLER_REMOTE (0x003C)"
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if chiller is in remote mode
+                Parameters: []
+
+          - Name: ChillerAlarmSensor
+            DisplayName: Chiller Alarm Sensor
+            Description: Chiller alarm status input
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: IN_CHILLER_ALARM (0x003D)"
+            Commands:
+              - Name: Read
+                Description: Read current sensor state
+                Parameters: []
+              - Name: IsActive
+                Description: Check if chiller has alarm
+                Parameters: []
+
+          - Name: ChillerRunOutput
+            DisplayName: Chiller Run Signal Output
+            Description: Chiller run signal output
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_CHILLER_RUN_SIGNAL (0x0016)"
+            Commands:
+              - Name: TurnOn
+                Description: Send chiller run signal
+                Parameters: []
+              - Name: TurnOff
+                Description: Stop chiller run signal
+                Parameters: []
+              - Name: SetState
+                Description: Set chiller run signal state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for run, false for stop
+                    Required: true
+
+  # ==================== 7. CO2 Clean System ====================
+  # CO2 snow cleaning system
+  - Name: Co2Clean
+    DisplayName: CO2 Clean System
+    Description: CO2 snow cleaning system with nozzle positioning, valve control, and fume collection
+    ImplementationInstructions:
+      - "This System manages CO2 snow cleaning for burr removal."
+      - "Cleaning sequence: Valves open -> Nozzle down -> CO2 spray -> Nozzle up -> Valves close."
+      - "Reference: Device.cs Co2CylinderZ(), CleanerValve(), CleanCo2Press(), FumeRun()."
+    Commands:
+      - Name: StartCleaning
+        Description: Start CO2 cleaning sequence at current position
+        Parameters: []
+      - Name: StopCleaning
+        Description: Stop CO2 cleaning and retract nozzle
+        Parameters: []
+      - Name: PrepareForCleaning
+        Description: Prepare system for cleaning (open valves, start fume)
+        Parameters: []
+      - Name: SafeShutdown
+        Description: Safe shutdown (close valves, retract nozzle, stop fume)
+        Parameters: []
+      - Name: GetCleaningStatus
+        Description: Get current cleaning system status
+        Parameters: []
+    Units:
+      # Nozzle Unit
+      - Name: Nozzle
+        DisplayName: Nozzle Unit
+        Description: CO2 nozzle Z-axis positioning cylinder
+        ImplementationInstructions:
+          - "Controls CO2 nozzle Z-axis cylinder for spray positioning."
+          - "Reference: Device.cs Co2CylinderZ(), CheckCo2CylinderZ()."
+        Commands:
+          - Name: MoveDown
+            Description: Lower CO2 nozzle
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: MoveUp
+            Description: Raise CO2 nozzle
+            Parameters:
+              - Name: wait
+                Type: bool
+                Description: Wait for position confirmation
+                Required: false
+                DefaultValue: true
+          - Name: CheckDown
+            Description: Check if nozzle is in down position
+            Parameters: []
+          - Name: CheckUp
+            Description: Check if nozzle is in up position
+            Parameters: []
+          - Name: GetStatus
+            Description: Get nozzle position status
+            Parameters: []
+        Devices:
+          - Name: NozzleCylinder
+            DisplayName: CO2 Nozzle Cylinder
+            Description: CO2 nozzle Z-axis dual solenoid cylinder
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding:"
+              - "  Output: OUT_CO2_NOZZLE_UP_SOL(0x0017), OUT_CO2_NOZZLE_DN_SOL(0x0018)"
+              - "  Input: IN_CO2_NOZZLE_UP(0x0039), IN_CO2_NOZZLE_DN(0x003A)"
+              - "IMPORTANT: Sensor logic is inverted - UP when IN_CO2_NOZZLE_UP == 0"
+            Commands:
+              - Name: Extend
+                Description: Move nozzle up
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: Retract
+                Description: Move nozzle down
+                Parameters:
+                  - Name: wait
+                    Type: bool
+                    Description: Wait for position confirmation
+                    Required: false
+                    DefaultValue: true
+              - Name: CheckExtended
+                Description: Check if nozzle is up
+                Parameters: []
+              - Name: CheckRetracted
+                Description: Check if nozzle is down
+                Parameters: []
+              - Name: GetStatus
+                Description: Get current nozzle status
+                Parameters: []
+
+      # Valve Unit
+      - Name: Valve
+        DisplayName: Valve Unit
+        Description: CO2 and CDA valve control
+        ImplementationInstructions:
+          - "Controls CO2 and CDA valves for cleaning operation."
+          - "Reference: Device.cs CleanerValve(), CleanCo2Press()."
+        Commands:
+          - Name: OpenAllValves
+            Description: Open both CO2 and CDA valves
+            Parameters: []
+          - Name: CloseAllValves
+            Description: Close both CO2 and CDA valves
+            Parameters: []
+          - Name: StartCo2Spray
+            Description: Start CO2 spray
+            Parameters: []
+          - Name: StopCo2Spray
+            Description: Stop CO2 spray
+            Parameters: []
+          - Name: GetValveStatus
+            Description: Get valve status
+            Parameters: []
+        Devices:
+          - Name: Co2Valve
+            DisplayName: CO2 Valve
+            Description: CO2 supply valve control
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_CO2_VALVE_OPEN (0x001A)"
+            Commands:
+              - Name: TurnOn
+                Description: Open valve
+                Parameters: []
+              - Name: TurnOff
+                Description: Close valve
+                Parameters: []
+              - Name: SetState
+                Description: Set valve state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for open, false for closed
+                    Required: true
+              - Name: GetState
+                Description: Get current valve state
+                Parameters: []
+
+          - Name: CdaValve
+            DisplayName: CDA Valve
+            Description: CDA (Clean Dry Air) valve control
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_CDA_VALVE_OPEN (0x001B)"
+            Commands:
+              - Name: TurnOn
+                Description: Open valve
+                Parameters: []
+              - Name: TurnOff
+                Description: Close valve
+                Parameters: []
+              - Name: SetState
+                Description: Set valve state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for open, false for closed
+                    Required: true
+              - Name: GetState
+                Description: Get current valve state
+                Parameters: []
+
+          - Name: Co2SprayOutput
+            DisplayName: CO2 Spray Output
+            Description: CO2 spray activation output
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_CO2_ON (0x0019)"
+            Commands:
+              - Name: TurnOn
+                Description: Start CO2 spray
+                Parameters: []
+              - Name: TurnOff
+                Description: Stop CO2 spray
+                Parameters: []
+              - Name: SetState
+                Description: Set CO2 spray state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for on, false for off
+                    Required: true
+              - Name: GetState
+                Description: Get current spray state
+                Parameters: []
+
+          - Name: Co2EmoOutput
+            DisplayName: CO2 EMO Output
+            Description: CO2 system emergency stop output
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_CO2_EMO (0x001C)"
+            Commands:
+              - Name: TurnOn
+                Description: Activate CO2 EMO
+                Parameters: []
+              - Name: TurnOff
+                Description: Deactivate CO2 EMO
+                Parameters: []
+              - Name: SetState
+                Description: Set CO2 EMO state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for activated, false for normal
+                    Required: true
+
+      # Fume Unit
+      - Name: Fume
+        DisplayName: Fume Collector Unit
+        Description: Fume collection for CO2 cleaning exhaust
+        ImplementationInstructions:
+          - "Controls fume collector during CO2 cleaning."
+          - "Reference: Device.cs FumeRun()."
+        Commands:
+          - Name: Start
+            Description: Start fume collector
+            Parameters: []
+          - Name: Stop
+            Description: Stop fume collector
+            Parameters: []
+          - Name: GetStatus
+            Description: Get fume collector status
+            Parameters: []
+        Devices:
+          - Name: FumeRunOutput
+            DisplayName: Fume Collector Run Output
+            Description: Fume collector activation signal
+            Type: Generic
+            ImplementationInstructions:
+              - "IO binding: OUT_FUME_RUN_SIGINAL (0x001D)"
+            Commands:
+              - Name: TurnOn
+                Description: Start fume collector
+                Parameters: []
+              - Name: TurnOff
+                Description: Stop fume collector
+                Parameters: []
+              - Name: SetState
+                Description: Set fume collector state
+                Parameters:
+                  - Name: state
+                    Type: bool
+                    Description: true for on, false for off
+                    Required: true
+              - Name: GetState
+                Description: Get current fume state
+                Parameters: []

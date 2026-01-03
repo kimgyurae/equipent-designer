@@ -1,0 +1,37 @@
+# Logger Configuration for LaserBurrMachine Equipment
+# All field Names are in PascalCase to match C# conventions
+
+EquipmentName: LaserBurrMachine
+DocumentType: LoggerDescriptionFile
+
+LoggerConfiguration:
+  # Minimum logging level: Trace, Debug, Information, Warning, Error, Critical
+  # Debug level includes Step Enter/Exit logs for detailed process tracking
+  MinimumLevel: Debug
+  
+  # Buffer size in kilobytes for non-blocking async logging
+  # Larger buffer improves performance but uses more memory
+  BufferSizeKB: 512
+  
+  # Log file rolling size threshold in megabytes
+  # When a log file reaches this size, a new file is created
+  RollingSizeThreshold: 200
+  
+  # Maximum number of rolling log files to keep
+  # Older files are automatically deleted when this limit is reached
+  MaxRollingFiles: 30
+  
+  # Enable automatic archiving of old log files
+  # Archives are compressed using GZip to save disk space
+  IsArchiveEnabled: true
+  
+  # Archive interval in days
+  # Old log files are archived every N days
+  ArchiveInterval: 1
+  
+  # Base path for log files (without extension)
+  # Actual log files will be: {LogFilePath}_YYYYMMDD.log
+  LogFilePath: "C:\\Logs\\LaserBurrMachine"
+  
+  # Application Name used in log entries and file naming
+  ApplicationName: LaserBurrMachine
