@@ -170,4 +170,11 @@
     <SolidColorBrush x:Key="Brush.Input.Border.Error" Color="{StaticResource Color.Danger.500}"/>
     <SolidColorBrush x:Key="Brush.Input.Placeholder" Color="{StaticResource Color.Gray.400}"/>
 
+    <!-- =========================
+         Overlay / Backdrop
+         ========================= -->
+    <SolidColorBrush x:Key="Brush.Overlay.Backdrop" Color="{StaticResource Color.Gray.900}" Opacity="0.5"/>
+    <SolidColorBrush x:Key="Brush.Overlay.Backdrop.Light" Color="{StaticResource Color.Gray.900}" Opacity="0.3"/>
+    <SolidColorBrush x:Key="Brush.Overlay.Backdrop.Dark" Color="{StaticResource Color.Gray.900}" Opacity="0.7"/>
+
 </ResourceDictionary>

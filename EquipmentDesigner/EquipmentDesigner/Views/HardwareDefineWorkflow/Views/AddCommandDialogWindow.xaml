@@ -301,7 +301,6 @@
                 <Button Command="{Binding AddCommandCommand}"
                         Padding="16,8"
                         Height="{StaticResource Size.Button.Height.MD}"
-                        Background="{StaticResource Brush.Button.Primary.Background}"
                         BorderThickness="0"
                         Cursor="Hand">
                     <Button.Resources>
@@ -311,17 +310,26 @@
                     </Button.Resources>
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="Opacity" Value="1"/>
+                            <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background}"/>
                             <Style.Triggers>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Opacity" Value="0.5"/>
+                                    <Setter Property="Background" Value="{StaticResource Brush.Button.Disabled.Background}"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
                     </Button.Style>
-                    <TextBlock Text="{lex:Loc Key=Command_AddCommand}"
-                               Style="{StaticResource Typography.Button}"
-                               Foreground="{StaticResource Brush.Text.Inverse}"/>
+                    <TextBlock Text="{lex:Loc Key=Command_AddCommand}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Button}">
+                                <Setter Property="Foreground" Value="{StaticResource Brush.Text.Inverse}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
+                                        <Setter Property="Foreground" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </Button>
             </StackPanel>
         </Grid>

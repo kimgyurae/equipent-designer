@@ -28,6 +28,22 @@ namespace EquipmentDesigner
             MainContent.Content = _dashboardView;
         }
 
+        /// <summary>
+        /// Shows the full-screen backdrop overlay.
+        /// </summary>
+        public void ShowBackdrop()
+        {
+            BackdropOverlay.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Hides the full-screen backdrop overlay.
+        /// </summary>
+        public void HideBackdrop()
+        {
+            BackdropOverlay.Visibility = Visibility.Collapsed;
+        }
+
         private void OnNavigationRequested(NavigationTarget target)
         {
             if (target.TargetType == NavigationTargetType.HardwareDefineWorkflow)

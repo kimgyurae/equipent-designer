@@ -31,29 +31,49 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine
 
         private void OnShowAddIoDialogRequested(object sender, System.EventArgs e)
         {
+            var mainWindow = Window.GetWindow(this) as MainWindow;
+            mainWindow?.ShowBackdrop();
+            
             var dialogViewModel = new AddIoDialogViewModel();
             var dialog = new AddIoDialogWindow(dialogViewModel)
             {
-                Owner = Window.GetWindow(this)
+                Owner = mainWindow
             };
 
-            if (dialog.ShowDialog() == true && DataContext is DeviceDefineViewModel deviceVm)
+            try
             {
-                deviceVm.ProcessDialogResult(dialog.Result);
+                if (dialog.ShowDialog() == true && DataContext is DeviceDefineViewModel deviceVm)
+                {
+                    deviceVm.ProcessDialogResult(dialog.Result);
+                }
+            }
+            finally
+            {
+                mainWindow?.HideBackdrop();
             }
         }
 
         private void OnShowAddCommandDialogRequested(object sender, System.EventArgs e)
         {
+            var mainWindow = Window.GetWindow(this) as MainWindow;
+            mainWindow?.ShowBackdrop();
+            
             var dialogViewModel = new AddCommandDialogViewModel();
             var dialog = new AddCommandDialogWindow(dialogViewModel)
             {
-                Owner = Window.GetWindow(this)
+                Owner = mainWindow
             };
 
-            if (dialog.ShowDialog() == true && DataContext is DeviceDefineViewModel deviceVm)
+            try
             {
-                deviceVm.ProcessCommandDialogResult(dialog.Result);
+                if (dialog.ShowDialog() == true && DataContext is DeviceDefineViewModel deviceVm)
+                {
+                    deviceVm.ProcessCommandDialogResult(dialog.Result);
+                }
+            }
+            finally
+            {
+                mainWindow?.HideBackdrop();
             }
         }
     }

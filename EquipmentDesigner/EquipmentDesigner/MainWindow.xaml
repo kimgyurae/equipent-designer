@@ -16,5 +16,10 @@
     <Grid>
         <!-- Content will be set dynamically via code-behind navigation -->
         <ContentControl x:Name="MainContent"/>
+        
+        <!-- Full-screen Backdrop Overlay (shown when dialogs are open) -->
+        <Border x:Name="BackdropOverlay"
+                Background="{StaticResource Brush.Overlay.Backdrop}"
+                Visibility="Collapsed"/>
     </Grid>
 </Window>

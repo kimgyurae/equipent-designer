@@ -10,21 +10,23 @@
              mc:Ignorable="d"
              d:DesignHeight="1200" d:DesignWidth="800">
 
-    <StackPanel>
-        <!-- Header -->
-        <StackPanel Margin="0,0,0,24">
-            <TextBlock Text="{lex:Loc Key=Device_DefineDevice}"
+    <Grid>
+        <!-- Main Content -->
+        <StackPanel>
+            <!-- Header -->
+            <StackPanel Margin="0,0,0,24">
+                <TextBlock Text="{lex:Loc Key=Device_DefineDevice}"
                        Style="{StaticResource Typography.H3}"
                        Foreground="{StaticResource Brush.Text.Primary}"/>
-            <TextBlock Text="{lex:Loc Key=Device_Description}"
+                <TextBlock Text="{lex:Loc Key=Device_Description}"
                        Style="{StaticResource Typography.Body}"
                        Foreground="{StaticResource Brush.Text.Secondary}"
                        Margin="0,8,0,0"/>
-        </StackPanel>
+            </StackPanel>
 
-        <!-- Action Buttons -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
-            <Button Command="{Binding LoadFromServerCommand}"
+            <!-- Action Buttons -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+                <Button Command="{Binding LoadFromServerCommand}"
                     Padding="{StaticResource Spacing.Padding.Button}"
                     Height="{StaticResource Size.Button.Height.MD}"
                     Background="{StaticResource Brush.Button.Secondary.Background}"
@@ -443,4 +445,5 @@
             </StackPanel>
         </Border>
     </StackPanel>
+</Grid>
 </UserControl>

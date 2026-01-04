@@ -25,6 +25,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             Commands = new ObservableCollection<CommandViewModel>();
             Commands.CollectionChanged += OnCommandsCollectionChanged;
             IoConfigurations = new ObservableCollection<IoConfigurationViewModel>();
+            IoConfigurations.CollectionChanged += OnIoConfigurationsCollectionChanged;
 
             LoadFromServerCommand = new RelayCommand(ExecuteLoadFromServer);
             AddCommandCommand = new RelayCommand(ExecuteAddCommand);
@@ -159,6 +160,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public ObservableCollection<IoConfigurationViewModel> IoConfigurations { get; }
 
         /// <summary>
+        /// Returns true if there are no IO configurations in the collection.
+        /// </summary>
+        public bool HasNoIoConfigurations => IoConfigurations.Count == 0;
+
+        /// <summary>
         /// Returns true if required properties are provided for navigation.
         /// </summary>
         public bool CanProceedToNext => !string.IsNullOrWhiteSpace(Name);
@@ -240,6 +246,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private void OnCommandsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(HasNoCommands));
+        }
+
+        private void OnIoConfigurationsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(HasNoIoConfigurations));
         }
 
         private void ExecuteLoadFromServer()

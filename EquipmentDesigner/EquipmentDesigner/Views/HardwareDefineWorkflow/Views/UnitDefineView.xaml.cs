@@ -29,15 +29,25 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine
 
         private void OnShowAddCommandDialogRequested(object sender, System.EventArgs e)
         {
+            var mainWindow = Window.GetWindow(this) as MainWindow;
+            mainWindow?.ShowBackdrop();
+            
             var dialogViewModel = new AddCommandDialogViewModel();
             var dialog = new AddCommandDialogWindow(dialogViewModel)
             {
-                Owner = Window.GetWindow(this)
+                Owner = mainWindow
             };
 
-            if (dialog.ShowDialog() == true && DataContext is UnitDefineViewModel unitVm)
+            try
             {
-                unitVm.ProcessCommandDialogResult(dialog.Result);
+                if (dialog.ShowDialog() == true && DataContext is UnitDefineViewModel unitVm)
+                {
+                    unitVm.ProcessCommandDialogResult(dialog.Result);
+                }
+            }
+            finally
+            {
+                mainWindow?.HideBackdrop();
             }
         }
     }
