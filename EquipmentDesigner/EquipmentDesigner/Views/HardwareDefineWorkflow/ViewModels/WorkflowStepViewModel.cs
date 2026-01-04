@@ -7,6 +7,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
     {
         private bool _isActive;
         private bool _isCompleted;
+        private int _filledFieldCount;
+        private int _totalFieldCount;
 
         public WorkflowStepViewModel(int stepNumber, string stepName)
         {
@@ -30,34 +32,57 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public bool IsActive
         {
             get => _isActive;
-            set
-            {
-                if (SetProperty(ref _isActive, value))
-                {
-                    OnPropertyChanged(nameof(CanNavigateTo));
-                }
-            }
+            set => SetProperty(ref _isActive, value);
         }
 
         /// <summary>
-        /// Whether this step has been completed.
+        /// Whether this step has been completed (all required fields filled).
         /// </summary>
         public bool IsCompleted
         {
             get => _isCompleted;
+            set => SetProperty(ref _isCompleted, value);
+        }
+
+        /// <summary>
+        /// Number of fields that have been filled.
+        /// </summary>
+        public int FilledFieldCount
+        {
+            get => _filledFieldCount;
             set
             {
-                if (SetProperty(ref _isCompleted, value))
+                if (SetProperty(ref _filledFieldCount, value))
                 {
-                    OnPropertyChanged(nameof(CanNavigateTo));
+                    OnPropertyChanged(nameof(FieldProgressText));
                 }
             }
         }
 
         /// <summary>
-        /// Whether navigation to this step is allowed.
-        /// Navigation is allowed if the step is completed or currently active.
+        /// Total number of fields in this step.
         /// </summary>
-        public bool CanNavigateTo => IsActive || IsCompleted;
+        public int TotalFieldCount
+        {
+            get => _totalFieldCount;
+            set
+            {
+                if (SetProperty(ref _totalFieldCount, value))
+                {
+                    OnPropertyChanged(nameof(FieldProgressText));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Display text showing field progress (e.g., "3/7").
+        /// </summary>
+        public string FieldProgressText => $"{FilledFieldCount}/{TotalFieldCount}";
+
+        /// <summary>
+        /// Whether navigation to this step is allowed.
+        /// All steps are always navigable.
+        /// </summary>
+        public bool CanNavigateTo => true;
     }
 }

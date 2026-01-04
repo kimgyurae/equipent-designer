@@ -31,6 +31,9 @@
         
         <!-- Shadows & Effects -->
         <ResourceDictionary Source="Tokens/Effects.xaml"/>
+        
+        <!-- Component Styles -->
+        <ResourceDictionary Source="Components/ComboBoxStyles.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

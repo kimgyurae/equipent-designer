@@ -238,17 +238,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         #region Commands Collection Management
 
         [Fact]
-        public void AddCommandCommand_WhenExecuted_AddsNewCommandViewModelToCollection()
-        {
-            var viewModel = new DeviceDefineViewModel();
-            var initialCount = viewModel.Commands.Count;
-
-            viewModel.AddCommandCommand.Execute(null);
-
-            viewModel.Commands.Count.Should().Be(initialCount + 1);
-        }
-
-        [Fact]
         public void RemoveCommandCommand_WhenExecuted_RemovesCommandViewModelFromCollection()
         {
             var viewModel = new DeviceDefineViewModel();
@@ -297,17 +286,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         #endregion
 
         #region IO Configuration Management
-
-        [Fact]
-        public void AddIoCommand_WhenExecuted_AddsNewIoConfigurationViewModelToCollection()
-        {
-            var viewModel = new DeviceDefineViewModel();
-            var initialCount = viewModel.IoConfigurations.Count;
-
-            viewModel.AddIoCommand.Execute(null);
-
-            viewModel.IoConfigurations.Count.Should().Be(initialCount + 1);
-        }
 
         [Fact]
         public void RemoveIoCommand_WhenExecuted_RemovesIoConfigurationViewModelFromCollection()
@@ -511,6 +489,118 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             viewModel.IoConfigurations.Should().HaveCount(2);
             viewModel.IoConfigurations.Select(io => io.Name).Should().Contain(new[] { "IO1", "IO2" });
+        }
+
+        #endregion
+
+        #region Dialog Integration
+
+        [Fact]
+        public void AddIoCommand_WhenExecuted_RaisesShowAddIoDialogRequestedEvent()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var raised = false;
+            viewModel.ShowAddIoDialogRequested += (s, e) => raised = true;
+
+            viewModel.AddIoCommand.Execute(null);
+
+            raised.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ProcessDialogResult_WithValidIoConfiguration_AddsToCollection()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var io = new IoConfigurationViewModel
+            {
+                Name = "TestIO",
+                Address = "0x0001",
+                IoType = "Digital Input"
+            };
+            var initialCount = viewModel.IoConfigurations.Count;
+
+            viewModel.ProcessDialogResult(io);
+
+            viewModel.IoConfigurations.Count.Should().Be(initialCount + 1);
+            viewModel.IoConfigurations.Should().Contain(io);
+        }
+
+        [Fact]
+        public void ProcessDialogResult_WithNullResult_DoesNotModifyCollection()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var initialCount = viewModel.IoConfigurations.Count;
+
+            viewModel.ProcessDialogResult(null);
+
+            viewModel.IoConfigurations.Count.Should().Be(initialCount);
+        }
+
+        #endregion
+
+        #region Add Command Dialog Integration
+
+        [Fact]
+        public void ShowAddCommandDialogRequested_EventExists_CanBeSubscribed()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var raised = false;
+            viewModel.ShowAddCommandDialogRequested += (s, e) => raised = true;
+
+            // Just verifying we can subscribe without error
+            raised.Should().BeFalse();
+        }
+
+        [Fact]
+        public void AddCommandCommand_WhenExecuted_RaisesShowAddCommandDialogRequestedEvent()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var raised = false;
+            viewModel.ShowAddCommandDialogRequested += (s, e) => raised = true;
+
+            viewModel.AddCommandCommand.Execute(null);
+
+            raised.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ProcessCommandDialogResult_WhenResultIsNotNull_AddsCommandToCollection()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var command = new CommandViewModel { Name = "TestCmd", Description = "Test description" };
+
+            viewModel.ProcessCommandDialogResult(command);
+
+            viewModel.Commands.Should().Contain(command);
+        }
+
+        [Fact]
+        public void ProcessCommandDialogResult_WhenResultIsNull_DoesNotModifyCollection()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var initialCount = viewModel.Commands.Count;
+
+            viewModel.ProcessCommandDialogResult(null);
+
+            viewModel.Commands.Count.Should().Be(initialCount);
+        }
+
+        [Fact]
+        public void HasNoCommands_ReturnsTrue_WhenCommandsCollectionIsEmpty()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            viewModel.HasNoCommands.Should().BeTrue();
+        }
+
+        [Fact]
+        public void HasNoCommands_ReturnsFalse_AfterProcessCommandDialogResultAddsCommand()
+        {
+            var viewModel = new DeviceDefineViewModel();
+            var command = new CommandViewModel { Name = "TestCmd", Description = "Test description" };
+
+            viewModel.ProcessCommandDialogResult(command);
+
+            viewModel.HasNoCommands.Should().BeFalse();
         }
 
         #endregion

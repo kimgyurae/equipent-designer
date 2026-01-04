@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using EquipmentDesigner.Services;
 
@@ -74,8 +75,26 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         /// <summary>
         /// Returns true if navigation to the next step is allowed.
+        /// Navigation is always allowed unless at the last step.
         /// </summary>
-        public bool CanGoToNext => !IsLastStep && GetCurrentStepViewModel()?.CanProceedToNext == true;
+        public bool CanGoToNext => !IsLastStep;
+
+        /// <summary>
+        /// Returns true if all required fields in all steps are filled.
+        /// </summary>
+        public bool AllStepsRequiredFieldsFilled
+        {
+            get
+            {
+                foreach (var step in WorkflowSteps)
+                {
+                    var vm = GetViewModelForStep(step.StepName);
+                    if (vm != null && !vm.CanProceedToNext)
+                        return false;
+                }
+                return true;
+            }
+        }
 
         /// <summary>
         /// Equipment definition ViewModel.
@@ -163,30 +182,68 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             UnitViewModel = new UnitDefineViewModel();
             DeviceViewModel = new DeviceDefineViewModel();
 
-            // Subscribe to validation changes
+            // Set the callback for DeviceViewModel to check if all steps are completed
+            DeviceViewModel.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
+
+            // Subscribe to validation and field count changes
             EquipmentViewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(EquipmentDefineViewModel.CanProceedToNext))
-                    OnPropertyChanged(nameof(CanGoToNext));
+                {
+                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
+                    UpdateStepCompletionStatus("Equipment");
+                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
+                }
+                if (e.PropertyName == nameof(EquipmentDefineViewModel.FilledFieldCount))
+                {
+                    UpdateStepFieldCounts("Equipment");
+                }
             };
 
             SystemViewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(SystemDefineViewModel.CanProceedToNext))
-                    OnPropertyChanged(nameof(CanGoToNext));
+                {
+                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
+                    UpdateStepCompletionStatus("System");
+                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
+                }
+                if (e.PropertyName == nameof(SystemDefineViewModel.FilledFieldCount))
+                {
+                    UpdateStepFieldCounts("System");
+                }
             };
 
             UnitViewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(UnitDefineViewModel.CanProceedToNext))
-                    OnPropertyChanged(nameof(CanGoToNext));
+                {
+                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
+                    UpdateStepCompletionStatus("Unit");
+                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
+                }
+                if (e.PropertyName == nameof(UnitDefineViewModel.FilledFieldCount))
+                {
+                    UpdateStepFieldCounts("Unit");
+                }
             };
 
             DeviceViewModel.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(DeviceDefineViewModel.CanProceedToNext))
-                    OnPropertyChanged(nameof(CanGoToNext));
+                {
+                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
+                    UpdateStepCompletionStatus("Device");
+                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
+                }
+                if (e.PropertyName == nameof(DeviceDefineViewModel.FilledFieldCount))
+                {
+                    UpdateStepFieldCounts("Device");
+                }
             };
+
+            // Initialize field counts for all steps
+            InitializeStepFieldCounts();
         }
 
         private void InitializeCommands()
@@ -256,15 +313,47 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             {
                 var step = WorkflowSteps[i];
                 step.IsActive = i == CurrentStepIndex;
-                step.IsCompleted = i < CurrentStepIndex;
+
+                // IsCompleted is based on whether required fields are filled
+                var vm = GetViewModelForStep(step.StepName);
+                step.IsCompleted = vm?.CanProceedToNext == true;
             }
         }
 
-        private dynamic GetCurrentStepViewModel()
+        private void InitializeStepFieldCounts()
         {
-            var currentStepName = CurrentStep.StepName;
+            foreach (var step in WorkflowSteps)
+            {
+                UpdateStepFieldCounts(step.StepName);
+                UpdateStepCompletionStatus(step.StepName);
+            }
+        }
 
-            return currentStepName switch
+        private void UpdateStepFieldCounts(string stepName)
+        {
+            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
+            if (step == null) return;
+
+            var vm = GetViewModelForStep(stepName);
+            if (vm != null)
+            {
+                step.FilledFieldCount = vm.FilledFieldCount;
+                step.TotalFieldCount = vm.TotalFieldCount;
+            }
+        }
+
+        private void UpdateStepCompletionStatus(string stepName)
+        {
+            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
+            if (step == null) return;
+
+            var vm = GetViewModelForStep(stepName);
+            step.IsCompleted = vm?.CanProceedToNext == true;
+        }
+
+        private dynamic GetViewModelForStep(string stepName)
+        {
+            return stepName switch
             {
                 "Equipment" => EquipmentViewModel,
                 "System" => SystemViewModel,
@@ -272,6 +361,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 "Device" => DeviceViewModel,
                 _ => null
             };
+        }
+
+        private dynamic GetCurrentStepViewModel()
+        {
+            return GetViewModelForStep(CurrentStep.StepName);
         }
     }
 }

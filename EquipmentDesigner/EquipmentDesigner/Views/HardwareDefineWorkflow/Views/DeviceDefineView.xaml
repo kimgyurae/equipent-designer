@@ -239,68 +239,56 @@
                     </Button>
                 </Grid>
 
-                <!-- Commands List -->
+                <!-- Commands List (Card Format) -->
                 <ItemsControl ItemsSource="{Binding Commands}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Background="{StaticResource Brush.Background.Tertiary}"
                                     CornerRadius="{StaticResource Radius.LG}"
-                                    Padding="16"
-                                    Margin="0,0,0,12">
+                                    Padding="16,12"
+                                    Margin="0,0,0,8">
                                 <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Command Name -->
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
-                                        <TextBlock Text="{lex:Loc Key=System_CommandName}"
-                                                   Style="{StaticResource Typography.Label}"
-                                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                                   Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 Height="{StaticResource Size.Input.Height.MD}"
-                                                 Padding="{StaticResource Spacing.Padding.Input}"
-                                                 Background="{StaticResource Brush.Input.Background}"
-                                                 BorderBrush="{StaticResource Brush.Input.Border}"
-                                                 VerticalContentAlignment="Center"/>
+                                    <!-- Command Info -->
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <!-- Command Name (Bold) -->
+                                        <TextBlock Text="{Binding Name}"
+                                                   Style="{StaticResource Typography.Body}"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Brush.Text.Primary}"/>
+                                        <!-- Command Description -->
+                                        <TextBlock Text="{Binding Description}"
+                                                   Style="{StaticResource Typography.Body.Small}"
+                                                   Foreground="{StaticResource Brush.Text.Secondary}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Margin="0,2,0,0"/>
+                                        <!-- Parameters Display (type name, type name format) -->
+                                        <TextBlock Text="{Binding ParametersDisplayText}"
+                                                   Style="{StaticResource Typography.Body.Small}"
+                                                   Foreground="{StaticResource Brush.Text.Secondary}"
+                                                   Visibility="{Binding ParametersDisplayText, Converter={StaticResource StringToVisibilityConverter}}"
+                                                   Margin="0,2,0,0"/>
                                     </StackPanel>
 
                                     <!-- Remove Button -->
-                                    <Button Grid.Row="0" Grid.Column="1"
+                                    <Button Grid.Column="1"
                                             Command="{Binding DataContext.RemoveCommandCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}"
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Cursor="Hand"
                                             Padding="8"
-                                            VerticalAlignment="Top">
+                                            VerticalAlignment="Center">
                                         <Path Data="M6 18L18 6M6 6l12 12"
                                               Stroke="{StaticResource Brush.Text.Tertiary}"
                                               StrokeThickness="2"
                                               Width="14" Height="14"
                                               Stretch="Uniform"/>
                                     </Button>
-
-                                    <!-- Command Description -->
-                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-                                        <TextBlock Text="{lex:Loc Key=Equipment_DescriptionLabel}"
-                                                   Style="{StaticResource Typography.Label}"
-                                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                                   Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 Height="60"
-                                                 Padding="{StaticResource Spacing.Padding.Input}"
-                                                 Background="{StaticResource Brush.Input.Background}"
-                                                 BorderBrush="{StaticResource Brush.Input.Border}"
-                                                 TextWrapping="Wrap"
-                                                 AcceptsReturn="True"/>
-                                    </StackPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -377,82 +365,58 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Background="{StaticResource Brush.Background.Tertiary}"
-                                    CornerRadius="{StaticResource Radius.LG}"
-                                    Padding="16"
-                                    Margin="0,0,0,12">
+                                    BorderBrush="{StaticResource Brush.Border.Primary}"
+                                    BorderThickness="0.8"
+                                    CornerRadius="{StaticResource Radius.MD}"
+                                    Padding="12,8"
+                                    Margin="0,0,0,8">
                                 <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- IO Name -->
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
-                                        <TextBlock Text="{lex:Loc Key=Device_IoName}"
-                                                   Style="{StaticResource Typography.Label}"
-                                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                                   Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 Height="{StaticResource Size.Input.Height.MD}"
-                                                 Padding="{StaticResource Spacing.Padding.Input}"
-                                                 Background="{StaticResource Brush.Input.Background}"
-                                                 BorderBrush="{StaticResource Brush.Input.Border}"
-                                                 VerticalContentAlignment="Center"/>
+                                    <!-- IO Name and Type (Left) -->
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Style="{StaticResource Typography.Body}"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Brush.Text.Primary}"/>
+                                        <TextBlock Text="{Binding IoType}"
+                                                   Style="{StaticResource Typography.Body.Small}"
+                                                   Foreground="{StaticResource Brush.Text.Secondary}"
+                                                   Margin="0,2,0,0"/>
                                     </StackPanel>
 
-                                    <!-- IO Type -->
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
-                                        <TextBlock Text="{lex:Loc Key=Device_IoType}"
-                                                   Style="{StaticResource Typography.Label}"
-                                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                                   Margin="0,0,0,4"/>
-                                        <ComboBox SelectedItem="{Binding IoType, Mode=TwoWay}"
-                                                  Height="{StaticResource Size.Input.Height.MD}"
-                                                  Padding="{StaticResource Spacing.Padding.Input}"
-                                                  Background="{StaticResource Brush.Input.Background}"
-                                                  BorderBrush="{StaticResource Brush.Input.Border}">
-                                            <ComboBoxItem Content="{lex:Loc Key=Device_IoType_Input}"/>
-                                            <ComboBoxItem Content="{lex:Loc Key=Device_IoType_Output}"/>
-                                            <ComboBoxItem Content="{lex:Loc Key=Device_IoType_Digital}"/>
-                                            <ComboBoxItem Content="{lex:Loc Key=Device_IoType_Analog}"/>
-                                        </ComboBox>
-                                    </StackPanel>
+                                    <!-- Address Badge (Right) -->
+                                    <Border Grid.Column="1"
+                                            Background="{StaticResource Brush.Background.Secondary}"
+                                            CornerRadius="{StaticResource Radius.SM}"
+                                            Padding="8,4"
+                                            VerticalAlignment="Center"
+                                            Margin="12,0">
+                                        <TextBlock Text="{Binding Address}"
+                                                   FontFamily="Consolas"
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource Brush.Text.Secondary}"/>
+                                    </Border>
 
                                     <!-- Remove Button -->
-                                    <Button Grid.Row="0" Grid.Column="2"
+                                    <Button Grid.Column="2"
                                             Command="{Binding DataContext.RemoveIoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}"
                                             Background="Transparent"
                                             BorderThickness="0"
                                             Cursor="Hand"
-                                            Padding="8"
-                                            VerticalAlignment="Top">
+                                            Padding="4"
+                                            VerticalAlignment="Center">
                                         <Path Data="M6 18L18 6M6 6l12 12"
                                               Stroke="{StaticResource Brush.Text.Tertiary}"
                                               StrokeThickness="2"
                                               Width="14" Height="14"
                                               Stretch="Uniform"/>
                                     </Button>
-
-                                    <!-- IO Description -->
-                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
-                                        <TextBlock Text="{lex:Loc Key=Equipment_DescriptionLabel}"
-                                                   Style="{StaticResource Typography.Label}"
-                                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                                   Margin="0,0,0,4"/>
-                                        <TextBox Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 Height="60"
-                                                 Padding="{StaticResource Spacing.Padding.Input}"
-                                                 Background="{StaticResource Brush.Input.Background}"
-                                                 BorderBrush="{StaticResource Brush.Input.Border}"
-                                                 TextWrapping="Wrap"
-                                                 AcceptsReturn="True"/>
-                                    </StackPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>

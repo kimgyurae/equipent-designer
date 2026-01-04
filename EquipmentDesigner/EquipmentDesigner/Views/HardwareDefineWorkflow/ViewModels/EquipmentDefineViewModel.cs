@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using EquipmentDesigner.Models.Dtos;
+using Microsoft.Win32;
 
 namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 {
@@ -22,6 +23,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             AttachedDocuments = new ObservableCollection<string>();
             LoadFromServerCommand = new RelayCommand(ExecuteLoadFromServer);
+            AddDocumentCommand = new RelayCommand(ExecuteAddDocument);
+            RemoveDocumentCommand = new RelayCommand<string>(ExecuteRemoveDocument);
         }
 
         /// <summary>
@@ -30,7 +33,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string EquipmentType
         {
             get => _equipmentType;
-            set => SetProperty(ref _equipmentType, value);
+            set
+            {
+                if (SetProperty(ref _equipmentType, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -42,7 +51,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             set
             {
                 if (SetProperty(ref _name, value))
+                {
                     OnPropertyChanged(nameof(CanProceedToNext));
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
             }
         }
 
@@ -52,7 +64,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string DisplayName
         {
             get => _displayName;
-            set => SetProperty(ref _displayName, value);
+            set
+            {
+                if (SetProperty(ref _displayName, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -61,7 +79,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Subname
         {
             get => _subname;
-            set => SetProperty(ref _subname, value);
+            set
+            {
+                if (SetProperty(ref _subname, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -70,7 +94,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Description
         {
             get => _description;
-            set => SetProperty(ref _description, value);
+            set
+            {
+                if (SetProperty(ref _description, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -79,7 +109,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Customer
         {
             get => _customer;
-            set => SetProperty(ref _customer, value);
+            set
+            {
+                if (SetProperty(ref _customer, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -88,7 +124,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Process
         {
             get => _process;
-            set => SetProperty(ref _process, value);
+            set
+            {
+                if (SetProperty(ref _process, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -103,13 +145,76 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public bool CanProceedToNext => !string.IsNullOrWhiteSpace(Name);
 
         /// <summary>
+        /// Total number of fields in this form.
+        /// </summary>
+        public int TotalFieldCount => 7;
+
+        /// <summary>
+        /// Number of fields that have been filled.
+        /// </summary>
+        public int FilledFieldCount
+        {
+            get
+            {
+                int count = 0;
+                if (!string.IsNullOrWhiteSpace(EquipmentType)) count++;
+                if (!string.IsNullOrWhiteSpace(Name)) count++;
+                if (!string.IsNullOrWhiteSpace(DisplayName)) count++;
+                if (!string.IsNullOrWhiteSpace(Subname)) count++;
+                if (!string.IsNullOrWhiteSpace(Description)) count++;
+                if (!string.IsNullOrWhiteSpace(Customer)) count++;
+                if (!string.IsNullOrWhiteSpace(Process)) count++;
+                return count;
+            }
+        }
+
+        /// <summary>
         /// Command to load equipment data from server.
         /// </summary>
         public ICommand LoadFromServerCommand { get; }
 
+        /// <summary>
+        /// Command to add a document via file dialog.
+        /// </summary>
+        public ICommand AddDocumentCommand { get; }
+
+        /// <summary>
+        /// Command to remove a document from the list.
+        /// </summary>
+        public ICommand RemoveDocumentCommand { get; }
+
         private void ExecuteLoadFromServer()
         {
             // TODO: Implement server loading logic
+        }
+
+        private void ExecuteAddDocument()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "문서 선택",
+                Filter = "모든 파일 (*.*)|*.*",
+                Multiselect = true
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                foreach (var fileName in dialog.FileNames)
+                {
+                    if (!AttachedDocuments.Contains(fileName))
+                    {
+                        AttachedDocuments.Add(fileName);
+                    }
+                }
+            }
+        }
+
+        private void ExecuteRemoveDocument(string document)
+        {
+            if (!string.IsNullOrEmpty(document) && AttachedDocuments.Contains(document))
+            {
+                AttachedDocuments.Remove(document);
+            }
         }
 
         /// <summary>

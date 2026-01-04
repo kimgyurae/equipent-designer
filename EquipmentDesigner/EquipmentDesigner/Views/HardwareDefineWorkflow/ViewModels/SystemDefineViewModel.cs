@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Input;
 using EquipmentDesigner.Models.Dtos;
@@ -22,6 +23,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public SystemDefineViewModel()
         {
             Commands = new ObservableCollection<CommandViewModel>();
+            Commands.CollectionChanged += OnCommandsCollectionChanged;
 
             LoadFromServerCommand = new RelayCommand(ExecuteLoadFromServer);
             AddCommandCommand = new RelayCommand(ExecuteAddCommand);
@@ -30,12 +32,23 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         }
 
         /// <summary>
+        /// Event raised when the Add Command dialog should be shown.
+        /// </summary>
+        public event EventHandler ShowAddCommandDialogRequested;
+
+        /// <summary>
         /// Parent Equipment ID.
         /// </summary>
         public string ParentEquipmentId
         {
             get => _parentEquipmentId;
-            set => SetProperty(ref _parentEquipmentId, value);
+            set
+            {
+                if (SetProperty(ref _parentEquipmentId, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -47,7 +60,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             set
             {
                 if (SetProperty(ref _name, value))
+                {
                     OnPropertyChanged(nameof(CanProceedToNext));
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
             }
         }
 
@@ -57,7 +73,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string DisplayName
         {
             get => _displayName;
-            set => SetProperty(ref _displayName, value);
+            set
+            {
+                if (SetProperty(ref _displayName, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -66,7 +88,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Subname
         {
             get => _subname;
-            set => SetProperty(ref _subname, value);
+            set
+            {
+                if (SetProperty(ref _subname, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -75,7 +103,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Description
         {
             get => _description;
-            set => SetProperty(ref _description, value);
+            set
+            {
+                if (SetProperty(ref _description, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -84,7 +118,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string ImplementationGuidelines
         {
             get => _implementationGuidelines;
-            set => SetProperty(ref _implementationGuidelines, value);
+            set
+            {
+                if (SetProperty(ref _implementationGuidelines, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -93,7 +133,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Process
         {
             get => _process;
-            set => SetProperty(ref _process, value);
+            set
+            {
+                if (SetProperty(ref _process, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -102,9 +148,38 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public ObservableCollection<CommandViewModel> Commands { get; }
 
         /// <summary>
+        /// Returns true if the commands collection is empty.
+        /// </summary>
+        public bool HasNoCommands => Commands.Count == 0;
+
+        /// <summary>
         /// Returns true if required properties are provided for navigation.
         /// </summary>
         public bool CanProceedToNext => !string.IsNullOrWhiteSpace(Name);
+
+        /// <summary>
+        /// Total number of fields in this form.
+        /// </summary>
+        public int TotalFieldCount => 7;
+
+        /// <summary>
+        /// Number of fields that have been filled.
+        /// </summary>
+        public int FilledFieldCount
+        {
+            get
+            {
+                int count = 0;
+                if (!string.IsNullOrWhiteSpace(ParentEquipmentId)) count++;
+                if (!string.IsNullOrWhiteSpace(Name)) count++;
+                if (!string.IsNullOrWhiteSpace(DisplayName)) count++;
+                if (!string.IsNullOrWhiteSpace(Subname)) count++;
+                if (!string.IsNullOrWhiteSpace(Description)) count++;
+                if (!string.IsNullOrWhiteSpace(ImplementationGuidelines)) count++;
+                if (!string.IsNullOrWhiteSpace(Process)) count++;
+                return count;
+            }
+        }
 
         /// <summary>
         /// Command to load system data from server.
@@ -131,9 +206,25 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             // TODO: Implement server loading logic
         }
 
+        private void OnCommandsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(HasNoCommands));
+        }
+
         private void ExecuteAddCommand()
         {
-            Commands.Add(new CommandViewModel());
+            ShowAddCommandDialogRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Processes the result from the Add Command dialog.
+        /// </summary>
+        public void ProcessCommandDialogResult(CommandViewModel command)
+        {
+            if (command != null)
+            {
+                Commands.Add(command);
+            }
         }
 
         private void ExecuteRemoveCommand(CommandViewModel command)

@@ -228,17 +228,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         #region Commands Collection Management
 
         [Fact]
-        public void AddCommandCommand_WhenExecuted_AddsNewCommandViewModelToCollection()
-        {
-            var viewModel = new SystemDefineViewModel();
-            var initialCount = viewModel.Commands.Count;
-
-            viewModel.AddCommandCommand.Execute(null);
-
-            viewModel.Commands.Count.Should().Be(initialCount + 1);
-        }
-
-        [Fact]
         public void RemoveCommandCommand_WhenExecuted_RemovesCommandViewModelFromCollection()
         {
             var viewModel = new SystemDefineViewModel();
@@ -307,6 +296,73 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         {
             var viewModel = new SystemDefineViewModel { Name = "" };
             viewModel.AddAnotherCommand.CanExecute(null).Should().BeFalse();
+        }
+
+        #endregion
+
+        #region Add Command Dialog Integration
+
+        [Fact]
+        public void ShowAddCommandDialogRequested_EventExists_CanBeSubscribed()
+        {
+            var viewModel = new SystemDefineViewModel();
+            var raised = false;
+            viewModel.ShowAddCommandDialogRequested += (s, e) => raised = true;
+
+            // Just verifying we can subscribe without error
+            raised.Should().BeFalse();
+        }
+
+        [Fact]
+        public void AddCommandCommand_WhenExecuted_RaisesShowAddCommandDialogRequestedEvent()
+        {
+            var viewModel = new SystemDefineViewModel();
+            var raised = false;
+            viewModel.ShowAddCommandDialogRequested += (s, e) => raised = true;
+
+            viewModel.AddCommandCommand.Execute(null);
+
+            raised.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ProcessCommandDialogResult_WhenResultIsNotNull_AddsCommandToCollection()
+        {
+            var viewModel = new SystemDefineViewModel();
+            var command = new CommandViewModel { Name = "TestCmd", Description = "Test description" };
+
+            viewModel.ProcessCommandDialogResult(command);
+
+            viewModel.Commands.Should().Contain(command);
+        }
+
+        [Fact]
+        public void ProcessCommandDialogResult_WhenResultIsNull_DoesNotModifyCollection()
+        {
+            var viewModel = new SystemDefineViewModel();
+            var initialCount = viewModel.Commands.Count;
+
+            viewModel.ProcessCommandDialogResult(null);
+
+            viewModel.Commands.Count.Should().Be(initialCount);
+        }
+
+        [Fact]
+        public void HasNoCommands_ReturnsTrue_WhenCommandsCollectionIsEmpty()
+        {
+            var viewModel = new SystemDefineViewModel();
+            viewModel.HasNoCommands.Should().BeTrue();
+        }
+
+        [Fact]
+        public void HasNoCommands_ReturnsFalse_AfterProcessCommandDialogResultAddsCommand()
+        {
+            var viewModel = new SystemDefineViewModel();
+            var command = new CommandViewModel { Name = "TestCmd", Description = "Test description" };
+
+            viewModel.ProcessCommandDialogResult(command);
+
+            viewModel.HasNoCommands.Should().BeFalse();
         }
 
         #endregion

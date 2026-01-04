@@ -39,15 +39,11 @@
                                Style="{StaticResource Typography.Body}"
                                Foreground="{StaticResource Brush.Text.Secondary}"
                                VerticalAlignment="Center"
-                               Margin="0,0,8,0"/>
-                    <ComboBox ItemsSource="{Binding Source={x:Static services:LanguageService.Instance}, Path=AvailableLanguages}"
+                               Margin="0,0,12,0"/>
+                    <ComboBox Style="{StaticResource LanguageSelectorComboBox}"
+                              ItemsSource="{Binding Source={x:Static services:LanguageService.Instance}, Path=AvailableLanguages}"
                               SelectedItem="{Binding Source={x:Static services:LanguageService.Instance}, Path=SelectedLanguage, Mode=TwoWay}"
-                              DisplayMemberPath="DisplayName"
-                              MinWidth="100"
-                              Height="{StaticResource Size.Input.Height.MD}"
-                              Padding="8,4"
-                              Background="{StaticResource Brush.Input.Background}"
-                              BorderBrush="{StaticResource Brush.Input.Border}"/>
+                              DisplayMemberPath="DisplayName"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -334,7 +330,7 @@
                                                         VerticalAlignment="Top">
                                                     <TextBlock Text="{Binding Status}"
                                                                Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground}"/>
+                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
@@ -402,7 +398,7 @@
                                                         VerticalAlignment="Top">
                                                     <TextBlock Text="{Binding Status}"
                                                                Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground}"/>
+                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
@@ -469,7 +465,7 @@
                                                         VerticalAlignment="Top">
                                                     <TextBlock Text="{Binding Status}"
                                                                Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground}"/>
+                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>
@@ -536,7 +532,7 @@
                                                         VerticalAlignment="Top">
                                                     <TextBlock Text="{Binding Status}"
                                                                Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground}"/>
+                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
                                                 </Border>
                                             </Grid>
                                         </Border>

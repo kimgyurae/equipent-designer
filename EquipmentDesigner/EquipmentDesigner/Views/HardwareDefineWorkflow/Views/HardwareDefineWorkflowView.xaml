@@ -76,11 +76,16 @@
                         <DataTemplate>
                             <Border Margin="0,2"
                                     Padding="12,10"
-                                    CornerRadius="{StaticResource Radius.MD}"
-                                    Cursor="Hand">
+                                    CornerRadius="{StaticResource Radius.MD}">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick"
+                                                  Command="{Binding DataContext.NavigateToStepCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  CommandParameter="{Binding}"/>
+                                </Border.InputBindings>
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsActive}" Value="True">
                                                 <Setter Property="Background" Value="{StaticResource Brush.Status.Active.Background}"/>
@@ -99,75 +104,52 @@
                                     <Border Grid.Column="0"
                                             Width="28" Height="28"
                                             CornerRadius="{StaticResource Radius.Full}"
-                                            VerticalAlignment="Center">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background" Value="{StaticResource Brush.Background.Tertiary}"/>
-                                                <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Primary}"/>
-                                                <Setter Property="BorderThickness" Value="1"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                        <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background}"/>
-                                                        <Setter Property="BorderThickness" Value="0"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
-                                                        <Setter Property="Background" Value="{StaticResource Brush.Status.Success}"/>
-                                                        <Setter Property="BorderThickness" Value="0"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
+                                            VerticalAlignment="Center"
+                                            Background="{StaticResource Brush.Button.Primary.Background}">
                                         <TextBlock Text="{Binding StepNumber}"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"
                                                    FontSize="{StaticResource Font.Size.SM}"
-                                                   FontWeight="{StaticResource Font.Weight.Medium}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="{StaticResource Brush.Text.Secondary}"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                            <Setter Property="Foreground" Value="{StaticResource Brush.Text.Inverse}"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding IsCompleted}" Value="True">
-                                                            <Setter Property="Foreground" Value="{StaticResource Brush.Text.Inverse}"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
+                                                   FontWeight="{StaticResource Font.Weight.Medium}"
+                                                   Foreground="{StaticResource Brush.Text.Inverse}"/>
                                     </Border>
 
                                     <!-- Step Name -->
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding StepName}"
                                                VerticalAlignment="Center"
-                                               Margin="12,0,0,0">
+                                               Margin="12,0,0,0"
+                                               Foreground="{StaticResource Brush.Text.Primary}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Body}">
-                                                <Setter Property="Foreground" Value="{StaticResource Brush.Text.Secondary}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                        <Setter Property="Foreground" Value="{StaticResource Brush.Text.Primary}"/>
                                                         <Setter Property="FontWeight" Value="{StaticResource Font.Weight.Medium}"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
-                                                        <Setter Property="Foreground" Value="{StaticResource Brush.Text.Primary}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
 
-                                    <!-- Completed Checkmark -->
-                                    <Path Grid.Column="2"
-                                          Data="M5 13l4 4L19 7"
-                                          Stroke="{StaticResource Brush.Status.Success}"
-                                          StrokeThickness="2"
-                                          Width="16" Height="16"
-                                          Stretch="Uniform"
-                                          VerticalAlignment="Center"
-                                          Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <!-- Field Progress and Completed Checkmark -->
+                                    <StackPanel Grid.Column="2" 
+                                                Orientation="Horizontal" 
+                                                VerticalAlignment="Center">
+                                        <!-- Field Progress Text -->
+                                        <TextBlock Text="{Binding FieldProgressText}"
+                                                   Style="{StaticResource Typography.Body.Small}"
+                                                   Foreground="{StaticResource Brush.Text.Secondary}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,8,0"/>
+                                        <!-- Completed Checkmark -->
+                                        <Path Data="M5 13l4 4L19 7"
+                                              Stroke="{StaticResource Brush.Status.Success}"
+                                              StrokeThickness="2"
+                                              Width="16" Height="16"
+                                              Stretch="Uniform"
+                                              VerticalAlignment="Center"
+                                              Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    </StackPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>

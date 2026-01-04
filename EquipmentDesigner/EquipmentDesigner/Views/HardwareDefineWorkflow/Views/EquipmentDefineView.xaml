@@ -60,14 +60,35 @@
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6">
                         <Run Text="{lex:Loc Key=Equipment_Type}"/>
-                        <Run Text="*" Foreground="{StaticResource Brush.Status.Danger}"/>
                     </TextBlock>
-                    <ComboBox ItemsSource="{Binding EquipmentTypes}"
-                              SelectedItem="{Binding EquipmentType, Mode=TwoWay}"
-                              Height="{StaticResource Size.Input.Height.MD}"
-                              Padding="{StaticResource Spacing.Padding.Input}"
-                              Background="{StaticResource Brush.Input.Background}"
-                              BorderBrush="{StaticResource Brush.Input.Border}"/>
+                    <Grid>
+                        <TextBox x:Name="EquipmentTypeTextBox"
+                                 Text="{Binding EquipmentType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Height="{StaticResource Size.Input.Height.MD}"
+                                 Padding="{StaticResource Spacing.Padding.Input}"
+                                 Background="{StaticResource Brush.Input.Background}"
+                                 BorderBrush="{StaticResource Brush.Input.Border}"
+                                 VerticalContentAlignment="Center"/>
+                        <TextBlock Text="{lex:Loc Key=Equipment_Type_Placeholder}"
+                                   Foreground="{StaticResource Brush.Text.Tertiary}"
+                                   VerticalAlignment="Center"
+                                   Margin="12,0,0,0"
+                                   IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Body}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=EquipmentTypeTextBox}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Text, ElementName=EquipmentTypeTextBox}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </StackPanel>
 
                 <!-- Name (Required) -->
@@ -164,7 +185,7 @@
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6"/>
-                    <TextBlock Text="{lex:Loc Key=Equipment_SupportedFormats}"
+                    <TextBlock Text="{lex:Loc Key=Equipment_AttachedDocuments_Description}"
                                Style="{StaticResource Typography.Body.Small}"
                                Foreground="{StaticResource Brush.Text.Tertiary}"
                                Margin="0,0,0,8"/>
@@ -199,13 +220,20 @@
                                                    Margin="8,0,0,0"
                                                    TextTrimming="CharacterEllipsis"/>
                                         <Button Grid.Column="2"
-                                                Content="X"
+                                                Command="{Binding DataContext.RemoveDocumentCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
                                                 Background="Transparent"
                                                 BorderThickness="0"
                                                 Foreground="{StaticResource Brush.Text.Tertiary}"
                                                 FontSize="12"
                                                 Cursor="Hand"
-                                                Padding="4"/>
+                                                Padding="4">
+                                            <Path Data="M6 18L18 6M6 6l12 12"
+                                                  Stroke="{StaticResource Brush.Text.Tertiary}"
+                                                  StrokeThickness="1.5"
+                                                  Width="10" Height="10"
+                                                  Stretch="Uniform"/>
+                                        </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -213,7 +241,8 @@
                     </ItemsControl>
 
                     <!-- Add Document Button -->
-                    <Button HorizontalAlignment="Left"
+                    <Button Command="{Binding AddDocumentCommand}"
+                            HorizontalAlignment="Left"
                             Padding="{StaticResource Spacing.Padding.Button}"
                             Height="{StaticResource Size.Button.Height.SM}"
                             Background="{StaticResource Brush.Button.Ghost.Background}"

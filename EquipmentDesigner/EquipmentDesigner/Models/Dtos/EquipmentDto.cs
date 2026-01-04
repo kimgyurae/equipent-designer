@@ -81,31 +81,6 @@ namespace EquipmentDesigner.Models.Dtos
         /// </summary>
         public string ProgramRoot { get; set; }
 
-        /// <summary>
-        /// 경로 정의 목록
-        /// </summary>
-        public List<PathDefinitionDto> PathDefinitions { get; set; } = new List<PathDefinitionDto>();
-
         #endregion
-
-        #region Description File Paths
-
-        public string ProcessDescriptionFilePath { get; set; }
-        public string HardwareDescriptionFilePath { get; set; }
-        public string StationDescriptionFilePath { get; set; }
-        public string LoggerDescriptionFilePath { get; set; }
-        public string IoDescriptionFilePath { get; set; }
-        public string DefaultRecipeFilePath { get; set; }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// 경로 정의 DTO
-    /// </summary>
-    public class PathDefinitionDto
-    {
-        public string Name { get; set; }
-        public string Path { get; set; }
     }
 }

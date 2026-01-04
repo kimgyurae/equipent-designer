@@ -93,8 +93,7 @@
     <!-- =========================
          Opacity Levels
          ========================= -->
-    <x:Static x:Key="Opacity.Disabled" Member="sys:Double.Parse" xmlns:sys="clr-namespace:System;assembly=mscorlib"/>
-    <!-- Note: Use these values directly -->
+    <!-- Opacity values should be used directly as numeric literals -->
     <!-- Opacity.Full = 1.0 -->
     <!-- Opacity.High = 0.9 -->
     <!-- Opacity.Medium = 0.7 -->

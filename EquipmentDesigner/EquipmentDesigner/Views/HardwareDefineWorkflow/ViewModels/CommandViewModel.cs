@@ -16,7 +16,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public CommandViewModel()
         {
             Parameters = new ObservableCollection<ParameterViewModel>();
-            Parameters.CollectionChanged += (s, e) => OnPropertyChanged(nameof(IsValid));
+            Parameters.CollectionChanged += (s, e) =>
+            {
+                OnPropertyChanged(nameof(IsValid));
+                OnPropertyChanged(nameof(ParametersDisplayText));
+            };
 
             AddParameterCommand = new RelayCommand(ExecuteAddParameter);
             RemoveParameterCommand = new RelayCommand<ParameterViewModel>(ExecuteRemoveParameter);
@@ -70,6 +74,21 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// Command to remove a parameter.
         /// </summary>
         public ICommand RemoveParameterCommand { get; }
+
+        /// <summary>
+        /// Returns the parameters formatted as "type name, type name" for display in cards.
+        /// </summary>
+        public string ParametersDisplayText
+        {
+            get
+            {
+                if (Parameters.Count == 0)
+                    return string.Empty;
+
+                return string.Join(", ", Parameters.Select(p =>
+                    $"{p.Type?.ToLowerInvariant() ?? ""} {p.Name?.ToLowerInvariant() ?? ""}".Trim()));
+            }
+        }
 
         private void ExecuteAddParameter()
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Input;
 using EquipmentDesigner.Models.Dtos;
@@ -17,10 +18,12 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private string _subname = string.Empty;
         private string _description = string.Empty;
         private string _implementationGuidelines = string.Empty;
+        private Func<bool> _allStepsRequiredFieldsFilledCheck;
 
         public DeviceDefineViewModel()
         {
             Commands = new ObservableCollection<CommandViewModel>();
+            Commands.CollectionChanged += OnCommandsCollectionChanged;
             IoConfigurations = new ObservableCollection<IoConfigurationViewModel>();
 
             LoadFromServerCommand = new RelayCommand(ExecuteLoadFromServer);
@@ -33,12 +36,34 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         }
 
         /// <summary>
+        /// Sets the callback function to check if all steps have required fields filled.
+        /// </summary>
+        public void SetAllStepsRequiredFieldsFilledCheck(Func<bool> check)
+        {
+            _allStepsRequiredFieldsFilledCheck = check;
+        }
+
+        /// <summary>
+        /// Notifies that CanCompleteWorkflow should be re-evaluated.
+        /// </summary>
+        public void RaiseCanCompleteWorkflowChanged()
+        {
+            OnPropertyChanged(nameof(CanCompleteWorkflow));
+        }
+
+        /// <summary>
         /// Parent Unit ID.
         /// </summary>
         public string ParentUnitId
         {
             get => _parentUnitId;
-            set => SetProperty(ref _parentUnitId, value);
+            set
+            {
+                if (SetProperty(ref _parentUnitId, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -53,6 +78,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 {
                     OnPropertyChanged(nameof(CanProceedToNext));
                     OnPropertyChanged(nameof(CanCompleteWorkflow));
+                    OnPropertyChanged(nameof(FilledFieldCount));
                 }
             }
         }
@@ -63,7 +89,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string DisplayName
         {
             get => _displayName;
-            set => SetProperty(ref _displayName, value);
+            set
+            {
+                if (SetProperty(ref _displayName, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -72,7 +104,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Subname
         {
             get => _subname;
-            set => SetProperty(ref _subname, value);
+            set
+            {
+                if (SetProperty(ref _subname, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -81,7 +119,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string Description
         {
             get => _description;
-            set => SetProperty(ref _description, value);
+            set
+            {
+                if (SetProperty(ref _description, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
@@ -90,13 +134,24 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string ImplementationGuidelines
         {
             get => _implementationGuidelines;
-            set => SetProperty(ref _implementationGuidelines, value);
+            set
+            {
+                if (SetProperty(ref _implementationGuidelines, value))
+                {
+                    OnPropertyChanged(nameof(FilledFieldCount));
+                }
+            }
         }
 
         /// <summary>
         /// Collection of commands for this device.
         /// </summary>
         public ObservableCollection<CommandViewModel> Commands { get; }
+
+        /// <summary>
+        /// Returns true if there are no commands in the collection.
+        /// </summary>
+        public bool HasNoCommands => Commands.Count == 0;
 
         /// <summary>
         /// Collection of IO configurations for this device.
@@ -109,9 +164,33 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public bool CanProceedToNext => !string.IsNullOrWhiteSpace(Name);
 
         /// <summary>
-        /// Returns true if the workflow can be completed.
+        /// Total number of fields in this form.
         /// </summary>
-        public bool CanCompleteWorkflow => CanProceedToNext;
+        public int TotalFieldCount => 6;
+
+        /// <summary>
+        /// Number of fields that have been filled.
+        /// </summary>
+        public int FilledFieldCount
+        {
+            get
+            {
+                int count = 0;
+                if (!string.IsNullOrWhiteSpace(ParentUnitId)) count++;
+                if (!string.IsNullOrWhiteSpace(Name)) count++;
+                if (!string.IsNullOrWhiteSpace(DisplayName)) count++;
+                if (!string.IsNullOrWhiteSpace(Subname)) count++;
+                if (!string.IsNullOrWhiteSpace(Description)) count++;
+                if (!string.IsNullOrWhiteSpace(ImplementationGuidelines)) count++;
+                return count;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the workflow can be completed.
+        /// All required fields in all steps must be filled.
+        /// </summary>
+        public bool CanCompleteWorkflow => _allStepsRequiredFieldsFilledCheck?.Invoke() ?? CanProceedToNext;
 
         /// <summary>
         /// Command to load device data from server.
@@ -148,6 +227,21 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// </summary>
         public ICommand CompleteWorkflowCommand { get; }
 
+        /// <summary>
+        /// Event raised when the Add IO dialog should be shown.
+        /// </summary>
+        public event EventHandler ShowAddIoDialogRequested;
+
+        /// <summary>
+        /// Event raised when the Add Command dialog should be shown.
+        /// </summary>
+        public event EventHandler ShowAddCommandDialogRequested;
+
+        private void OnCommandsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(HasNoCommands));
+        }
+
         private void ExecuteLoadFromServer()
         {
             // TODO: Implement server loading logic
@@ -155,7 +249,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         private void ExecuteAddCommand()
         {
-            Commands.Add(new CommandViewModel());
+            ShowAddCommandDialogRequested?.Invoke(this, EventArgs.Empty);
         }
 
         private void ExecuteRemoveCommand(CommandViewModel command)
@@ -166,7 +260,31 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         private void ExecuteAddIo()
         {
-            IoConfigurations.Add(new IoConfigurationViewModel());
+            ShowAddIoDialogRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Processes the result from the Add IO dialog.
+        /// </summary>
+        /// <param name="result">The IO configuration from the dialog, or null if cancelled.</param>
+        public void ProcessDialogResult(IoConfigurationViewModel result)
+        {
+            if (result != null)
+            {
+                IoConfigurations.Add(result);
+            }
+        }
+
+        /// <summary>
+        /// Processes the result from the Add Command dialog.
+        /// </summary>
+        /// <param name="command">The command from the dialog, or null if cancelled.</param>
+        public void ProcessCommandDialogResult(CommandViewModel command)
+        {
+            if (command != null)
+            {
+                Commands.Add(command);
+            }
         }
 
         private void ExecuteRemoveIo(IoConfigurationViewModel io)

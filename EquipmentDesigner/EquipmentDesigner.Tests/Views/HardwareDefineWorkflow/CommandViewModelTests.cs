@@ -214,6 +214,61 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
         #endregion
 
+        #region ParametersDisplayText
+
+        [Fact]
+        public void ParametersDisplayText_WhenParametersCollectionIsEmpty_ReturnsEmptyString()
+        {
+            var viewModel = new CommandViewModel();
+            viewModel.ParametersDisplayText.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ParametersDisplayText_WithSingleParameter_ReturnsTypeNameFormat()
+        {
+            var viewModel = new CommandViewModel();
+            viewModel.Parameters.Add(new ParameterViewModel { Name = "speed", Type = "double", Description = "Speed value" });
+
+            viewModel.ParametersDisplayText.Should().Be("double speed");
+        }
+
+        [Fact]
+        public void ParametersDisplayText_WithMultipleParameters_ReturnsCommaSeparatedFormat()
+        {
+            var viewModel = new CommandViewModel();
+            viewModel.Parameters.Add(new ParameterViewModel { Name = "grip", Type = "bool", Description = "Grip state" });
+            viewModel.Parameters.Add(new ParameterViewModel { Name = "speed", Type = "double", Description = "Speed value" });
+
+            viewModel.ParametersDisplayText.Should().Be("bool grip, double speed");
+        }
+
+        [Fact]
+        public void ParametersDisplayText_UsesLowercaseTypeAndName()
+        {
+            var viewModel = new CommandViewModel();
+            viewModel.Parameters.Add(new ParameterViewModel { Name = "MyParam", Type = "String", Description = "Test" });
+
+            viewModel.ParametersDisplayText.Should().Be("string myparam");
+        }
+
+        [Fact]
+        public void ParametersDisplayText_UpdatesWhenParametersCollectionChanges()
+        {
+            var viewModel = new CommandViewModel();
+            var raised = false;
+            viewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(CommandViewModel.ParametersDisplayText))
+                    raised = true;
+            };
+
+            viewModel.Parameters.Add(new ParameterViewModel { Name = "test", Type = "int", Description = "Test" });
+
+            raised.Should().BeTrue();
+        }
+
+        #endregion
+
         #region Data Conversion
 
         [Fact]
