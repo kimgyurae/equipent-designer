@@ -1,0 +1,72 @@
+using System;
+using System.Collections.Generic;
+using EquipmentDesigner.Models.Dtos;
+
+namespace EquipmentDesigner.Models.Storage
+{
+    /// <summary>
+    /// 작업 세션 컨텍스트 - 앱 재시작 시 마지막 작업 위치 복구용
+    /// </summary>
+    public class WorkSessionContext
+    {
+        /// <summary>
+        /// 마지막으로 작업 중이던 워크플로우 타입
+        /// </summary>
+        public WorkflowStartType? LastWorkflowType { get; set; }
+
+        /// <summary>
+        /// 마지막으로 편집 중이던 컴포넌트 ID
+        /// </summary>
+        public string LastEditingComponentId { get; set; }
+
+        /// <summary>
+        /// 마지막으로 편집 중이던 컴포넌트 타입
+        /// </summary>
+        public ComponentType? LastEditingComponentType { get; set; }
+
+        /// <summary>
+        /// 현재 워크플로우 단계 (0-based index)
+        /// </summary>
+        public int CurrentWorkflowStep { get; set; }
+
+        /// <summary>
+        /// 미완성 워크플로우 목록 (Resume Tasks용)
+        /// </summary>
+        public List<IncompleteWorkflowInfo> IncompleteWorkflows { get; set; } = new List<IncompleteWorkflowInfo>();
+    }
+
+    /// <summary>
+    /// 워크플로우 시작 타입
+    /// </summary>
+    public enum WorkflowStartType
+    {
+        NewEquipment,
+        NewSystem,
+        NewUnit,
+        NewDevice
+    }
+
+    /// <summary>
+    /// 컴포넌트 타입 열거형
+    /// </summary>
+    public enum ComponentType
+    {
+        Equipment,
+        System,
+        Unit,
+        Device
+    }
+
+    /// <summary>
+    /// 미완성 워크플로우 정보
+    /// </summary>
+    public class IncompleteWorkflowInfo
+    {
+        public string ComponentId { get; set; }
+        public ComponentType ComponentType { get; set; }
+        public ComponentState State { get; set; }
+        public DateTime LastModifiedAt { get; set; }
+        public int CompletedFields { get; set; }
+        public int TotalFields { get; set; }
+    }
+}

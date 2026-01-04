@@ -18,6 +18,9 @@ namespace EquipmentDesigner
         {
             base.OnStartup(e);
 
+            // Configure dependency injection for production
+            ServiceLocator.ConfigureForProduction();
+
             // Initialize language service with Korean as default language
             LanguageService.Instance.Initialize();
         }
