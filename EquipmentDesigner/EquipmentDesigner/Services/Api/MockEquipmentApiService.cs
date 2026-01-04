@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.Dtos;
@@ -17,20 +18,34 @@ namespace EquipmentDesigner.Services.Api
     {
         private readonly IDataRepository _repository;
         private SharedMemoryDataStore _dataStore;
+        private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
+        private bool _initialized;
 
         public MockEquipmentApiService(IDataRepository repository)
         {
             _repository = repository;
-            InitializeAsync().GetAwaiter().GetResult();
         }
 
-        private async Task InitializeAsync()
+        private async Task EnsureInitializedAsync()
         {
-            _dataStore = await _repository.LoadAsync();
-            if (_dataStore.Equipments.Count == 0)
+            if (_initialized) return;
+
+            await _initLock.WaitAsync();
+            try
             {
-                InitializeSampleData();
-                await _repository.SaveAsync(_dataStore);
+                if (_initialized) return;
+
+                _dataStore = await _repository.LoadAsync();
+                if (_dataStore.Equipments.Count == 0)
+                {
+                    InitializeSampleData();
+                    await _repository.SaveAsync(_dataStore);
+                }
+                _initialized = true;
+            }
+            finally
+            {
+                _initLock.Release();
             }
         }
 
@@ -100,12 +115,14 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<EquipmentDto>>> GetAllEquipmentsAsync()
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             return ApiResponse<List<EquipmentDto>>.Ok(_dataStore.Equipments.ToList());
         }
 
         public async Task<ApiResponse<EquipmentDto>> GetEquipmentByIdAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var equipment = _dataStore.Equipments.FirstOrDefault(e => e.Id == id);
             if (equipment == null)
@@ -115,6 +132,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<EquipmentDto>> CreateEquipmentAsync(EquipmentDto equipment)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             equipment.Id = $"eq-{Guid.NewGuid():N}".Substring(0, 10);
             equipment.CreatedAt = DateTime.Now;
@@ -127,6 +145,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<EquipmentDto>> UpdateEquipmentAsync(string id, EquipmentDto equipment)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var index = _dataStore.Equipments.FindIndex(e => e.Id == id);
             if (index < 0)
@@ -143,6 +162,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> DeleteEquipmentAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var removed = _dataStore.Equipments.RemoveAll(e => e.Id == id) > 0;
             if (!removed)
@@ -154,6 +174,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> ValidateEquipmentAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var equipment = _dataStore.Equipments.FirstOrDefault(e => e.Id == id);
             if (equipment == null)
@@ -175,6 +196,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<EquipmentDto>> UploadEquipmentAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(100);
             var equipment = _dataStore.Equipments.FirstOrDefault(e => e.Id == id);
             if (equipment == null)
@@ -188,6 +210,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<EquipmentDto>>> SearchPredefinedEquipmentsAsync(string query)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var results = _dataStore.Equipments
                 .Where(e => e.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -202,12 +225,14 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<SystemDto>>> GetAllSystemsAsync()
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             return ApiResponse<List<SystemDto>>.Ok(_dataStore.Systems.ToList());
         }
 
         public async Task<ApiResponse<SystemDto>> GetSystemByIdAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var system = _dataStore.Systems.FirstOrDefault(s => s.Id == id);
             if (system == null)
@@ -217,6 +242,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<SystemDto>>> GetSystemsByEquipmentIdAsync(string equipmentId)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var systems = _dataStore.Systems.Where(s => s.EquipmentId == equipmentId).ToList();
             return ApiResponse<List<SystemDto>>.Ok(systems);
@@ -224,6 +250,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<SystemDto>> CreateSystemAsync(SystemDto system)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             system.Id = $"sys-{Guid.NewGuid():N}".Substring(0, 10);
             system.CreatedAt = DateTime.Now;
@@ -236,6 +263,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<SystemDto>> UpdateSystemAsync(string id, SystemDto system)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var index = _dataStore.Systems.FindIndex(s => s.Id == id);
             if (index < 0)
@@ -252,6 +280,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> DeleteSystemAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var removed = _dataStore.Systems.RemoveAll(s => s.Id == id) > 0;
             if (!removed)
@@ -263,6 +292,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> ValidateSystemAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var system = _dataStore.Systems.FirstOrDefault(s => s.Id == id);
             if (system == null)
@@ -282,6 +312,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<SystemDto>>> SearchPredefinedSystemsAsync(string query)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var results = _dataStore.Systems
                 .Where(s => s.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -296,12 +327,14 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<UnitDto>>> GetAllUnitsAsync()
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             return ApiResponse<List<UnitDto>>.Ok(_dataStore.Units.ToList());
         }
 
         public async Task<ApiResponse<UnitDto>> GetUnitByIdAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var unit = _dataStore.Units.FirstOrDefault(u => u.Id == id);
             if (unit == null)
@@ -311,6 +344,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<UnitDto>>> GetUnitsBySystemIdAsync(string systemId)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var units = _dataStore.Units.Where(u => u.SystemId == systemId).ToList();
             return ApiResponse<List<UnitDto>>.Ok(units);
@@ -318,6 +352,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<UnitDto>> CreateUnitAsync(UnitDto unit)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             unit.Id = $"unit-{Guid.NewGuid():N}".Substring(0, 12);
             unit.CreatedAt = DateTime.Now;
@@ -330,6 +365,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<UnitDto>> UpdateUnitAsync(string id, UnitDto unit)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var index = _dataStore.Units.FindIndex(u => u.Id == id);
             if (index < 0)
@@ -346,6 +382,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> DeleteUnitAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var removed = _dataStore.Units.RemoveAll(u => u.Id == id) > 0;
             if (!removed)
@@ -357,6 +394,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> ValidateUnitAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var unit = _dataStore.Units.FirstOrDefault(u => u.Id == id);
             if (unit == null)
@@ -376,6 +414,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<UnitDto>>> SearchPredefinedUnitsAsync(string query)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var results = _dataStore.Units
                 .Where(u => u.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -390,12 +429,14 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<DeviceDto>>> GetAllDevicesAsync()
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             return ApiResponse<List<DeviceDto>>.Ok(_dataStore.Devices.ToList());
         }
 
         public async Task<ApiResponse<DeviceDto>> GetDeviceByIdAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var device = _dataStore.Devices.FirstOrDefault(d => d.Id == id);
             if (device == null)
@@ -405,6 +446,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<DeviceDto>>> GetDevicesByUnitIdAsync(string unitId)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var devices = _dataStore.Devices.Where(d => d.UnitId == unitId).ToList();
             return ApiResponse<List<DeviceDto>>.Ok(devices);
@@ -412,6 +454,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<DeviceDto>> CreateDeviceAsync(DeviceDto device)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             device.Id = $"dev-{Guid.NewGuid():N}".Substring(0, 11);
             device.CreatedAt = DateTime.Now;
@@ -424,6 +467,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<DeviceDto>> UpdateDeviceAsync(string id, DeviceDto device)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var index = _dataStore.Devices.FindIndex(d => d.Id == id);
             if (index < 0)
@@ -440,6 +484,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> DeleteDeviceAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var removed = _dataStore.Devices.RemoveAll(d => d.Id == id) > 0;
             if (!removed)
@@ -451,6 +496,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<bool>> ValidateDeviceAsync(string id)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var device = _dataStore.Devices.FirstOrDefault(d => d.Id == id);
             if (device == null)
@@ -470,6 +516,7 @@ namespace EquipmentDesigner.Services.Api
 
         public async Task<ApiResponse<List<DeviceDto>>> SearchPredefinedDevicesAsync(string query)
         {
+            await EnsureInitializedAsync();
             await Task.Delay(50);
             var results = _dataStore.Devices
                 .Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
