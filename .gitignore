@@ -211,3 +211,6 @@ ScaffoldingReadMe.txt
 CLAUDE.md
 
 .top-ai-os
+
+# Auto Claude data directory
+.auto-claude/
