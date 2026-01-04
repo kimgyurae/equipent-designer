@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.36602.28
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EquipmentDesigner", "EquipmentDesigner\EquipmentDesigner.csproj", "{882812FF-8D81-4334-B9B4-EE98630C1FF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipmentDesigner.Tests", "EquipmentDesigner.Tests\EquipmentDesigner.Tests.csproj", "{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,14 @@ Global
 		{882812FF-8D81-4334-B9B4-EE98630C1FF2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{882812FF-8D81-4334-B9B4-EE98630C1FF2}.Release|x64.ActiveCfg = Release|x64
 		{882812FF-8D81-4334-B9B4-EE98630C1FF2}.Release|x64.Build.0 = Release|x64
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Debug|x64.ActiveCfg = Debug|x64
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Debug|x64.Build.0 = Debug|x64
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Release|x64.ActiveCfg = Release|x64
+		{AF7EAF11-9544-4E83-A567-7E8D2A4A82C8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common -->
+  <data name="AppTitle" xml:space="preserve">
+    <value>Equipment Description Editor</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Korean" xml:space="preserve">
+    <value>Korean</value>
+  </data>
+  <data name="English" xml:space="preserve">
+    <value>English</value>
+  </data>
+
+  <!-- Dashboard -->
+  <data name="Dashboard_Title" xml:space="preserve">
+    <value>Equipment Description Editor</value>
+  </data>
+  <data name="Dashboard_Subtitle" xml:space="preserve">
+    <value>Define and manage your hardware components: Equipment, Systems, Units, and Devices</value>
+  </data>
+  <data name="Dashboard_IncompleteWorkflows" xml:space="preserve">
+    <value>Incomplete Workflows</value>
+  </data>
+  <data name="Dashboard_IncompleteWorkflowsDescription" xml:space="preserve">
+    <value>You have {0} incomplete workflows. Click to continue where you left off.</value>
+  </data>
+  <data name="Dashboard_StartedFrom" xml:space="preserve">
+    <value>Started from: </value>
+  </data>
+  <data name="Dashboard_CurrentStep" xml:space="preserve">
+    <value>Current step: </value>
+  </data>
+  <data name="Dashboard_CreateNewComponent" xml:space="preserve">
+    <value>Create New Component</value>
+  </data>
+  <data name="Dashboard_Equipment" xml:space="preserve">
+    <value>Equipment</value>
+  </data>
+  <data name="Dashboard_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Dashboard_Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Dashboard_Device" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="Dashboard_Equipments" xml:space="preserve">
+    <value>Equipments</value>
+  </data>
+  <data name="Dashboard_Systems" xml:space="preserve">
+    <value>Systems</value>
+  </data>
+  <data name="Dashboard_Units" xml:space="preserve">
+    <value>Units</value>
+  </data>
+  <data name="Dashboard_Devices" xml:space="preserve">
+    <value>Devices</value>
+  </data>
+  <data name="Dashboard_NoEquipments" xml:space="preserve">
+    <value>No equipments defined yet</value>
+  </data>
+  <data name="Dashboard_NoSystems" xml:space="preserve">
+    <value>No systems defined yet</value>
+  </data>
+  <data name="Dashboard_NoUnits" xml:space="preserve">
+    <value>No units defined yet</value>
+  </data>
+  <data name="Dashboard_NoDevices" xml:space="preserve">
+    <value>No devices defined yet</value>
+  </data>
+
+  <!-- Hardware Define Workflow -->
+  <data name="Workflow_HardwareDefinition" xml:space="preserve">
+    <value>Hardware Definition</value>
+  </data>
+  <data name="Workflow_CreatingFrom" xml:space="preserve">
+    <value>Creating from: </value>
+  </data>
+  <data name="Workflow_ExitToDashboard" xml:space="preserve">
+    <value>Exit to Dashboard</value>
+  </data>
+  <data name="Workflow_Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Workflow_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+
+  <!-- Equipment Define -->
+  <data name="Equipment_DefineEquipment" xml:space="preserve">
+    <value>Define Equipment</value>
+  </data>
+  <data name="Equipment_Description" xml:space="preserve">
+    <value>Enter the basic information for your equipment. Fields marked with * are required.</value>
+  </data>
+  <data name="Equipment_LoadFromServer" xml:space="preserve">
+    <value>Load from Server</value>
+  </data>
+  <data name="Equipment_Type" xml:space="preserve">
+    <value>Equipment Type</value>
+  </data>
+  <data name="Equipment_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Equipment_DisplayName" xml:space="preserve">
+    <value>Display Name</value>
+  </data>
+  <data name="Equipment_Subname" xml:space="preserve">
+    <value>Subname</value>
+  </data>
+  <data name="Equipment_DescriptionLabel" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Equipment_Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Equipment_Process" xml:space="preserve">
+    <value>Process</value>
+  </data>
+  <data name="Equipment_AttachedDocuments" xml:space="preserve">
+    <value>Attached Documents</value>
+  </data>
+  <data name="Equipment_SupportedFormats" xml:space="preserve">
+    <value>Supported formats: PDF, PPT, MD, DRAWIO</value>
+  </data>
+  <data name="Equipment_AddDocument" xml:space="preserve">
+    <value>Add Document</value>
+  </data>
+
+  <!-- System Define -->
+  <data name="System_DefineSystem" xml:space="preserve">
+    <value>Define System</value>
+  </data>
+  <data name="System_Description" xml:space="preserve">
+    <value>Enter the basic information for your system. Fields marked with * are required.</value>
+  </data>
+  <data name="System_AddAnother" xml:space="preserve">
+    <value>Add Another System</value>
+  </data>
+  <data name="System_ParentEquipment" xml:space="preserve">
+    <value>Parent Equipment</value>
+  </data>
+  <data name="System_ImplementationGuidelines" xml:space="preserve">
+    <value>Implementation Guidelines</value>
+  </data>
+  <data name="System_Commands" xml:space="preserve">
+    <value>Commands</value>
+  </data>
+  <data name="System_CommandsDescription" xml:space="preserve">
+    <value>Define commands that this system can execute</value>
+  </data>
+  <data name="System_AddCommand" xml:space="preserve">
+    <value>Add Command</value>
+  </data>
+  <data name="System_CommandName" xml:space="preserve">
+    <value>Command Name</value>
+  </data>
+  <data name="System_NoCommands" xml:space="preserve">
+    <value>No commands defined</value>
+  </data>
+  <data name="System_NoCommandsHint" xml:space="preserve">
+    <value>Click 'Add Command' to define system commands</value>
+  </data>
+
+  <!-- Unit Define -->
+  <data name="Unit_DefineUnit" xml:space="preserve">
+    <value>Define Unit</value>
+  </data>
+  <data name="Unit_Description" xml:space="preserve">
+    <value>Enter the basic information for your unit. Fields marked with * are required.</value>
+  </data>
+  <data name="Unit_AddAnother" xml:space="preserve">
+    <value>Add Another Unit</value>
+  </data>
+  <data name="Unit_ParentSystem" xml:space="preserve">
+    <value>Parent System</value>
+  </data>
+  <data name="Unit_CommandsDescription" xml:space="preserve">
+    <value>Define commands that this unit can execute</value>
+  </data>
+  <data name="Unit_NoCommandsHint" xml:space="preserve">
+    <value>Click 'Add Command' to define unit commands</value>
+  </data>
+
+  <!-- Device Define -->
+  <data name="Device_DefineDevice" xml:space="preserve">
+    <value>Define Device</value>
+  </data>
+  <data name="Device_Description" xml:space="preserve">
+    <value>Enter the basic information for your device. Fields marked with * are required.</value>
+  </data>
+  <data name="Device_AddAnother" xml:space="preserve">
+    <value>Add Another Device</value>
+  </data>
+  <data name="Device_CompleteWorkflow" xml:space="preserve">
+    <value>Complete Workflow</value>
+  </data>
+  <data name="Device_ParentUnit" xml:space="preserve">
+    <value>Parent Unit</value>
+  </data>
+  <data name="Device_CommandsDescription" xml:space="preserve">
+    <value>Define commands that this device can execute</value>
+  </data>
+  <data name="Device_NoCommandsHint" xml:space="preserve">
+    <value>Click 'Add Command' to define device commands</value>
+  </data>
+  <data name="Device_IoConfigurations" xml:space="preserve">
+    <value>IO Configurations</value>
+  </data>
+  <data name="Device_IoDescription" xml:space="preserve">
+    <value>Define input/output configurations for this device</value>
+  </data>
+  <data name="Device_AddIo" xml:space="preserve">
+    <value>Add IO</value>
+  </data>
+  <data name="Device_IoName" xml:space="preserve">
+    <value>IO Name</value>
+  </data>
+  <data name="Device_IoType" xml:space="preserve">
+    <value>IO Type</value>
+  </data>
+  <data name="Device_IoType_Input" xml:space="preserve">
+    <value>Input</value>
+  </data>
+  <data name="Device_IoType_Output" xml:space="preserve">
+    <value>Output</value>
+  </data>
+  <data name="Device_IoType_Digital" xml:space="preserve">
+    <value>Digital</value>
+  </data>
+  <data name="Device_IoType_Analog" xml:space="preserve">
+    <value>Analog</value>
+  </data>
+  <data name="Device_NoIo" xml:space="preserve">
+    <value>No IO configurations defined</value>
+  </data>
+  <data name="Device_NoIoHint" xml:space="preserve">
+    <value>Click 'Add IO' to define input/output configurations</value>
+  </data>
+
+</root>

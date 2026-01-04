@@ -1,0 +1,242 @@
+<UserControl x:Class="EquipmentDesigner.Views.HardwareDefineWorkflow.EquipmentDefine.EquipmentDefineView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             lex:LocalizeDictionary.DesignCulture="ko"
+             lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
+             lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="800">
+
+    <StackPanel>
+        <!-- Header -->
+        <StackPanel Margin="0,0,0,24">
+            <TextBlock Text="{lex:Loc Key=Equipment_DefineEquipment}"
+                       Style="{StaticResource Typography.H3}"
+                       Foreground="{StaticResource Brush.Text.Primary}"/>
+            <TextBlock Text="{lex:Loc Key=Equipment_Description}"
+                       Style="{StaticResource Typography.Body}"
+                       Foreground="{StaticResource Brush.Text.Secondary}"
+                       Margin="0,8,0,0"/>
+        </StackPanel>
+
+        <!-- Load from Server Button -->
+        <Button Command="{Binding LoadFromServerCommand}"
+                HorizontalAlignment="Left"
+                Padding="{StaticResource Spacing.Padding.Button}"
+                Height="{StaticResource Size.Button.Height.MD}"
+                Background="{StaticResource Brush.Button.Secondary.Background}"
+                BorderThickness="0"
+                Cursor="Hand"
+                Margin="0,0,0,24">
+            <StackPanel Orientation="Horizontal">
+                <Path Data="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      Stroke="{StaticResource Brush.Text.Primary}"
+                      StrokeThickness="2"
+                      Width="16" Height="16"
+                      Stretch="Uniform"
+                      VerticalAlignment="Center"/>
+                <TextBlock Text="{lex:Loc Key=Equipment_LoadFromServer}"
+                           Style="{StaticResource Typography.Button}"
+                           Foreground="{StaticResource Brush.Text.Primary}"
+                           Margin="8,0,0,0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Button>
+
+        <!-- Form Card -->
+        <Border Background="{StaticResource Brush.Surface.Primary}"
+                BorderBrush="{StaticResource Brush.Border.Primary}"
+                BorderThickness="{StaticResource Border.Thin}"
+                CornerRadius="{StaticResource Radius.LG}"
+                Padding="{StaticResource Spacing.Padding.Card}">
+            <StackPanel>
+
+                <!-- Equipment Type -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6">
+                        <Run Text="{lex:Loc Key=Equipment_Type}"/>
+                        <Run Text="*" Foreground="{StaticResource Brush.Status.Danger}"/>
+                    </TextBlock>
+                    <ComboBox ItemsSource="{Binding EquipmentTypes}"
+                              SelectedItem="{Binding EquipmentType, Mode=TwoWay}"
+                              Height="{StaticResource Size.Input.Height.MD}"
+                              Padding="{StaticResource Spacing.Padding.Input}"
+                              Background="{StaticResource Brush.Input.Background}"
+                              BorderBrush="{StaticResource Brush.Input.Border}"/>
+                </StackPanel>
+
+                <!-- Name (Required) -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6">
+                        <Run Text="{lex:Loc Key=Equipment_Name}"/>
+                        <Run Text="*" Foreground="{StaticResource Brush.Status.Danger}"/>
+                    </TextBlock>
+                    <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Height="{StaticResource Size.Input.Height.MD}"
+                             Padding="{StaticResource Spacing.Padding.Input}"
+                             Background="{StaticResource Brush.Input.Background}"
+                             BorderBrush="{StaticResource Brush.Input.Border}"
+                             VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Display Name -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="{lex:Loc Key=Equipment_DisplayName}"
+                               Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6"/>
+                    <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Height="{StaticResource Size.Input.Height.MD}"
+                             Padding="{StaticResource Spacing.Padding.Input}"
+                             Background="{StaticResource Brush.Input.Background}"
+                             BorderBrush="{StaticResource Brush.Input.Border}"
+                             VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Subname -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="{lex:Loc Key=Equipment_Subname}"
+                               Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6"/>
+                    <TextBox Text="{Binding Subname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Height="{StaticResource Size.Input.Height.MD}"
+                             Padding="{StaticResource Spacing.Padding.Input}"
+                             Background="{StaticResource Brush.Input.Background}"
+                             BorderBrush="{StaticResource Brush.Input.Border}"
+                             VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Description -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="{lex:Loc Key=Equipment_DescriptionLabel}"
+                               Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6"/>
+                    <TextBox Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Height="80"
+                             Padding="{StaticResource Spacing.Padding.Input}"
+                             Background="{StaticResource Brush.Input.Background}"
+                             BorderBrush="{StaticResource Brush.Input.Border}"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"/>
+                </StackPanel>
+
+                <!-- Customer -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="{lex:Loc Key=Equipment_Customer}"
+                               Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6"/>
+                    <TextBox Text="{Binding Customer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Height="{StaticResource Size.Input.Height.MD}"
+                             Padding="{StaticResource Spacing.Padding.Input}"
+                             Background="{StaticResource Brush.Input.Background}"
+                             BorderBrush="{StaticResource Brush.Input.Border}"
+                             VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Process -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="{lex:Loc Key=Equipment_Process}"
+                               Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6"/>
+                    <TextBox Text="{Binding Process, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Height="{StaticResource Size.Input.Height.MD}"
+                             Padding="{StaticResource Spacing.Padding.Input}"
+                             Background="{StaticResource Brush.Input.Background}"
+                             BorderBrush="{StaticResource Brush.Input.Border}"
+                             VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Attached Documents -->
+                <StackPanel>
+                    <TextBlock Text="{lex:Loc Key=Equipment_AttachedDocuments}"
+                               Style="{StaticResource Typography.Label}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               Margin="0,0,0,6"/>
+                    <TextBlock Text="{lex:Loc Key=Equipment_SupportedFormats}"
+                               Style="{StaticResource Typography.Body.Small}"
+                               Foreground="{StaticResource Brush.Text.Tertiary}"
+                               Margin="0,0,0,8"/>
+
+                    <!-- Document List -->
+                    <ItemsControl ItemsSource="{Binding AttachedDocuments}"
+                                  Margin="0,0,0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource Brush.Background.Tertiary}"
+                                        CornerRadius="{StaticResource Radius.MD}"
+                                        Padding="12,8"
+                                        Margin="0,0,0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Path Grid.Column="0"
+                                              Data="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                              Stroke="{StaticResource Brush.Text.Secondary}"
+                                              StrokeThickness="1.5"
+                                              Width="16" Height="16"
+                                              Stretch="Uniform"
+                                              VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding}"
+                                                   Style="{StaticResource Typography.Body.Small}"
+                                                   Foreground="{StaticResource Brush.Text.Primary}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="8,0,0,0"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <Button Grid.Column="2"
+                                                Content="X"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="{StaticResource Brush.Text.Tertiary}"
+                                                FontSize="12"
+                                                Cursor="Hand"
+                                                Padding="4"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Add Document Button -->
+                    <Button HorizontalAlignment="Left"
+                            Padding="{StaticResource Spacing.Padding.Button}"
+                            Height="{StaticResource Size.Button.Height.SM}"
+                            Background="{StaticResource Brush.Button.Ghost.Background}"
+                            BorderBrush="{StaticResource Brush.Border.Primary}"
+                            BorderThickness="{StaticResource Border.Thin}"
+                            Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M12 4v16m8-8H4"
+                                  Stroke="{StaticResource Brush.Text.Secondary}"
+                                  StrokeThickness="2"
+                                  Width="12" Height="12"
+                                  Stretch="Uniform"
+                                  VerticalAlignment="Center"/>
+                            <TextBlock Text="{lex:Loc Key=Equipment_AddDocument}"
+                                       Style="{StaticResource Typography.Body.Small}"
+                                       Foreground="{StaticResource Brush.Text.Secondary}"
+                                       Margin="6,0,0,0"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common -->
+  <data name="AppTitle" xml:space="preserve">
+    <value>설비 설계 에디터</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>언어</value>
+  </data>
+  <data name="Korean" xml:space="preserve">
+    <value>한국어</value>
+  </data>
+  <data name="English" xml:space="preserve">
+    <value>영어</value>
+  </data>
+
+  <!-- Dashboard -->
+  <data name="Dashboard_Title" xml:space="preserve">
+    <value>설비 설계 에디터</value>
+  </data>
+  <data name="Dashboard_Subtitle" xml:space="preserve">
+    <value>하드웨어 컴포넌트를 정의하고 관리합니다: Equipment, System, Unit, Device</value>
+  </data>
+  <data name="Dashboard_IncompleteWorkflows" xml:space="preserve">
+    <value>미완료 워크플로우</value>
+  </data>
+  <data name="Dashboard_IncompleteWorkflowsDescription" xml:space="preserve">
+    <value>{0}개의 미완료 워크플로우가 있습니다. 클릭하여 작업을 이어가세요.</value>
+  </data>
+  <data name="Dashboard_StartedFrom" xml:space="preserve">
+    <value>시작점: </value>
+  </data>
+  <data name="Dashboard_CurrentStep" xml:space="preserve">
+    <value>현재 단계: </value>
+  </data>
+  <data name="Dashboard_CreateNewComponent" xml:space="preserve">
+    <value>새 컴포넌트 생성</value>
+  </data>
+  <data name="Dashboard_Equipment" xml:space="preserve">
+    <value>Equipment</value>
+  </data>
+  <data name="Dashboard_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Dashboard_Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Dashboard_Device" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="Dashboard_Equipments" xml:space="preserve">
+    <value>Equipment 목록</value>
+  </data>
+  <data name="Dashboard_Systems" xml:space="preserve">
+    <value>System 목록</value>
+  </data>
+  <data name="Dashboard_Units" xml:space="preserve">
+    <value>Unit 목록</value>
+  </data>
+  <data name="Dashboard_Devices" xml:space="preserve">
+    <value>Device 목록</value>
+  </data>
+  <data name="Dashboard_NoEquipments" xml:space="preserve">
+    <value>정의된 Equipment가 없습니다</value>
+  </data>
+  <data name="Dashboard_NoSystems" xml:space="preserve">
+    <value>정의된 System이 없습니다</value>
+  </data>
+  <data name="Dashboard_NoUnits" xml:space="preserve">
+    <value>정의된 Unit이 없습니다</value>
+  </data>
+  <data name="Dashboard_NoDevices" xml:space="preserve">
+    <value>정의된 Device가 없습니다</value>
+  </data>
+
+  <!-- Hardware Define Workflow -->
+  <data name="Workflow_HardwareDefinition" xml:space="preserve">
+    <value>하드웨어 정의</value>
+  </data>
+  <data name="Workflow_CreatingFrom" xml:space="preserve">
+    <value>시작점: </value>
+  </data>
+  <data name="Workflow_ExitToDashboard" xml:space="preserve">
+    <value>대시보드로 나가기</value>
+  </data>
+  <data name="Workflow_Previous" xml:space="preserve">
+    <value>이전</value>
+  </data>
+  <data name="Workflow_Next" xml:space="preserve">
+    <value>다음</value>
+  </data>
+
+  <!-- Equipment Define -->
+  <data name="Equipment_DefineEquipment" xml:space="preserve">
+    <value>Equipment 정의</value>
+  </data>
+  <data name="Equipment_Description" xml:space="preserve">
+    <value>Equipment의 기본 정보를 입력하세요. *표시된 필드는 필수입니다.</value>
+  </data>
+  <data name="Equipment_LoadFromServer" xml:space="preserve">
+    <value>서버에서 불러오기</value>
+  </data>
+  <data name="Equipment_Type" xml:space="preserve">
+    <value>Equipment 종류</value>
+  </data>
+  <data name="Equipment_Name" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="Equipment_DisplayName" xml:space="preserve">
+    <value>표시 이름</value>
+  </data>
+  <data name="Equipment_Subname" xml:space="preserve">
+    <value>부가 이름</value>
+  </data>
+  <data name="Equipment_DescriptionLabel" xml:space="preserve">
+    <value>설명</value>
+  </data>
+  <data name="Equipment_Customer" xml:space="preserve">
+    <value>고객사</value>
+  </data>
+  <data name="Equipment_Process" xml:space="preserve">
+    <value>프로세스</value>
+  </data>
+  <data name="Equipment_AttachedDocuments" xml:space="preserve">
+    <value>첨부 문서</value>
+  </data>
+  <data name="Equipment_SupportedFormats" xml:space="preserve">
+    <value>지원 형식: PDF, PPT, MD, DRAWIO</value>
+  </data>
+  <data name="Equipment_AddDocument" xml:space="preserve">
+    <value>문서 추가</value>
+  </data>
+
+  <!-- System Define -->
+  <data name="System_DefineSystem" xml:space="preserve">
+    <value>System 정의</value>
+  </data>
+  <data name="System_Description" xml:space="preserve">
+    <value>System의 기본 정보를 입력하세요. *표시된 필드는 필수입니다.</value>
+  </data>
+  <data name="System_AddAnother" xml:space="preserve">
+    <value>System 추가</value>
+  </data>
+  <data name="System_ParentEquipment" xml:space="preserve">
+    <value>상위 Equipment</value>
+  </data>
+  <data name="System_ImplementationGuidelines" xml:space="preserve">
+    <value>구현 가이드라인</value>
+  </data>
+  <data name="System_Commands" xml:space="preserve">
+    <value>명령어</value>
+  </data>
+  <data name="System_CommandsDescription" xml:space="preserve">
+    <value>이 System이 실행할 수 있는 명령어를 정의하세요</value>
+  </data>
+  <data name="System_AddCommand" xml:space="preserve">
+    <value>명령어 추가</value>
+  </data>
+  <data name="System_CommandName" xml:space="preserve">
+    <value>명령어 이름</value>
+  </data>
+  <data name="System_NoCommands" xml:space="preserve">
+    <value>정의된 명령어가 없습니다</value>
+  </data>
+  <data name="System_NoCommandsHint" xml:space="preserve">
+    <value>'명령어 추가'를 클릭하여 System 명령어를 정의하세요</value>
+  </data>
+
+  <!-- Unit Define -->
+  <data name="Unit_DefineUnit" xml:space="preserve">
+    <value>Unit 정의</value>
+  </data>
+  <data name="Unit_Description" xml:space="preserve">
+    <value>Unit의 기본 정보를 입력하세요. *표시된 필드는 필수입니다.</value>
+  </data>
+  <data name="Unit_AddAnother" xml:space="preserve">
+    <value>Unit 추가</value>
+  </data>
+  <data name="Unit_ParentSystem" xml:space="preserve">
+    <value>상위 System</value>
+  </data>
+  <data name="Unit_CommandsDescription" xml:space="preserve">
+    <value>이 Unit이 실행할 수 있는 명령어를 정의하세요</value>
+  </data>
+  <data name="Unit_NoCommandsHint" xml:space="preserve">
+    <value>'명령어 추가'를 클릭하여 Unit 명령어를 정의하세요</value>
+  </data>
+
+  <!-- Device Define -->
+  <data name="Device_DefineDevice" xml:space="preserve">
+    <value>Device 정의</value>
+  </data>
+  <data name="Device_Description" xml:space="preserve">
+    <value>Device의 기본 정보를 입력하세요. *표시된 필드는 필수입니다.</value>
+  </data>
+  <data name="Device_AddAnother" xml:space="preserve">
+    <value>Device 추가</value>
+  </data>
+  <data name="Device_CompleteWorkflow" xml:space="preserve">
+    <value>워크플로우 완료</value>
+  </data>
+  <data name="Device_ParentUnit" xml:space="preserve">
+    <value>상위 Unit</value>
+  </data>
+  <data name="Device_CommandsDescription" xml:space="preserve">
+    <value>이 Device가 실행할 수 있는 명령어를 정의하세요</value>
+  </data>
+  <data name="Device_NoCommandsHint" xml:space="preserve">
+    <value>'명령어 추가'를 클릭하여 Device 명령어를 정의하세요</value>
+  </data>
+  <data name="Device_IoConfigurations" xml:space="preserve">
+    <value>IO 구성</value>
+  </data>
+  <data name="Device_IoDescription" xml:space="preserve">
+    <value>이 Device의 입력/출력 구성을 정의하세요</value>
+  </data>
+  <data name="Device_AddIo" xml:space="preserve">
+    <value>IO 추가</value>
+  </data>
+  <data name="Device_IoName" xml:space="preserve">
+    <value>IO 이름</value>
+  </data>
+  <data name="Device_IoType" xml:space="preserve">
+    <value>IO 종류</value>
+  </data>
+  <data name="Device_IoType_Input" xml:space="preserve">
+    <value>입력</value>
+  </data>
+  <data name="Device_IoType_Output" xml:space="preserve">
+    <value>출력</value>
+  </data>
+  <data name="Device_IoType_Digital" xml:space="preserve">
+    <value>디지털</value>
+  </data>
+  <data name="Device_IoType_Analog" xml:space="preserve">
+    <value>아날로그</value>
+  </data>
+  <data name="Device_NoIo" xml:space="preserve">
+    <value>정의된 IO 구성이 없습니다</value>
+  </data>
+  <data name="Device_NoIoHint" xml:space="preserve">
+    <value>'IO 추가'를 클릭하여 입력/출력 구성을 정의하세요</value>
+  </data>
+
+</root>
