@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using EquipmentDesigner.Services;
+using EquipmentDesigner.Views.Dashboard;
+using EquipmentDesigner.Views.HardwareDefineWorkflow;
 
 namespace EquipmentDesigner
 {
@@ -20,9 +11,47 @@ namespace EquipmentDesigner
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly DashboardView _dashboardView;
+
         public MainWindow()
         {
             InitializeComponent();
+            
+            // Initialize dashboard view
+            _dashboardView = new DashboardView();
+            
+            // Subscribe to navigation events
+            NavigationService.Instance.NavigationRequested += OnNavigationRequested;
+            NavigationService.Instance.NavigateToDashboardRequested += OnNavigateToDashboard;
+            
+            // Show dashboard by default
+            MainContent.Content = _dashboardView;
+        }
+
+        private void OnNavigationRequested(NavigationTarget target)
+        {
+            if (target.TargetType == NavigationTargetType.HardwareDefineWorkflow)
+            {
+                var workflowViewModel = new HardwareDefineWorkflowViewModel(target.StartType);
+                var workflowView = new HardwareDefineWorkflowView
+                {
+                    DataContext = workflowViewModel
+                };
+                MainContent.Content = workflowView;
+            }
+        }
+
+        private void OnNavigateToDashboard()
+        {
+            MainContent.Content = _dashboardView;
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            // Unsubscribe from events to prevent memory leaks
+            NavigationService.Instance.NavigationRequested -= OnNavigationRequested;
+            NavigationService.Instance.NavigateToDashboardRequested -= OnNavigateToDashboard;
+            base.OnClosed(e);
         }
     }
 }

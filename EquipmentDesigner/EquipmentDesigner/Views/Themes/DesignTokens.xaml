@@ -1,0 +1,36 @@
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================
+         Design Tokens - Main Entry Point
+         
+         이 파일을 App.xaml에서 참조하여 전체 앱에 토큰 적용:
+         
+         <Application.Resources>
+             <ResourceDictionary>
+                 <ResourceDictionary.MergedDictionaries>
+                     <ResourceDictionary Source="Themes/DesignTokens.xaml"/>
+                 </ResourceDictionary.MergedDictionaries>
+             </ResourceDictionary>
+         </Application.Resources>
+         ============================================================ -->
+
+    <ResourceDictionary.MergedDictionaries>
+        <!-- Base Color Palette -->
+        <ResourceDictionary Source="Tokens/Colors.xaml"/>
+        
+        <!-- Semantic Brushes -->
+        <ResourceDictionary Source="Tokens/Brushes.xaml"/>
+        
+        <!-- Typography -->
+        <ResourceDictionary Source="Tokens/Typography.xaml"/>
+        
+        <!-- Spacing & Layout -->
+        <ResourceDictionary Source="Tokens/Spacing.xaml"/>
+        
+        <!-- Shadows & Effects -->
+        <ResourceDictionary Source="Tokens/Effects.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+</ResourceDictionary>
