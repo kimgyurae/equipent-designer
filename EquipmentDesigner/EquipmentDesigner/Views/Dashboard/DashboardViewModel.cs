@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using EquipmentDesigner.Models;
+using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Services.Storage;
@@ -37,6 +38,7 @@ namespace EquipmentDesigner.Views.Dashboard
 
             // Load data from repository
             LoadIncompleteWorkflowsAsync();
+            LoadComponentsAsync();
         }
 
         #region Navigation Commands
@@ -139,6 +141,126 @@ namespace EquipmentDesigner.Views.Dashboard
         }
 
         /// <summary>
+        /// Loads components from the repository and filters by Uploaded or Validated state.
+        /// </summary>
+        private async void LoadComponentsAsync()
+        {
+            try
+            {
+                var repository = ServiceLocator.GetService<IDataRepository>();
+                var dataStore = await repository.LoadAsync();
+
+                // Clear existing collections
+                Equipments.Clear();
+                Systems.Clear();
+                Units.Clear();
+                Devices.Clear();
+
+                if (dataStore == null) return;
+
+                // Filter and load Equipments (Defined, Uploaded or Validated only)
+                if (dataStore.Equipments != null)
+                {
+                    foreach (var dto in dataStore.Equipments.Where(e =>
+                        e.State == ComponentState.Defined || e.State == ComponentState.Uploaded || e.State == ComponentState.Validated))
+                    {
+                        Equipments.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                    }
+                }
+
+                // Filter and load Systems (Defined, Uploaded or Validated only)
+                if (dataStore.Systems != null)
+                {
+                    foreach (var dto in dataStore.Systems.Where(s =>
+                        s.State == ComponentState.Defined || s.State == ComponentState.Uploaded || s.State == ComponentState.Validated))
+                    {
+                        Systems.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                    }
+                }
+
+                // Filter and load Units (Defined, Uploaded or Validated only)
+                if (dataStore.Units != null)
+                {
+                    foreach (var dto in dataStore.Units.Where(u =>
+                        u.State == ComponentState.Defined || u.State == ComponentState.Uploaded || u.State == ComponentState.Validated))
+                    {
+                        Units.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                    }
+                }
+
+                // Filter and load Devices (Defined, Uploaded or Validated only)
+                if (dataStore.Devices != null)
+                {
+                    foreach (var dto in dataStore.Devices.Where(d =>
+                        d.State == ComponentState.Defined || d.State == ComponentState.Uploaded || d.State == ComponentState.Validated))
+                    {
+                        Devices.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                    }
+                }
+
+                // Raise property changed for counts and empty state
+                OnPropertyChanged(nameof(EquipmentsCount));
+                OnPropertyChanged(nameof(SystemsCount));
+                OnPropertyChanged(nameof(UnitsCount));
+                OnPropertyChanged(nameof(DevicesCount));
+                OnPropertyChanged(nameof(HasNoEquipments));
+                OnPropertyChanged(nameof(HasNoSystems));
+                OnPropertyChanged(nameof(HasNoUnits));
+                OnPropertyChanged(nameof(HasNoDevices));
+            }
+            catch
+            {
+                // Silently fail - dashboard will show empty state
+            }
+        }
+
+        /// <summary>
+        /// Creates a ComponentItem with appropriate styling based on state.
+        /// </summary>
+        private ComponentItem CreateComponentItem(string name, string description, ComponentState state)
+        {
+            Brush statusBackground;
+            Brush statusBorder;
+            Brush statusForeground;
+            string statusText;
+
+            if (state == ComponentState.Validated)
+            {
+                // Green theme for Validated
+                statusText = "Validated";
+                statusBackground = new SolidColorBrush(Color.FromRgb(220, 252, 231)); // Light green
+                statusBorder = new SolidColorBrush(Color.FromRgb(34, 197, 94));       // Green
+                statusForeground = new SolidColorBrush(Color.FromRgb(22, 101, 52));   // Dark green
+            }
+            else if (state == ComponentState.Defined)
+            {
+                // Yellow/Amber theme for Defined
+                statusText = "Defined";
+                statusBackground = new SolidColorBrush(Color.FromRgb(254, 249, 195)); // Light yellow
+                statusBorder = new SolidColorBrush(Color.FromRgb(234, 179, 8));       // Amber
+                statusForeground = new SolidColorBrush(Color.FromRgb(133, 77, 14));   // Dark amber
+            }
+            else
+            {
+                // Blue theme for Uploaded
+                statusText = "Uploaded";
+                statusBackground = new SolidColorBrush(Color.FromRgb(219, 234, 254)); // Light blue
+                statusBorder = new SolidColorBrush(Color.FromRgb(59, 130, 246));      // Blue
+                statusForeground = new SolidColorBrush(Color.FromRgb(30, 64, 175));   // Dark blue
+            }
+
+            return new ComponentItem
+            {
+                Name = name,
+                Description = description,
+                Status = statusText,
+                StatusBackground = statusBackground,
+                StatusBorder = statusBorder,
+                StatusForeground = statusForeground
+            };
+        }
+
+        /// <summary>
         /// Executes the resume workflow command.
         /// </summary>
         private void ExecuteResumeWorkflow(WorkflowItem item)
@@ -235,6 +357,7 @@ namespace EquipmentDesigner.Views.Dashboard
         public void RefreshAsync()
         {
             LoadIncompleteWorkflowsAsync();
+            LoadComponentsAsync();
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

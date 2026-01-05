@@ -208,6 +208,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             // Set the callback for DeviceViewModel to check if all steps are completed
             DeviceViewModel.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
 
+            // Subscribe to workflow completion request
+            DeviceViewModel.WorkflowCompletedRequest += async (s, e) => await CompleteWorkflowAsync();
+
             // Subscribe to validation and field count changes
             EquipmentViewModel.PropertyChanged += (s, e) =>
             {
@@ -509,6 +512,103 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private dynamic GetCurrentStepViewModel()
         {
             return GetViewModelForStep(CurrentStep.StepName);
+        }
+
+        /// <summary>
+        /// Completes the workflow by saving all components to SharedMemory and navigating to Dashboard.
+        /// Components saved depend on StartType:
+        /// - Equipment: Equipment, System, Unit, Device (4 components)
+        /// - System: System, Unit, Device (3 components)
+        /// - Unit: Unit, Device (2 components)
+        /// - Device: Device only (1 component)
+        /// </summary>
+        private async Task CompleteWorkflowAsync()
+        {
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+
+            // Ensure collections are initialized
+            dataStore.Equipments ??= new System.Collections.Generic.List<EquipmentDto>();
+            dataStore.Systems ??= new System.Collections.Generic.List<SystemDto>();
+            dataStore.Units ??= new System.Collections.Generic.List<UnitDto>();
+            dataStore.Devices ??= new System.Collections.Generic.List<DeviceDto>();
+            dataStore.WorkflowSessions ??= new System.Collections.Generic.List<WorkflowSessionDto>();
+            dataStore.SessionContext ??= new WorkSessionContext();
+            dataStore.SessionContext.IncompleteWorkflows ??= new System.Collections.Generic.List<IncompleteWorkflowInfo>();
+
+            var now = DateTime.Now;
+            string equipmentId = null;
+            string systemId = null;
+            string unitId = null;
+            string deviceId = null;
+
+            // Save Equipment if StartType includes it
+            if (StartType == HardwareLayer.Equipment)
+            {
+                var equipmentDto = EquipmentViewModel.ToDto();
+                equipmentId = Guid.NewGuid().ToString();
+                equipmentDto.Id = equipmentId;
+                equipmentDto.State = ComponentState.Defined;
+                equipmentDto.CreatedAt = now;
+                equipmentDto.UpdatedAt = now;
+                dataStore.Equipments.Add(equipmentDto);
+            }
+
+            // Save System if StartType includes it
+            if (StartType <= HardwareLayer.System)
+            {
+                var systemDto = SystemViewModel.ToDto();
+                systemId = Guid.NewGuid().ToString();
+                systemDto.Id = systemId;
+                systemDto.EquipmentId = equipmentId; // null if StartType is System
+                systemDto.State = ComponentState.Defined;
+                systemDto.CreatedAt = now;
+                systemDto.UpdatedAt = now;
+                dataStore.Systems.Add(systemDto);
+            }
+
+            // Save Unit if StartType includes it
+            if (StartType <= HardwareLayer.Unit)
+            {
+                var unitDto = UnitViewModel.ToDto();
+                unitId = Guid.NewGuid().ToString();
+                unitDto.Id = unitId;
+                unitDto.SystemId = systemId; // null if StartType is Unit
+                unitDto.State = ComponentState.Defined;
+                unitDto.CreatedAt = now;
+                unitDto.UpdatedAt = now;
+                dataStore.Units.Add(unitDto);
+            }
+
+            // Always save Device (Device is always part of the workflow)
+            var deviceDto = DeviceViewModel.ToDto();
+            deviceId = Guid.NewGuid().ToString();
+            deviceDto.Id = deviceId;
+            deviceDto.UnitId = unitId; // null if StartType is Device
+            deviceDto.State = ComponentState.Defined;
+            deviceDto.CreatedAt = now;
+            deviceDto.UpdatedAt = now;
+            dataStore.Devices.Add(deviceDto);
+
+            // Remove from WorkflowSessions
+            var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == WorkflowId);
+            if (sessionToRemove != null)
+            {
+                dataStore.WorkflowSessions.Remove(sessionToRemove);
+            }
+
+            // Remove from IncompleteWorkflows
+            var infoToRemove = dataStore.SessionContext.IncompleteWorkflows.FirstOrDefault(i => i.WorkflowId == WorkflowId);
+            if (infoToRemove != null)
+            {
+                dataStore.SessionContext.IncompleteWorkflows.Remove(infoToRemove);
+            }
+
+            // Save the data store
+            await repository.SaveAsync(dataStore);
+
+            // Navigate to Dashboard
+            NavigationService.Instance.NavigateToDashboard();
         }
     }
 }

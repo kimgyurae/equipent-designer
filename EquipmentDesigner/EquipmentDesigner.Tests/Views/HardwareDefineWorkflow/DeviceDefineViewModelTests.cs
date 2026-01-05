@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Specialized;
 using System.Linq;
 using EquipmentDesigner.Models.Dtos;
@@ -601,6 +602,62 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.ProcessCommandDialogResult(command);
 
             viewModel.HasNoCommands.Should().BeFalse();
+        }
+
+        #endregion
+
+        #region Workflow Completion Event Tests
+
+        [Fact]
+        public void ExecuteCompleteWorkflow_WhenInvoked_RaisesWorkflowCompletedRequestEvent()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "ValidDevice" };
+            var raised = false;
+            viewModel.WorkflowCompletedRequest += (s, e) => raised = true;
+
+            viewModel.CompleteWorkflowCommand.Execute(null);
+
+            raised.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ExecuteCompleteWorkflow_WhenInvoked_EventSenderIsDeviceDefineViewModel()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "ValidDevice" };
+            object capturedSender = null;
+            viewModel.WorkflowCompletedRequest += (s, e) => capturedSender = s;
+
+            viewModel.CompleteWorkflowCommand.Execute(null);
+
+            capturedSender.Should().BeSameAs(viewModel);
+        }
+
+        [Fact]
+        public void ExecuteCompleteWorkflow_WhenNoEventHandlersSubscribed_DoesNotThrow()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "ValidDevice" };
+
+            Action action = () => viewModel.CompleteWorkflowCommand.Execute(null);
+
+            action.Should().NotThrow();
+        }
+
+        [Fact]
+        public void CanCompleteWorkflow_WhenAllStepsCallbackReturnsTrue_ReturnsTrue()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "ValidDevice" };
+            viewModel.SetAllStepsRequiredFieldsFilledCheck(() => true);
+
+            viewModel.CanCompleteWorkflow.Should().BeTrue();
+        }
+
+        [Fact]
+        public void CanCompleteWorkflow_WhenAllStepsCallbackReturnsFalse_ReturnsFalse()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "ValidDevice" };
+            viewModel.SetAllStepsRequiredFieldsFilledCheck(() => false);
+
+            viewModel.CanCompleteWorkflow.Should().BeFalse();
         }
 
         #endregion

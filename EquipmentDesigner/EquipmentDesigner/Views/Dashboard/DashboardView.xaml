@@ -362,7 +362,18 @@
                     </UniformGrid>
                 </StackPanel>
 
+                <!-- Section Separator -->
+                <Border Height="1"
+                        Background="{StaticResource Brush.Border.Primary}"
+                        Margin="0,0,0,32"/>
+
                 <!-- Component Lists Section (2x2 Grid) -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="{lex:Loc Key=Dashboard_ComponentLists}"
+                               Style="{StaticResource Typography.H4}"
+                               Foreground="{StaticResource Brush.Text.Primary}"/>
+                </StackPanel>
+
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

@@ -186,6 +186,9 @@
   <data name="Dashboard_NoDevices" xml:space="preserve">
     <value>No devices defined yet</value>
   </data>
+  <data name="Dashboard_ComponentLists" xml:space="preserve">
+    <value>Component Lists</value>
+  </data>
   <data name="Workflow_HardwareDefinition" xml:space="preserve">
     <value>Hardware Definition</value>
   </data>

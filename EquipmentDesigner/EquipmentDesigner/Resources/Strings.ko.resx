@@ -186,6 +186,9 @@
   <data name="Dashboard_NoDevices" xml:space="preserve">
     <value>정의된 Device가 없습니다</value>
   </data>
+  <data name="Dashboard_ComponentLists" xml:space="preserve">
+    <value>컴포넌트 목록</value>
+  </data>
   <data name="Workflow_HardwareDefinition" xml:space="preserve">
     <value>하드웨어 정의</value>
   </data>

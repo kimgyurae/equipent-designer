@@ -243,6 +243,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// </summary>
         public event EventHandler ShowAddCommandDialogRequested;
 
+        /// <summary>
+        /// Event raised when workflow completion is requested.
+        /// </summary>
+        public event EventHandler WorkflowCompletedRequest;
+
         private void OnCommandsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(HasNoCommands));
@@ -323,7 +328,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         private void ExecuteCompleteWorkflow()
         {
-            // TODO: Implement workflow completion logic
+            WorkflowCompletedRequest?.Invoke(this, EventArgs.Empty);
         }
 
         private bool CanExecuteCompleteWorkflow()
