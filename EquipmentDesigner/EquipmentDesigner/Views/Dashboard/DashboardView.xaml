@@ -26,24 +26,35 @@
                 Padding="24,12">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Spacer -->
-                <StackPanel Grid.Column="0"/>
+                <!-- Header Section -->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{lex:Loc Key=Dashboard_Title}"
+                            Style="{StaticResource Typography.H3}"
+                            Foreground="{StaticResource Brush.Text.Primary}"/>
+                    <TextBlock Text="{lex:Loc Key=Dashboard_Subtitle}"
+                            Style="{StaticResource Typography.Body.Large}"
+                            Foreground="{StaticResource Brush.Text.Secondary}"
+                            Margin="0,8,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"/>
 
                 <!-- Language Selector -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="{lex:Loc Key=Language}"
-                               Style="{StaticResource Typography.Body}"
-                               Foreground="{StaticResource Brush.Text.Secondary}"
-                               VerticalAlignment="Center"
-                               Margin="0,0,12,0"/>
+                            Style="{StaticResource Typography.Body}"
+                            Foreground="{StaticResource Brush.Text.Secondary}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,12,0"/>
                     <ComboBox Style="{StaticResource LanguageSelectorComboBox}"
-                              ItemsSource="{Binding Source={x:Static services:LanguageService.Instance}, Path=AvailableLanguages}"
-                              SelectedItem="{Binding Source={x:Static services:LanguageService.Instance}, Path=SelectedLanguage, Mode=TwoWay}"
-                              DisplayMemberPath="DisplayName"/>
+                                ItemsSource="{Binding Source={x:Static services:LanguageService.Instance}, Path=AvailableLanguages}"
+                                SelectedItem="{Binding Source={x:Static services:LanguageService.Instance}, Path=SelectedLanguage, Mode=TwoWay}"
+                                DisplayMemberPath="DisplayName"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -51,18 +62,6 @@
         <!-- Main Content -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="{StaticResource Spacing.Padding.2XL}">
-
-                <!-- Header Section -->
-                <StackPanel Margin="0,0,0,32">
-                    <TextBlock Text="{lex:Loc Key=Dashboard_Title}"
-                               Style="{StaticResource Typography.H3}"
-                               Foreground="{StaticResource Brush.Text.Primary}"/>
-                    <TextBlock Text="{lex:Loc Key=Dashboard_Subtitle}"
-                               Style="{StaticResource Typography.Body.Large}"
-                               Foreground="{StaticResource Brush.Text.Secondary}"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
-
                 <!-- Incomplete Workflows Section -->
                 <Border Background="{StaticResource Brush.Status.Warning.Background}"
                         BorderBrush="{StaticResource Brush.Status.Warning.Border}"
