@@ -14,7 +14,7 @@ namespace EquipmentDesigner.Models.Dtos
         public string Id { get; set; }
 
         /// <summary>
-        /// Equipment 종류 (필수)
+        /// Equipment 종류 (선택)
         /// </summary>
         public string EquipmentType { get; set; }
 

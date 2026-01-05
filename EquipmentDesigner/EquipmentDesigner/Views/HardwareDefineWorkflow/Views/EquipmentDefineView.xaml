@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -61,34 +62,9 @@
                                Margin="0,0,0,6">
                         <Run Text="{lex:Loc Key=Equipment_Type}"/>
                     </TextBlock>
-                    <Grid>
-                        <TextBox x:Name="EquipmentTypeTextBox"
-                                 Text="{Binding EquipmentType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Height="{StaticResource Size.Input.Height.MD}"
-                                 Padding="{StaticResource Spacing.Padding.Input}"
-                                 Background="{StaticResource Brush.Input.Background}"
-                                 BorderBrush="{StaticResource Brush.Input.Border}"
-                                 VerticalContentAlignment="Center"/>
-                        <TextBlock Text="{lex:Loc Key=Equipment_Type_Placeholder}"
-                                   Foreground="{StaticResource Brush.Text.Tertiary}"
-                                   VerticalAlignment="Center"
-                                   Margin="12,0,0,0"
-                                   IsHitTestVisible="False">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Body}">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Text, ElementName=EquipmentTypeTextBox}" Value="">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Text, ElementName=EquipmentTypeTextBox}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Grid>
+                    <TextBox Style="{StaticResource PlaceholderTextBox}"
+                             Text="{Binding EquipmentType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             reusable:TextBoxHelper.Placeholder="{lex:Loc Key=Equipment_Type_Placeholder}"/>
                 </StackPanel>
 
                 <!-- Name (Required) -->
@@ -99,12 +75,9 @@
                         <Run Text="{lex:Loc Key=Equipment_Name}"/>
                         <Run Text="*" Foreground="{StaticResource Brush.Status.Danger}"/>
                     </TextBlock>
-                    <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Height="{StaticResource Size.Input.Height.MD}"
-                             Padding="{StaticResource Spacing.Padding.Input}"
-                             Background="{StaticResource Brush.Input.Background}"
-                             BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"/>
+                    <TextBox Style="{StaticResource PlaceholderTextBox}"
+                             Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             reusable:TextBoxHelper.Placeholder="{lex:Loc Key=Equipment_Name_Placeholder}"/>
                 </StackPanel>
 
                 <!-- Display Name -->
@@ -113,12 +86,9 @@
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Height="{StaticResource Size.Input.Height.MD}"
-                             Padding="{StaticResource Spacing.Padding.Input}"
-                             Background="{StaticResource Brush.Input.Background}"
-                             BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"/>
+                    <TextBox Style="{StaticResource PlaceholderTextBox}"
+                             Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             reusable:TextBoxHelper.Placeholder="{lex:Loc Key=Equipment_DisplayName_Placeholder}"/>
                 </StackPanel>
 
                 <!-- Subname -->
@@ -127,12 +97,9 @@
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding Subname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Height="{StaticResource Size.Input.Height.MD}"
-                             Padding="{StaticResource Spacing.Padding.Input}"
-                             Background="{StaticResource Brush.Input.Background}"
-                             BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"/>
+                    <TextBox Style="{StaticResource PlaceholderTextBox}"
+                             Text="{Binding Subname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             reusable:TextBoxHelper.Placeholder="{lex:Loc Key=Equipment_Subname_Placeholder}"/>
                 </StackPanel>
 
                 <!-- Description -->
@@ -141,14 +108,10 @@
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Height="80"
-                             Padding="{StaticResource Spacing.Padding.Input}"
-                             Background="{StaticResource Brush.Input.Background}"
-                             BorderBrush="{StaticResource Brush.Input.Border}"
-                             TextWrapping="Wrap"
-                             AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto"/>
+                    <TextBox Style="{StaticResource PlaceholderTextBoxMultiline}"
+                             Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             reusable:TextBoxHelper.Placeholder="{lex:Loc Key=Equipment_Description_Placeholder}"
+                             MinHeight="80"/>
                 </StackPanel>
 
                 <!-- Customer -->
@@ -157,12 +120,9 @@
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding Customer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Height="{StaticResource Size.Input.Height.MD}"
-                             Padding="{StaticResource Spacing.Padding.Input}"
-                             Background="{StaticResource Brush.Input.Background}"
-                             BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"/>
+                    <TextBox Style="{StaticResource PlaceholderTextBox}"
+                             Text="{Binding Customer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             reusable:TextBoxHelper.Placeholder="{lex:Loc Key=Equipment_Customer_Placeholder}"/>
                 </StackPanel>
 
                 <!-- Process -->

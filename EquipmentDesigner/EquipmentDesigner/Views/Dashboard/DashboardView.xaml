@@ -12,6 +12,10 @@
              Background="{StaticResource Brush.Background.Secondary}"
              d:DesignHeight="800" d:DesignWidth="1200">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -68,7 +72,8 @@
                         BorderThickness="{StaticResource Border.Thin}"
                         CornerRadius="{StaticResource Radius.LG}"
                         Padding="16"
-                        Margin="0,0,0,32">
+                        Margin="0,0,0,32"
+                        Visibility="{Binding HasIncompleteWorkflows, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -89,7 +94,7 @@
                                        Style="{StaticResource Typography.Body.Large}"
                                        Foreground="{StaticResource Brush.Status.Warning}"
                                        FontWeight="{StaticResource Font.Weight.Medium}"/>
-                            <TextBlock Text="You have 10 incomplete workflows. Click to continue where you left off."
+                            <TextBlock Text="{Binding IncompleteWorkflowsMessage}"
                                        Style="{StaticResource Typography.Body.Large}"
                                        Foreground="{StaticResource Brush.Text.Secondary}"
                                        Margin="0,4,0,16"/>
@@ -106,16 +111,23 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{StaticResource Brush.Surface.Primary}"
+                                            <Border x:Name="WorkflowItemBorder"
+                                                    Background="{StaticResource Brush.Surface.Primary}"
                                                     BorderBrush="{StaticResource Brush.Border.Primary}"
                                                     BorderThickness="{StaticResource Border.Thin}"
                                                     CornerRadius="{StaticResource Radius.LG}"
                                                     Padding="12"
                                                     Margin="0,0,0,8"
                                                     Cursor="Hand">
+                                                <Border.InputBindings>
+                                                    <MouseBinding MouseAction="LeftClick"
+                                                                  Command="{Binding DataContext.ResumeWorkflowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                  CommandParameter="{Binding}"/>
+                                                </Border.InputBindings>
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
 
@@ -143,8 +155,35 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"
                                                                VerticalAlignment="Center"/>
+
+                                                    <!-- Delete Button (visible on hover) -->
+                                                    <Button x:Name="DeleteButton"
+                                                            Grid.Column="2"
+                                                            Command="{Binding DataContext.DeleteWorkflowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Cursor="Hand"
+                                                            Padding="6"
+                                                            Margin="8,0,0,0"
+                                                            Opacity="0"
+                                                            VerticalAlignment="Center"
+                                                            ToolTip="{lex:Loc Key=DeleteWorkflow_Tooltip}">
+                                                        <Path Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                                                              Fill="{StaticResource Brush.Text.Secondary}"
+                                                              Width="16" Height="16"
+                                                              Stretch="Uniform"/>
+                                                    </Button>
                                                 </Grid>
                                             </Border>
+                                            <DataTemplate.Triggers>
+                                                <Trigger SourceName="WorkflowItemBorder" Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="DeleteButton" Property="Opacity" Value="1"/>
+                                                </Trigger>
+                                                <Trigger SourceName="DeleteButton" Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="DeleteButton" Property="Opacity" Value="1"/>
+                                                </Trigger>
+                                            </DataTemplate.Triggers>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -162,19 +201,33 @@
 
                     <UniformGrid Rows="1" Columns="4">
                         <!-- Equipment Button -->
-                        <Border Background="{StaticResource Brush.Surface.Primary}"
-                                BorderBrush="{StaticResource Brush.Border.Primary}"
+                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
                                 BorderThickness="{StaticResource Border.Thin}"
                                 CornerRadius="{StaticResource Radius.LG}"
                                 Margin="0,0,16,0"
                                 Cursor="Hand"
                                 Height="96">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding CreateEquipmentCommand}"/>
                             </Border.InputBindings>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Data="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"
-                                      Fill="{StaticResource Brush.Text.Primary}"
+                                <Path Data="M21 8.00002C20.9996 7.6493 20.9071 7.30483 20.7315 7.00119C20.556 6.69754 20.3037 6.44539 20 6.27002L13 2.27002C12.696 2.09449 12.3511 2.00208 12 2.00208C11.6489 2.00208 11.304 2.09449 11 2.27002L4 6.27002C3.69626 6.44539 3.44398 6.69754 3.26846 7.00119C3.09294 7.30483 3.00036 7.6493 3 8.00002V16C3.00036 16.3508 3.09294 16.6952 3.26846 16.9989C3.44398 17.3025 3.69626 17.5547 4 17.73L11 21.73C11.304 21.9056 11.6489 21.998 12 21.998C12.3511 21.998 12.696 21.9056 13 21.73L20 17.73C20.3037 17.5547 20.556 17.3025 20.7315 16.9989C20.9996 16.3508 21 16 21 16V8.00002Z 
+                                            M3.3 7L12 12L20.7 7 
+                                            M12 22V12"
+                                      Stroke="{StaticResource Brush.Text.Primary}"
+                                      StrokeThickness="2"
+                                      Fill="Transparent"
                                       Width="24" Height="24"
                                       Stretch="Uniform"
                                       HorizontalAlignment="Center"/>
@@ -187,13 +240,23 @@
                         </Border>
 
                         <!-- System Button -->
-                        <Border Background="{StaticResource Brush.Surface.Primary}"
-                                BorderBrush="{StaticResource Brush.Border.Primary}"
+                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
                                 BorderThickness="{StaticResource Border.Thin}"
                                 CornerRadius="{StaticResource Radius.LG}"
                                 Margin="0,0,16,0"
                                 Cursor="Hand"
                                 Height="96">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding CreateSystemCommand}"/>
                             </Border.InputBindings>
@@ -214,23 +277,40 @@
                         </Border>
 
                         <!-- Unit Button -->
-                        <Border Background="{StaticResource Brush.Surface.Primary}"
-                                BorderBrush="{StaticResource Brush.Border.Primary}"
+                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
                                 BorderThickness="{StaticResource Border.Thin}"
                                 CornerRadius="{StaticResource Radius.LG}"
                                 Margin="0,0,16,0"
                                 Cursor="Hand"
                                 Height="96">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding CreateUnitCommand}"/>
                             </Border.InputBindings>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Data="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                                      Stroke="{StaticResource Brush.Text.Primary}"
-                                      StrokeThickness="2"
-                                      Fill="Transparent"
-                                      Width="24" Height="24"
+                                <Path Stroke="{StaticResource Brush.Text.Primary}"
+                                      StrokeThickness="2" 
+                                      StrokeStartLineCap="Round" 
+                                      StrokeEndLineCap="Round" 
+                                      StrokeLineJoin="Round"
+                                      Data="M12 8V4H8 
+                                            M18 8H6c-1.10457 0-2 .89543-2 2v8c0 1.1046.89543 2 2 2h12c1.1046 0 2-.8954 2-2v-8c0-1.10457-.8954-2-2-2z 
+                                            M2 14h2 
+                                            M20 14h2 
+                                            M15 13v2 
+                                            M9 13v2"
                                       Stretch="Uniform"
+                                      Width="24" Height="24"
                                       HorizontalAlignment="Center"/>
                                 <TextBlock Text="{lex:Loc Key=Dashboard_Unit}"
                                            Style="{StaticResource Typography.Body.Large}"
@@ -241,18 +321,34 @@
                         </Border>
 
                         <!-- Device Button -->
-                        <Border Background="{StaticResource Brush.Surface.Primary}"
-                                BorderBrush="{StaticResource Brush.Border.Primary}"
+                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
                                 BorderThickness="{StaticResource Border.Thin}"
                                 CornerRadius="{StaticResource Radius.LG}"
+                                Margin="0,0,16,0"
                                 Cursor="Hand"
                                 Height="96">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            
                             <Border.InputBindings>
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding CreateDeviceCommand}"/>
                             </Border.InputBindings>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Data="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM4 19V5h16v14H4zm8-2c.55 0 1-.45 1-1v-3c0-.55-.45-1-1-1s-1 .45-1 1v3c0 .55.45 1 1 1zm0-8c.55 0 1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1v1c0 .55.45 1 1 1z"
-                                      Fill="{StaticResource Brush.Text.Primary}"
+                                <Path Data="M12 20c2.1217 0 4.1566-.8429 5.6569-2.3431C19.1571 16.1566 20 14.1217 20 12c0-2.1217-.8429-4.15656-2.3431-5.65685C16.1566 4.84285 14.1217 4 12 4c-2.12173 0-4.15656.84285-5.65685 2.34315C4.84285 7.84344 4 9.87827 4 12c0 2.1217.84285 4.1566 2.34315 5.6569C7.84344 19.1571 9.87827 20 12 20z M12 14c.5304 0 1.0391-.2107 1.4142-.5858.3751-.3751.5858-.8838.5858-1.4142 0-.5304-.2107-1.0391-.5858-1.4142C13.0391 10.2107 12.5304 10 12 10c-.5304 0-1.0391.2107-1.4142.5858C10.2107 10.9609 10 11.4696 10 12c0 .5304.2107 1.0391.5858 1.4142C10.9609 13.7893 11.4696 14 12 14z M12 2v2 M12 22v-2 M17 20.6601l-1-1.73 M11 10.27L7 3.33997 M20.66 17l-1.73-1 M3.34003 7l1.73 1 M14 12h8 M2 12h2 M20.66 7l-1.73 1 M3.34003 17l1.73-1 M17 3.33997l-1 1.73 M11 13.73l-4 6.93"
+                                      Fill="Transparent"
+                                      Stroke="{StaticResource Brush.Text.Primary}"
+                                      StrokeThickness="2"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
                                       Width="24" Height="24"
                                       Stretch="Uniform"
                                       HorizontalAlignment="Center"/>

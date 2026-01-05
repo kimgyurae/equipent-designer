@@ -219,17 +219,32 @@
   <data name="Equipment_Name" xml:space="preserve">
     <value>Name</value>
   </data>
+  <data name="Equipment_Name_Placeholder" xml:space="preserve">
+    <value>Stacker.Gen3</value>
+  </data>
   <data name="Equipment_DisplayName" xml:space="preserve">
     <value>Display Name</value>
+  </data>
+  <data name="Equipment_DisplayName_Placeholder" xml:space="preserve">
+    <value>Gen 3 Stacker</value>
   </data>
   <data name="Equipment_Subname" xml:space="preserve">
     <value>Subname</value>
   </data>
+  <data name="Equipment_Subname_Placeholder" xml:space="preserve">
+    <value>2nd Modified Version</value>
+  </data>
   <data name="Equipment_DescriptionLabel" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="Equipment_Description_Placeholder" xml:space="preserve">
+    <value>Brief description of this equipment</value>
+  </data>
   <data name="Equipment_Customer" xml:space="preserve">
     <value>Customer</value>
+  </data>
+  <data name="Equipment_Customer_Placeholder" xml:space="preserve">
+    <value>Top Engineering</value>
   </data>
   <data name="Equipment_Process" xml:space="preserve">
     <value>Process</value>
@@ -392,5 +407,29 @@
   </data>
   <data name="Command_NoParametersHint" xml:space="preserve">
     <value>Parameters are optional. Click 'Add Parameter' to add one.</value>
+  </data>
+  <data name="DeleteWorkflow_Title" xml:space="preserve">
+    <value>Delete Incomplete Workflow</value>
+  </data>
+  <data name="DeleteWorkflow_Description" xml:space="preserve">
+    <value>Are you sure you want to delete this incomplete workflow? This action cannot be undone.</value>
+  </data>
+  <data name="DeleteWorkflow_TypeInstruction" xml:space="preserve">
+    <value>Type </value>
+  </data>
+  <data name="DeleteWorkflow_DeleteKeyword" xml:space="preserve">
+    <value>delete</value>
+  </data>
+  <data name="DeleteWorkflow_ToConfirm" xml:space="preserve">
+    <value> to confirm:</value>
+  </data>
+  <data name="DeleteWorkflow_Placeholder" xml:space="preserve">
+    <value>Type 'delete'</value>
+  </data>
+  <data name="DeleteWorkflow_DeleteButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="DeleteWorkflow_Tooltip" xml:space="preserve">
+    <value>Delete workflow</value>
   </data>
 </root>

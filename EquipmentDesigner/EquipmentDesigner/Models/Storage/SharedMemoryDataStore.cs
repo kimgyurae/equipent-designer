@@ -44,5 +44,10 @@ namespace EquipmentDesigner.Models.Storage
         /// Device 목록
         /// </summary>
         public List<DeviceDto> Devices { get; set; } = new List<DeviceDto>();
+
+        /// <summary>
+        /// 미완료 워크플로우 세션 목록 (Resume Tasks용)
+        /// </summary>
+        public List<WorkflowSessionDto> WorkflowSessions { get; set; } = new List<WorkflowSessionDto>();
     }
 }

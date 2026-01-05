@@ -76,5 +76,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine
                 mainWindow?.HideBackdrop();
             }
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -1,16 +1,21 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
+using EquipmentDesigner.Services.Storage;
 using EquipmentDesigner.Views.HardwareDefineWorkflow;
 
 namespace EquipmentDesigner.Views.Dashboard
 {
     /// <summary>
-    /// ViewModel for the Dashboard view with placeholder data.
+    /// ViewModel for the Dashboard view.
     /// </summary>
     public class DashboardViewModel : INotifyPropertyChanged
     {
@@ -19,12 +24,19 @@ namespace EquipmentDesigner.Views.Dashboard
         public DashboardViewModel()
         {
             // Initialize navigation commands
-            CreateEquipmentCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(WorkflowStartType.Equipment));
-            CreateSystemCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(WorkflowStartType.System));
-            CreateUnitCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(WorkflowStartType.Unit));
-            CreateDeviceCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(WorkflowStartType.Device));
-            
-            InitializePlaceholderData();
+            CreateEquipmentCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Equipment));
+            CreateSystemCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.System));
+            CreateUnitCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Unit));
+            CreateDeviceCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Device));
+
+            // Resume workflow command
+            ResumeWorkflowCommand = new RelayCommand<WorkflowItem>(ExecuteResumeWorkflow);
+
+            // Delete workflow command
+            DeleteWorkflowCommand = new RelayCommand<WorkflowItem>(ExecuteDeleteWorkflow);
+
+            // Load data from repository
+            LoadIncompleteWorkflowsAsync();
         }
 
         #region Navigation Commands
@@ -33,6 +45,16 @@ namespace EquipmentDesigner.Views.Dashboard
         public ICommand CreateSystemCommand { get; }
         public ICommand CreateUnitCommand { get; }
         public ICommand CreateDeviceCommand { get; }
+
+        /// <summary>
+        /// Command to resume an incomplete workflow.
+        /// </summary>
+        public ICommand ResumeWorkflowCommand { get; }
+
+        /// <summary>
+        /// Command to delete an incomplete workflow.
+        /// </summary>
+        public ICommand DeleteWorkflowCommand { get; }
 
         #endregion
 
@@ -62,34 +84,157 @@ namespace EquipmentDesigner.Views.Dashboard
         public bool HasNoUnits => Units.Count == 0;
         public bool HasNoDevices => Devices.Count == 0;
 
+        /// <summary>
+        /// Returns true if there are incomplete workflows to display.
+        /// </summary>
+        public bool HasIncompleteWorkflows => IncompleteWorkflows.Count > 0;
+
+        /// <summary>
+        /// Returns the count of incomplete workflows.
+        /// </summary>
+        public int IncompleteWorkflowsCount => IncompleteWorkflows.Count;
+
+        /// <summary>
+        /// Returns the message describing incomplete workflows count.
+        /// </summary>
+        public string IncompleteWorkflowsMessage => 
+            $"You have {IncompleteWorkflowsCount} incomplete workflow{(IncompleteWorkflowsCount == 1 ? "" : "s")}. Click to continue where you left off.";
+
         #endregion
 
-        private void InitializePlaceholderData()
+        /// <summary>
+        /// Loads incomplete workflows from the repository.
+        /// </summary>
+        private async void LoadIncompleteWorkflowsAsync()
         {
-            // Placeholder incomplete workflows matching Figma design
-            var today = DateTime.Now.ToString("yyyy. M. d.");
-
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Equipment", CurrentStep = "Equipment", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "System", CurrentStep = "System", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Unit", CurrentStep = "Unit", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Unit", CurrentStep = "Unit", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Device", CurrentStep = "Device", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Device", CurrentStep = "Device", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Equipment", CurrentStep = "Equipment", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Equipment", CurrentStep = "Unit", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Equipment", CurrentStep = "Equipment", Date = today });
-            IncompleteWorkflows.Add(new WorkflowItem { StartedFrom = "Equipment", CurrentStep = "Unit", Date = today });
-
-            // Placeholder device matching Figma design (showing 1 device)
-            Devices.Add(new ComponentItem
+            try
             {
-                Name = "Gripper",
-                Description = "0 commands, 0 IO",
-                Status = "defined",
-                StatusBackground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFF7ED")),
-                StatusBorder = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFEDD5")),
-                StatusForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"))
-            });
+                var repository = ServiceLocator.GetService<IDataRepository>();
+                var dataStore = await repository.LoadAsync();
+
+                IncompleteWorkflows.Clear();
+
+                if (dataStore?.SessionContext?.IncompleteWorkflows != null)
+                {
+                    foreach (var info in dataStore.SessionContext.IncompleteWorkflows)
+                    {
+                        IncompleteWorkflows.Add(new WorkflowItem
+                        {
+                            WorkflowId = info.WorkflowId,
+                            StartedFrom = info.StartType.ToString(),
+                            CurrentStep = info.CurrentStepName ?? info.StartType.ToString(),
+                            Date = info.LastModifiedAt.ToString("yyyy. M. d.")
+                        });
+                    }
+                }
+
+                OnPropertyChanged(nameof(HasIncompleteWorkflows));
+                OnPropertyChanged(nameof(IncompleteWorkflowsCount));
+                OnPropertyChanged(nameof(IncompleteWorkflowsMessage));
+            }
+            catch
+            {
+                // Silently fail - dashboard will show empty state
+            }
+        }
+
+        /// <summary>
+        /// Executes the resume workflow command.
+        /// </summary>
+        private void ExecuteResumeWorkflow(WorkflowItem item)
+        {
+            if (!string.IsNullOrEmpty(item?.WorkflowId))
+            {
+                NavigationService.Instance.ResumeWorkflow(item.WorkflowId);
+            }
+        }
+
+        /// <summary>
+        /// Executes the delete workflow command.
+        /// Shows confirmation dialog and deletes if confirmed.
+        /// </summary>
+        private void ExecuteDeleteWorkflow(WorkflowItem item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.WorkflowId))
+                return;
+
+            // Get MainWindow for backdrop control
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+
+            // Show backdrop
+            mainWindow?.ShowBackdrop();
+
+            try
+            {
+                // Show delete confirmation dialog
+                var dialog = new DeleteWorkflowDialog
+                {
+                    Owner = mainWindow
+                };
+
+                var result = dialog.ShowDialog();
+
+                if (result == true && dialog.IsConfirmed)
+                {
+                    // Delete the workflow
+                    DeleteWorkflowAsync(item.WorkflowId);
+                }
+            }
+            finally
+            {
+                // Hide backdrop
+                mainWindow?.HideBackdrop();
+            }
+        }
+
+        /// <summary>
+        /// Deletes a workflow from the repository.
+        /// </summary>
+        private async void DeleteWorkflowAsync(string workflowId)
+        {
+            try
+            {
+                var repository = ServiceLocator.GetService<IDataRepository>();
+                var dataStore = await repository.LoadAsync();
+
+                // Remove from WorkflowSessions
+                if (dataStore?.WorkflowSessions != null)
+                {
+                    var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == workflowId);
+                    if (sessionToRemove != null)
+                    {
+                        dataStore.WorkflowSessions.Remove(sessionToRemove);
+                    }
+                }
+
+                // Remove from IncompleteWorkflows
+                if (dataStore?.SessionContext?.IncompleteWorkflows != null)
+                {
+                    var infoToRemove = dataStore.SessionContext.IncompleteWorkflows.FirstOrDefault(i => i.WorkflowId == workflowId);
+                    if (infoToRemove != null)
+                    {
+                        dataStore.SessionContext.IncompleteWorkflows.Remove(infoToRemove);
+                    }
+                }
+
+                // Save changes
+                await repository.SaveAsync(dataStore);
+
+                // Refresh the list
+                RefreshAsync();
+            }
+            catch
+            {
+                // Silently fail
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the dashboard data from repository.
+        /// </summary>
+        public void RefreshAsync()
+        {
+            LoadIncompleteWorkflowsAsync();
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -103,6 +248,11 @@ namespace EquipmentDesigner.Views.Dashboard
     /// </summary>
     public class WorkflowItem
     {
+        /// <summary>
+        /// Unique identifier for the workflow session.
+        /// </summary>
+        public string WorkflowId { get; set; }
+
         public string StartedFrom { get; set; }
         public string CurrentStep { get; set; }
         public string Date { get; set; }

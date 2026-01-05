@@ -1,3 +1,4 @@
+using EquipmentDesigner.Models;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Views.Dashboard;
 using EquipmentDesigner.Views.HardwareDefineWorkflow;
@@ -84,7 +85,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateEquipmentCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(WorkflowStartType.Equipment);
+            capturedTarget.StartType.Should().Be(HardwareLayer.Equipment);
         }
 
         [Fact]
@@ -97,7 +98,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateSystemCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(WorkflowStartType.System);
+            capturedTarget.StartType.Should().Be(HardwareLayer.System);
         }
 
         [Fact]
@@ -110,7 +111,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateUnitCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(WorkflowStartType.Unit);
+            capturedTarget.StartType.Should().Be(HardwareLayer.Unit);
         }
 
         [Fact]
@@ -123,7 +124,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateDeviceCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(WorkflowStartType.Device);
+            capturedTarget.StartType.Should().Be(HardwareLayer.Device);
         }
 
         #endregion

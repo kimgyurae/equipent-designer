@@ -1,5 +1,5 @@
 using System;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
+using EquipmentDesigner.Models;
 
 namespace EquipmentDesigner.Services
 {
@@ -22,9 +22,14 @@ namespace EquipmentDesigner.Services
         public event Action NavigateToDashboardRequested;
 
         /// <summary>
+        /// Event raised when resuming an existing workflow is requested.
+        /// </summary>
+        public event Action<NavigationTarget> ResumeWorkflowRequested;
+
+        /// <summary>
         /// Navigate to the Hardware Define Workflow with the specified start type.
         /// </summary>
-        public void NavigateToHardwareDefineWorkflow(WorkflowStartType startType)
+        public void NavigateToHardwareDefineWorkflow(HardwareLayer startType)
         {
             NavigationRequested?.Invoke(new NavigationTarget
             {
@@ -40,6 +45,19 @@ namespace EquipmentDesigner.Services
         {
             NavigateToDashboardRequested?.Invoke();
         }
+
+        /// <summary>
+        /// Resume an existing workflow from saved state.
+        /// </summary>
+        /// <param name="workflowId">The unique identifier of the workflow to resume.</param>
+        public void ResumeWorkflow(string workflowId)
+        {
+            ResumeWorkflowRequested?.Invoke(new NavigationTarget
+            {
+                TargetType = NavigationTargetType.HardwareDefineWorkflow,
+                WorkflowId = workflowId
+            });
+        }
     }
 
     /// <summary>
@@ -48,7 +66,12 @@ namespace EquipmentDesigner.Services
     public class NavigationTarget
     {
         public NavigationTargetType TargetType { get; set; }
-        public WorkflowStartType StartType { get; set; }
+        public HardwareLayer StartType { get; set; }
+        
+        /// <summary>
+        /// Workflow ID for resume scenarios (null for new workflows).
+        /// </summary>
+        public string WorkflowId { get; set; }
     }
 
     /// <summary>

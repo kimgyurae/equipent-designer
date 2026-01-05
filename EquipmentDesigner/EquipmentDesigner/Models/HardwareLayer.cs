@@ -1,9 +1,9 @@
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Defines the starting point of the hardware definition workflow.
     /// </summary>
-    public enum WorkflowStartType
+    public enum HardwareLayer
     {
         /// <summary>
         /// Start from Equipment definition (Equipment → System → Unit → Device).

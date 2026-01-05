@@ -219,17 +219,32 @@
   <data name="Equipment_Name" xml:space="preserve">
     <value>이름</value>
   </data>
+  <data name="Equipment_Name_Placeholder" xml:space="preserve">
+    <value>Stacker.Gen3</value>
+  </data>
   <data name="Equipment_DisplayName" xml:space="preserve">
     <value>표시 이름</value>
+  </data>
+  <data name="Equipment_DisplayName_Placeholder" xml:space="preserve">
+    <value>3세대 Stacker</value>
   </data>
   <data name="Equipment_Subname" xml:space="preserve">
     <value>부가 이름</value>
   </data>
+  <data name="Equipment_Subname_Placeholder" xml:space="preserve">
+    <value>2차 개조 버전</value>
+  </data>
   <data name="Equipment_DescriptionLabel" xml:space="preserve">
     <value>설명</value>
   </data>
+  <data name="Equipment_Description_Placeholder" xml:space="preserve">
+    <value>이 설비에 대한 간략한 설명</value>
+  </data>
   <data name="Equipment_Customer" xml:space="preserve">
     <value>고객사</value>
+  </data>
+  <data name="Equipment_Customer_Placeholder" xml:space="preserve">
+    <value>탑엔지니어링</value>
   </data>
   <data name="Equipment_Process" xml:space="preserve">
     <value>프로세스</value>
@@ -392,5 +407,29 @@
   </data>
   <data name="Command_NoParametersHint" xml:space="preserve">
     <value>파라미터는 선택 사항입니다. '파라미터 추가'를 클릭하여 추가하세요.</value>
+  </data>
+  <data name="DeleteWorkflow_Title" xml:space="preserve">
+    <value>미완료 워크플로우 삭제</value>
+  </data>
+  <data name="DeleteWorkflow_Description" xml:space="preserve">
+    <value>이 미완료 워크플로우를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.</value>
+  </data>
+  <data name="DeleteWorkflow_TypeInstruction" xml:space="preserve">
+    <value>확인을 위해 </value>
+  </data>
+  <data name="DeleteWorkflow_DeleteKeyword" xml:space="preserve">
+    <value>delete</value>
+  </data>
+  <data name="DeleteWorkflow_ToConfirm" xml:space="preserve">
+    <value>를 입력하세요:</value>
+  </data>
+  <data name="DeleteWorkflow_Placeholder" xml:space="preserve">
+    <value>'delete' 입력</value>
+  </data>
+  <data name="DeleteWorkflow_DeleteButton" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="DeleteWorkflow_Tooltip" xml:space="preserve">
+    <value>워크플로우 삭제</value>
   </data>
 </root>

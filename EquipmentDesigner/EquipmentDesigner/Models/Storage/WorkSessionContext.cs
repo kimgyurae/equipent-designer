@@ -10,9 +10,9 @@ namespace EquipmentDesigner.Models.Storage
     public class WorkSessionContext
     {
         /// <summary>
-        /// 마지막으로 작업 중이던 워크플로우 타입
+        /// 마지막으로 작업 중이던 워크플로우 시작 레이어
         /// </summary>
-        public WorkflowStartType? LastWorkflowType { get; set; }
+        public HardwareLayer? LastWorkflowType { get; set; }
 
         /// <summary>
         /// 마지막으로 편집 중이던 컴포넌트 ID
@@ -36,17 +36,6 @@ namespace EquipmentDesigner.Models.Storage
     }
 
     /// <summary>
-    /// 워크플로우 시작 타입
-    /// </summary>
-    public enum WorkflowStartType
-    {
-        NewEquipment,
-        NewSystem,
-        NewUnit,
-        NewDevice
-    }
-
-    /// <summary>
     /// 컴포넌트 타입 열거형
     /// </summary>
     public enum ComponentType
@@ -62,6 +51,21 @@ namespace EquipmentDesigner.Models.Storage
     /// </summary>
     public class IncompleteWorkflowInfo
     {
+        /// <summary>
+        /// 워크플로우 세션 고유 식별자
+        /// </summary>
+        public string WorkflowId { get; set; }
+
+        /// <summary>
+        /// 워크플로우 시작 레이어
+        /// </summary>
+        public HardwareLayer StartType { get; set; }
+
+        /// <summary>
+        /// 현재 단계 이름 (Dashboard 표시용)
+        /// </summary>
+        public string CurrentStepName { get; set; }
+
         public string ComponentId { get; set; }
         public ComponentType ComponentType { get; set; }
         public ComponentState State { get; set; }

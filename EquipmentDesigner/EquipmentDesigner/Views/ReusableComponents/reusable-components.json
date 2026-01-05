@@ -1,8 +1,16 @@
-﻿{
+{
     "components": [
         {
-            "path": "",   
-            "description": ""
-        }   
+            "path": "IBackdropHost.cs",
+            "description": "Interface for ViewModels that support backdrop overlay visibility. Implements INotifyPropertyChanged for XAML binding."
+        },
+        {
+            "path": "BackdropHostMixin.cs",
+            "description": "Helper class to reduce boilerplate for IBackdropHost implementation. Provides backdrop visibility state management with property change notification."
+        },
+        {
+            "path": "TextBoxHelper.cs",
+            "description": "Attached properties for TextBox placeholder text support. Enables placeholder display without custom control templates."
+        }
     ]
 }

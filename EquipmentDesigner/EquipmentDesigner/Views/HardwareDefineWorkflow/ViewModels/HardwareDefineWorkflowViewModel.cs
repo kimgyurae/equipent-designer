@@ -1,7 +1,13 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.Models.Dtos;
+using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
+using EquipmentDesigner.Services.Storage;
 
 namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 {
@@ -17,8 +23,20 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private UnitDefineViewModel _unitViewModel;
         private DeviceDefineViewModel _deviceViewModel;
 
-        public HardwareDefineWorkflowViewModel(WorkflowStartType startType)
+        /// <summary>
+        /// Creates a new workflow with a unique ID.
+        /// </summary>
+        public HardwareDefineWorkflowViewModel(HardwareLayer startType)
+            : this(startType, Guid.NewGuid().ToString())
         {
+        }
+
+        /// <summary>
+        /// Creates a workflow with a specific ID (for resume scenarios).
+        /// </summary>
+        private HardwareDefineWorkflowViewModel(HardwareLayer startType, string workflowId)
+        {
+            WorkflowId = workflowId;
             StartType = startType;
             WorkflowSteps = new ObservableCollection<WorkflowStepViewModel>();
 
@@ -30,9 +48,14 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         }
 
         /// <summary>
+        /// Unique identifier for this workflow session.
+        /// </summary>
+        public string WorkflowId { get; }
+
+        /// <summary>
         /// The starting type of the workflow.
         /// </summary>
-        public WorkflowStartType StartType { get; }
+        public HardwareLayer StartType { get; }
 
         /// <summary>
         /// Collection of workflow steps.
@@ -156,17 +179,17 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             int stepNumber = 1;
 
-            if (StartType == WorkflowStartType.Equipment)
+            if (StartType == HardwareLayer.Equipment)
             {
                 WorkflowSteps.Add(new WorkflowStepViewModel(stepNumber++, "Equipment"));
             }
 
-            if (StartType <= WorkflowStartType.System)
+            if (StartType <= HardwareLayer.System)
             {
                 WorkflowSteps.Add(new WorkflowStepViewModel(stepNumber++, "System"));
             }
 
-            if (StartType <= WorkflowStartType.Unit)
+            if (StartType <= HardwareLayer.Unit)
             {
                 WorkflowSteps.Add(new WorkflowStepViewModel(stepNumber++, "Unit"));
             }
@@ -280,9 +303,129 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             return !IsFirstStep;
         }
 
-        private void ExecuteExitToDashboard()
+        private async void ExecuteExitToDashboard()
         {
+            await SaveWorkflowStateAsync();
             NavigationService.Instance.NavigateToDashboard();
+        }
+
+        /// <summary>
+        /// Saves the current workflow state to repository.
+        /// </summary>
+        private async Task SaveWorkflowStateAsync()
+        {
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+
+            // Ensure collections are initialized
+            dataStore.WorkflowSessions ??= new System.Collections.Generic.List<WorkflowSessionDto>();
+            dataStore.SessionContext ??= new WorkSessionContext();
+            dataStore.SessionContext.IncompleteWorkflows ??= new System.Collections.Generic.List<IncompleteWorkflowInfo>();
+
+            // Create or update workflow session
+            var sessionDto = ToWorkflowSessionDto();
+            var existingIndex = dataStore.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
+
+            if (existingIndex >= 0)
+                dataStore.WorkflowSessions[existingIndex] = sessionDto;
+            else
+                dataStore.WorkflowSessions.Add(sessionDto);
+
+            // Update incomplete workflow info for dashboard display
+            var incompleteInfo = new IncompleteWorkflowInfo
+            {
+                WorkflowId = WorkflowId,
+                StartType = StartType,
+                CurrentStepName = sessionDto.GetCurrentStepName(),
+                ComponentId = WorkflowId,
+                ComponentType = StartType switch
+                {
+                    HardwareLayer.Equipment => ComponentType.Equipment,
+                    HardwareLayer.System => ComponentType.System,
+                    HardwareLayer.Unit => ComponentType.Unit,
+                    HardwareLayer.Device => ComponentType.Device,
+                    _ => ComponentType.Equipment
+                },
+                State = AllStepsRequiredFieldsFilled ? ComponentState.Defined : ComponentState.Undefined,
+                LastModifiedAt = DateTime.Now,
+                CompletedFields = WorkflowSteps.Sum(s => s.FilledFieldCount),
+                TotalFields = WorkflowSteps.Sum(s => s.TotalFieldCount)
+            };
+
+            var existingInfoIndex = dataStore.SessionContext.IncompleteWorkflows
+                .FindIndex(i => i.WorkflowId == WorkflowId);
+
+            if (existingInfoIndex >= 0)
+                dataStore.SessionContext.IncompleteWorkflows[existingInfoIndex] = incompleteInfo;
+            else
+                dataStore.SessionContext.IncompleteWorkflows.Add(incompleteInfo);
+
+            await repository.SaveAsync(dataStore);
+        }
+
+        /// <summary>
+        /// Converts this ViewModel to a WorkflowSessionDto for persistence.
+        /// </summary>
+        public WorkflowSessionDto ToWorkflowSessionDto()
+        {
+            return new WorkflowSessionDto
+            {
+                WorkflowId = WorkflowId,
+                StartType = StartType,
+                CurrentStepIndex = CurrentStepIndex,
+                LastModifiedAt = DateTime.Now,
+                EquipmentData = EquipmentViewModel?.ToDto(),
+                SystemData = SystemViewModel?.ToDto(),
+                UnitData = UnitViewModel?.ToDto(),
+                DeviceData = DeviceViewModel?.ToDto()
+            };
+        }
+
+        /// <summary>
+        /// Creates a HardwareDefineWorkflowViewModel from a saved WorkflowSessionDto.
+        /// </summary>
+        public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(dto.StartType, dto.WorkflowId);
+
+            // Load component data from DTOs
+            if (dto.EquipmentData != null)
+                viewModel.EquipmentViewModel = EquipmentDefineViewModel.FromDto(dto.EquipmentData);
+
+            if (dto.SystemData != null)
+                viewModel.SystemViewModel = SystemDefineViewModel.FromDto(dto.SystemData);
+
+            if (dto.UnitData != null)
+                viewModel.UnitViewModel = UnitDefineViewModel.FromDto(dto.UnitData);
+
+            if (dto.DeviceData != null)
+                viewModel.DeviceViewModel = DeviceDefineViewModel.FromDto(dto.DeviceData);
+
+            // Restore current step index
+            viewModel.SetCurrentStepIndex(dto.CurrentStepIndex);
+
+            // Re-initialize step states and callbacks
+            viewModel.DeviceViewModel.SetAllStepsRequiredFieldsFilledCheck(() => viewModel.AllStepsRequiredFieldsFilled);
+            viewModel.InitializeStepFieldCounts();
+            viewModel.UpdateStepStates();
+
+            return viewModel;
+        }
+
+        /// <summary>
+        /// Sets the current step index (for resume scenarios).
+        /// </summary>
+        internal void SetCurrentStepIndex(int index)
+        {
+            if (index >= 0 && index < WorkflowSteps.Count)
+            {
+                _currentStepIndex = index;
+                OnPropertyChanged(nameof(CurrentStepIndex));
+                OnPropertyChanged(nameof(CurrentStep));
+                OnPropertyChanged(nameof(IsFirstStep));
+                OnPropertyChanged(nameof(IsLastStep));
+                OnPropertyChanged(nameof(CanGoToNext));
+            }
         }
 
         private void ExecuteNavigateToStep(WorkflowStepViewModel step)

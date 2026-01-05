@@ -46,28 +46,7 @@
                                    Margin="8,0,0,0"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
-                </Button>
-                <Button Command="{Binding AddAnotherCommand}"
-                        Padding="{StaticResource Spacing.Padding.Button}"
-                        Height="{StaticResource Size.Button.Height.MD}"
-                        Background="{StaticResource Brush.Button.Ghost.Background}"
-                        BorderBrush="{StaticResource Brush.Border.Primary}"
-                        BorderThickness="{StaticResource Border.Thin}"
-                        Cursor="Hand">
-                    <StackPanel Orientation="Horizontal">
-                        <Path Data="M12 4v16m8-8H4"
-                              Stroke="{StaticResource Brush.Text.Primary}"
-                              StrokeThickness="2"
-                              Width="16" Height="16"
-                              Stretch="Uniform"
-                              VerticalAlignment="Center"/>
-                        <TextBlock Text="{lex:Loc Key=Unit_AddAnother}"
-                                   Style="{StaticResource Typography.Button}"
-                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                   Margin="8,0,0,0"
-                                   VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+                </Button>                
             </StackPanel>
 
             <!-- Form Card -->

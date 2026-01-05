@@ -1,0 +1,34 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(D:\\SW\\CodeGenTest\\equipment-designer/**)",
+      "Write(D:\\SW\\CodeGenTest\\equipment-designer/**)",
+      "Edit(D:\\SW\\CodeGenTest\\equipment-designer/**)",
+      "Glob(D:\\SW\\CodeGenTest\\equipment-designer/**)",
+      "Grep(D:\\SW\\CodeGenTest\\equipment-designer/**)",
+      "Read(D:\\SW\\CodeGenTest\\equipment-designer\\.auto-claude\\specs\\001-d-sw-codegentest-equipment-designer-equipmentdesig/**)",
+      "Write(D:\\SW\\CodeGenTest\\equipment-designer\\.auto-claude\\specs\\001-d-sw-codegentest-equipment-designer-equipmentdesig/**)",
+      "Edit(D:\\SW\\CodeGenTest\\equipment-designer\\.auto-claude\\specs\\001-d-sw-codegentest-equipment-designer-equipmentdesig/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}
