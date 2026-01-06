@@ -215,6 +215,7 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
@@ -253,8 +254,35 @@
                         </StackPanel>
                     </Button>
 
+                    <!-- Edit Button (visible in read-only mode) -->
+                    <Button Grid.Column="1"
+                            Command="{Binding EnableEditCommand}"
+                            Padding="{StaticResource Spacing.Padding.Button.Large}"
+                            MinWidth="100"
+                            Height="{StaticResource Size.Button.Height.LG}"
+                            Background="{StaticResource Brush.Status.Warning.Background}"
+                            BorderBrush="{StaticResource Brush.Status.Warning.Border}"
+                            BorderThickness="1"
+                            Cursor="Hand"
+                            Margin="12,0,0,0"
+                            Visibility="{Binding IsEditButtonVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                                  Stroke="{StaticResource Brush.Status.Warning}"
+                                  StrokeThickness="2"
+                                  Width="16" Height="16"
+                                  Stretch="Uniform"
+                                  VerticalAlignment="Center"/>
+                            <TextBlock Text="{lex:Loc Key=Workflow_Edit}"
+                                       Style="{StaticResource Typography.Button}"
+                                       Foreground="{StaticResource Brush.Status.Warning}"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
                     <!-- Next Button -->
-                    <Button Grid.Column="2"
+                    <Button Grid.Column="3"
                             Command="{Binding GoToNextStepCommand}"
                             Padding="{StaticResource Spacing.Padding.Button.Large}"
                             MinWidth="120"

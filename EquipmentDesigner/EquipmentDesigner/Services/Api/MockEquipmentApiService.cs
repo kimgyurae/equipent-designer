@@ -156,7 +156,7 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Equipments[index] = equipment;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, ComponentType.Equipment);
+            UpdateSessionContext(id, HardwareLayer.Equipment);
             return ApiResponse<EquipmentDto>.Ok(equipment);
         }
 
@@ -274,7 +274,7 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Systems[index] = system;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, ComponentType.System);
+            UpdateSessionContext(id, HardwareLayer.System);
             return ApiResponse<SystemDto>.Ok(system);
         }
 
@@ -376,7 +376,7 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Units[index] = unit;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, ComponentType.Unit);
+            UpdateSessionContext(id, HardwareLayer.Unit);
             return ApiResponse<UnitDto>.Ok(unit);
         }
 
@@ -478,7 +478,7 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Devices[index] = device;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, ComponentType.Device);
+            UpdateSessionContext(id, HardwareLayer.Device);
             return ApiResponse<DeviceDto>.Ok(device);
         }
 
@@ -529,7 +529,7 @@ namespace EquipmentDesigner.Services.Api
 
         #region Session Context Management
 
-        private void UpdateSessionContext(string componentId, ComponentType componentType)
+        private void UpdateSessionContext(string componentId, HardwareLayer hardwareLayer)
         {
             if (_dataStore.SessionContext == null)
             {
@@ -537,7 +537,7 @@ namespace EquipmentDesigner.Services.Api
             }
 
             _dataStore.SessionContext.LastEditingComponentId = componentId;
-            _dataStore.SessionContext.LastEditingComponentType = componentType;
+            _dataStore.SessionContext.LastEditingHardwareLayer = hardwareLayer;
 
             UpdateIncompleteWorkflows();
         }
@@ -557,7 +557,7 @@ namespace EquipmentDesigner.Services.Api
                 _dataStore.SessionContext.IncompleteWorkflows.Add(new IncompleteWorkflowInfo
                 {
                     ComponentId = eq.Id,
-                    ComponentType = ComponentType.Equipment,
+                    HardwareLayer = HardwareLayer.Equipment,
                     State = eq.State,
                     LastModifiedAt = eq.UpdatedAt,
                     CompletedFields = CalculateCompletedFields(eq),
@@ -571,7 +571,7 @@ namespace EquipmentDesigner.Services.Api
                 _dataStore.SessionContext.IncompleteWorkflows.Add(new IncompleteWorkflowInfo
                 {
                     ComponentId = sys.Id,
-                    ComponentType = ComponentType.System,
+                    HardwareLayer = HardwareLayer.System,
                     State = sys.State,
                     LastModifiedAt = sys.UpdatedAt,
                     CompletedFields = CalculateCompletedFields(sys),

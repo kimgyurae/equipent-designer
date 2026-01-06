@@ -194,9 +194,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         /// <summary>
         /// Returns true if the workflow can be completed.
-        /// All required fields in all steps must be filled.
+        /// All required fields in all steps must be filled and form must be editable.
         /// </summary>
-        public bool CanCompleteWorkflow => _allStepsRequiredFieldsFilledCheck?.Invoke() ?? CanProceedToNext;
+        public bool CanCompleteWorkflow => IsEditable && (_allStepsRequiredFieldsFilledCheck?.Invoke() ?? CanProceedToNext);
 
         /// <summary>
         /// Command to load device data from server.
@@ -247,6 +247,23 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// Event raised when workflow completion is requested.
         /// </summary>
         public event EventHandler WorkflowCompletedRequest;
+
+        /// <summary>
+        /// Gets or sets whether the form is editable.
+        /// Overridden to also notify CanCompleteWorkflow when editability changes.
+        /// </summary>
+        public override bool IsEditable
+        {
+            get => base.IsEditable;
+            set
+            {
+                if (base.IsEditable != value)
+                {
+                    base.IsEditable = value;
+                    OnPropertyChanged(nameof(CanCompleteWorkflow));
+                }
+            }
+        }
 
         private void OnCommandsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {

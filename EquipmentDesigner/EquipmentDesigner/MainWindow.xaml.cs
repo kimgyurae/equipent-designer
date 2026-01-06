@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Windows;
+using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Services.Storage;
@@ -27,6 +28,7 @@ namespace EquipmentDesigner
             NavigationService.Instance.NavigationRequested += OnNavigationRequested;
             NavigationService.Instance.NavigateToDashboardRequested += OnNavigateToDashboard;
             NavigationService.Instance.ResumeWorkflowRequested += OnResumeWorkflowRequested;
+            NavigationService.Instance.ViewComponentRequested += OnViewComponentRequested;
             
             // Show dashboard by default
             MainContent.Content = _dashboardView;
@@ -100,12 +102,45 @@ namespace EquipmentDesigner
             }
         }
 
+        private async void OnViewComponentRequested(NavigationTarget target)
+        {
+            if (string.IsNullOrEmpty(target.ComponentId))
+                return;
+
+            try
+            {
+                // Determine the HardwareLayer based on HardwareLayer
+                var startType = target.HardwareLayer switch
+                {
+                    HardwareLayer.Equipment => HardwareLayer.Equipment,
+                    HardwareLayer.System => HardwareLayer.System,
+                    HardwareLayer.Unit => HardwareLayer.Unit,
+                    HardwareLayer.Device => HardwareLayer.Device,
+                    _ => HardwareLayer.Device
+                };
+
+                var workflowViewModel = new HardwareDefineWorkflowViewModel(startType);
+                await workflowViewModel.LoadComponentForViewAsync(target.ComponentId, target.HardwareLayer);
+
+                var workflowView = new HardwareDefineWorkflowView
+                {
+                    DataContext = workflowViewModel
+                };
+                MainContent.Content = workflowView;
+            }
+            catch
+            {
+                // If loading fails, stay on current view
+            }
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             // Unsubscribe from events to prevent memory leaks
             NavigationService.Instance.NavigationRequested -= OnNavigationRequested;
             NavigationService.Instance.NavigateToDashboardRequested -= OnNavigateToDashboard;
             NavigationService.Instance.ResumeWorkflowRequested -= OnResumeWorkflowRequested;
+            NavigationService.Instance.ViewComponentRequested -= OnViewComponentRequested;
             base.OnClosed(e);
         }
     }

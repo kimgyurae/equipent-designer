@@ -413,7 +413,13 @@
                                         <Border Background="{StaticResource Brush.Background.Tertiary}"
                                                 CornerRadius="{StaticResource Radius.LG}"
                                                 Padding="12"
-                                                Margin="0,0,0,8">
+                                                Margin="0,0,0,8"
+                                                Cursor="Hand">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                              CommandParameter="{Binding}"/>
+                                            </Border.InputBindings>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -481,7 +487,13 @@
                                         <Border Background="{StaticResource Brush.Background.Tertiary}"
                                                 CornerRadius="{StaticResource Radius.LG}"
                                                 Padding="12"
-                                                Margin="0,0,0,8">
+                                                Margin="0,0,0,8"
+                                                Cursor="Hand">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                              CommandParameter="{Binding}"/>
+                                            </Border.InputBindings>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -548,7 +560,13 @@
                                         <Border Background="{StaticResource Brush.Background.Tertiary}"
                                                 CornerRadius="{StaticResource Radius.LG}"
                                                 Padding="12"
-                                                Margin="0,0,0,8">
+                                                Margin="0,0,0,8"
+                                                Cursor="Hand">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                              CommandParameter="{Binding}"/>
+                                            </Border.InputBindings>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
@@ -615,7 +633,13 @@
                                         <Border Background="{StaticResource Brush.Background.Tertiary}"
                                                 CornerRadius="{StaticResource Radius.LG}"
                                                 Padding="12"
-                                                Margin="0,0,0,8">
+                                                Margin="0,0,0,8"
+                                                Cursor="Hand">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                              CommandParameter="{Binding}"/>
+                                            </Border.InputBindings>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>

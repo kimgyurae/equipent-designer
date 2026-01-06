@@ -380,5 +380,122 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
         }
 
         #endregion
+
+        #region ComponentItem Extension Tests (Read-Only View Feature)
+
+        [Fact]
+        public async Task LoadComponentsAsync_PopulatesIdForEquipment()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Equipments.Add(new EquipmentDto { Id = "equip-123", Name = "TestEquip", State = ComponentState.Defined });
+            await repository.SaveAsync(dataStore);
+
+            // Act
+            var viewModel = new DashboardViewModel();
+            await Task.Delay(100);
+
+            // Assert
+            viewModel.Equipments.Should().HaveCount(1);
+            viewModel.Equipments.First().Id.Should().Be("equip-123");
+        }
+
+        [Fact]
+        public async Task LoadComponentsAsync_PopulatesHardwareLayerForEquipment()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Equipments.Add(new EquipmentDto { Id = "equip-123", Name = "TestEquip", State = ComponentState.Defined });
+            await repository.SaveAsync(dataStore);
+
+            // Act
+            var viewModel = new DashboardViewModel();
+            await Task.Delay(100);
+
+            // Assert
+            viewModel.Equipments.First().HardwareLayer.Should().Be(HardwareLayer.Equipment);
+        }
+
+        [Fact]
+        public async Task LoadComponentsAsync_PopulatesIdAndTypeForSystem()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Systems.Add(new SystemDto { Id = "sys-456", Name = "TestSystem", State = ComponentState.Uploaded });
+            await repository.SaveAsync(dataStore);
+
+            // Act
+            var viewModel = new DashboardViewModel();
+            await Task.Delay(100);
+
+            // Assert
+            viewModel.Systems.Should().HaveCount(1);
+            viewModel.Systems.First().Id.Should().Be("sys-456");
+            viewModel.Systems.First().HardwareLayer.Should().Be(HardwareLayer.System);
+        }
+
+        [Fact]
+        public async Task LoadComponentsAsync_PopulatesIdAndTypeForUnit()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Units.Add(new UnitDto { Id = "unit-789", Name = "TestUnit", State = ComponentState.Validated });
+            await repository.SaveAsync(dataStore);
+
+            // Act
+            var viewModel = new DashboardViewModel();
+            await Task.Delay(100);
+
+            // Assert
+            viewModel.Units.Should().HaveCount(1);
+            viewModel.Units.First().Id.Should().Be("unit-789");
+            viewModel.Units.First().HardwareLayer.Should().Be(HardwareLayer.Unit);
+        }
+
+        [Fact]
+        public async Task LoadComponentsAsync_PopulatesIdAndTypeForDevice()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Devices.Add(new DeviceDto { Id = "dev-101", Name = "TestDevice", State = ComponentState.Defined });
+            await repository.SaveAsync(dataStore);
+
+            // Act
+            var viewModel = new DashboardViewModel();
+            await Task.Delay(100);
+
+            // Assert
+            viewModel.Devices.Should().HaveCount(1);
+            viewModel.Devices.First().Id.Should().Be("dev-101");
+            viewModel.Devices.First().HardwareLayer.Should().Be(HardwareLayer.Device);
+        }
+
+        #endregion
+
+        #region ViewComponentCommand Tests
+
+        [Fact]
+        public void ViewComponentCommand_IsNotNull()
+        {
+            var viewModel = new DashboardViewModel();
+            viewModel.ViewComponentCommand.Should().NotBeNull();
+        }
+
+        #endregion
     }
 }

@@ -32,7 +32,8 @@
                     Background="{StaticResource Brush.Button.Secondary.Background}"
                     BorderThickness="0"
                     Cursor="Hand"
-                    Margin="0,0,12,0">
+                    Margin="0,0,12,0"
+                    IsEnabled="{Binding IsEditable}">
                 <StackPanel Orientation="Horizontal">
                     <Path Data="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                           Stroke="{StaticResource Brush.Text.Primary}"
@@ -140,7 +141,9 @@
                              Padding="{StaticResource Spacing.Padding.Input}"
                              Background="{StaticResource Brush.Input.Background}"
                              BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"/>
+                             VerticalContentAlignment="Center"
+                             IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
+                             IsHitTestVisible="{Binding IsEditable}"/>
                 </StackPanel>
 
                 <!-- Display Name -->
@@ -154,7 +157,9 @@
                              Padding="{StaticResource Spacing.Padding.Input}"
                              Background="{StaticResource Brush.Input.Background}"
                              BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"/>
+                             VerticalContentAlignment="Center"
+                             IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
+                             IsHitTestVisible="{Binding IsEditable}"/>
                 </StackPanel>
 
                 <!-- Subname -->
@@ -168,7 +173,9 @@
                              Padding="{StaticResource Spacing.Padding.Input}"
                              Background="{StaticResource Brush.Input.Background}"
                              BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"/>
+                             VerticalContentAlignment="Center"
+                             IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
+                             IsHitTestVisible="{Binding IsEditable}"/>
                 </StackPanel>
 
                 <!-- Description -->
@@ -184,7 +191,9 @@
                              BorderBrush="{StaticResource Brush.Input.Border}"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto"/>
+                             VerticalScrollBarVisibility="Auto"
+                             IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
+                             IsHitTestVisible="{Binding IsEditable}"/>
                 </StackPanel>
 
                 <!-- Implementation Guidelines -->
@@ -200,7 +209,9 @@
                              BorderBrush="{StaticResource Brush.Input.Border}"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"
-                             VerticalScrollBarVisibility="Auto"/>
+                             VerticalScrollBarVisibility="Auto"
+                             IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
+                             IsHitTestVisible="{Binding IsEditable}"/>
                 </StackPanel>
 
             </StackPanel>
@@ -235,7 +246,8 @@
                             Height="{StaticResource Size.Button.Height.SM}"
                             Background="{StaticResource Brush.Button.Primary.Background}"
                             BorderThickness="0"
-                            Cursor="Hand">
+                            Cursor="Hand"
+                            IsEnabled="{Binding IsEditable}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M12 4v16m8-8H4"
                                   Stroke="{StaticResource Brush.Text.Inverse}"
@@ -295,7 +307,8 @@
                                             BorderThickness="0"
                                             Cursor="Hand"
                                             Padding="8"
-                                            VerticalAlignment="Center">
+                                            VerticalAlignment="Center"
+                                            IsEnabled="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                         <Path Data="M6 18L18 6M6 6l12 12"
                                               Stroke="{StaticResource Brush.Text.Tertiary}"
                                               StrokeThickness="2"
@@ -356,7 +369,8 @@
                             Height="{StaticResource Size.Button.Height.SM}"
                             Background="{StaticResource Brush.Button.Primary.Background}"
                             BorderThickness="0"
-                            Cursor="Hand">
+                            Cursor="Hand"
+                            IsEnabled="{Binding IsEditable}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M12 4v16m8-8H4"
                                   Stroke="{StaticResource Brush.Text.Inverse}"
@@ -423,7 +437,8 @@
                                             BorderThickness="0"
                                             Cursor="Hand"
                                             Padding="4"
-                                            VerticalAlignment="Center">
+                                            VerticalAlignment="Center"
+                                            IsEnabled="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                         <Path Data="M6 18L18 6M6 6l12 12"
                                               Stroke="{StaticResource Brush.Text.Tertiary}"
                                               StrokeThickness="2"

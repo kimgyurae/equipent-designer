@@ -8,7 +8,19 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
     /// </summary>
     public abstract class ViewModelBase : INotifyPropertyChanged
     {
+        private bool _isEditable = true;
+
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Gets or sets whether the form is editable.
+        /// When false, all input controls should be read-only.
+        /// </summary>
+        public virtual bool IsEditable
+        {
+            get => _isEditable;
+            set => SetProperty(ref _isEditable, value);
+        }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

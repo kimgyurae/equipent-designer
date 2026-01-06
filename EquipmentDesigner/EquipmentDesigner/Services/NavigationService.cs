@@ -1,5 +1,6 @@
 using System;
 using EquipmentDesigner.Models;
+using EquipmentDesigner.Models.Storage;
 
 namespace EquipmentDesigner.Services
 {
@@ -25,6 +26,11 @@ namespace EquipmentDesigner.Services
         /// Event raised when resuming an existing workflow is requested.
         /// </summary>
         public event Action<NavigationTarget> ResumeWorkflowRequested;
+
+        /// <summary>
+        /// Event raised when viewing an existing component is requested.
+        /// </summary>
+        public event Action<NavigationTarget> ViewComponentRequested;
 
         /// <summary>
         /// Navigate to the Hardware Define Workflow with the specified start type.
@@ -58,6 +64,22 @@ namespace EquipmentDesigner.Services
                 WorkflowId = workflowId
             });
         }
+
+        /// <summary>
+        /// View an existing component in read-only mode.
+        /// </summary>
+        /// <param name="componentId">The unique identifier of the component to view.</param>
+        /// <param name="hardwareLayer">The type of the component.</param>
+        public void ViewComponent(string componentId, HardwareLayer hardwareLayer)
+        {
+            ViewComponentRequested?.Invoke(new NavigationTarget
+            {
+                TargetType = NavigationTargetType.HardwareDefineWorkflow,
+                ComponentId = componentId,
+                HardwareLayer = hardwareLayer,
+                IsReadOnly = true
+            });
+        }
     }
 
     /// <summary>
@@ -72,6 +94,21 @@ namespace EquipmentDesigner.Services
         /// Workflow ID for resume scenarios (null for new workflows).
         /// </summary>
         public string WorkflowId { get; set; }
+
+        /// <summary>
+        /// Component ID for view scenarios.
+        /// </summary>
+        public string ComponentId { get; set; }
+
+        /// <summary>
+        /// Component type for view scenarios.
+        /// </summary>
+        public HardwareLayer HardwareLayer { get; set; }
+
+        /// <summary>
+        /// Whether to open in read-only mode.
+        /// </summary>
+        public bool IsReadOnly { get; set; }
     }
 
     /// <summary>

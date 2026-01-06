@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Xunit;
 using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Models;
 
 namespace EquipmentDesigner.Tests.Services.Storage
 {
@@ -27,13 +28,13 @@ namespace EquipmentDesigner.Tests.Services.Storage
         }
 
         [Fact]
-        public void Constructor_WhenCreated_LastEditingComponentTypeIsNull()
+        public void Constructor_WhenCreated_LastEditingHardwareLayerIsNull()
         {
             // Arrange & Act
             var context = new WorkSessionContext();
 
             // Assert
-            context.LastEditingComponentType.Should().BeNull();
+            context.LastEditingHardwareLayer.Should().BeNull();
         }
 
         [Fact]
@@ -58,34 +59,34 @@ namespace EquipmentDesigner.Tests.Services.Storage
         }
     }
 
-    public class ComponentTypeEnumTests
+    public class HardwareLayerEnumTests
     {
         [Fact]
-        public void ComponentType_ContainsEquipmentValue()
+        public void HardwareLayer_ContainsEquipmentValue()
         {
             // Assert
-            ComponentType.Equipment.Should().BeDefined();
+            HardwareLayer.Equipment.Should().BeDefined();
         }
 
         [Fact]
-        public void ComponentType_ContainsSystemValue()
+        public void HardwareLayer_ContainsSystemValue()
         {
             // Assert
-            ComponentType.System.Should().BeDefined();
+            HardwareLayer.System.Should().BeDefined();
         }
 
         [Fact]
-        public void ComponentType_ContainsUnitValue()
+        public void HardwareLayer_ContainsUnitValue()
         {
             // Assert
-            ComponentType.Unit.Should().BeDefined();
+            HardwareLayer.Unit.Should().BeDefined();
         }
 
         [Fact]
-        public void ComponentType_ContainsDeviceValue()
+        public void HardwareLayer_ContainsDeviceValue()
         {
             // Assert
-            ComponentType.Device.Should().BeDefined();
+            HardwareLayer.Device.Should().BeDefined();
         }
     }
 
@@ -98,7 +99,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var info = new IncompleteWorkflowInfo
             {
                 ComponentId = "eq-001",
-                ComponentType = ComponentType.Equipment,
+                HardwareLayer = HardwareLayer.Equipment,
                 State = EquipmentDesigner.Models.Dtos.ComponentState.Undefined,
                 LastModifiedAt = new System.DateTime(2026, 1, 4, 10, 0, 0),
                 CompletedFields = 3,
@@ -107,7 +108,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
 
             // Assert
             info.ComponentId.Should().Be("eq-001");
-            info.ComponentType.Should().Be(ComponentType.Equipment);
+            info.HardwareLayer.Should().Be(HardwareLayer.Equipment);
             info.State.Should().Be(EquipmentDesigner.Models.Dtos.ComponentState.Undefined);
             info.CompletedFields.Should().Be(3);
             info.TotalFields.Should().Be(8);

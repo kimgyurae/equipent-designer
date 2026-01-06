@@ -591,7 +591,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         #region Workflow Completion Event Subscription
 
         [Fact]
-        public async Task CompleteWorkflowAsync_WhenEquipmentStartType_SavesAllFourComponentTypes()
+        public async Task CompleteWorkflowAsync_WhenEquipmentStartType_SavesAllFourHardwareLayers()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -617,7 +617,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public async Task CompleteWorkflowAsync_WhenSystemStartType_SavesThreeComponentTypes()
+        public async Task CompleteWorkflowAsync_WhenSystemStartType_SavesThreeHardwareLayers()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -776,6 +776,201 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             dataStore.SessionContext.IncompleteWorkflows
                 .Any(w => w.WorkflowId == viewModel.WorkflowId)
                 .Should().BeFalse();
+        }
+
+        #endregion
+
+        #region IsReadOnly and Edit Mode Tests
+
+        [Fact]
+        public void IsReadOnly_OnNewWorkflow_DefaultsToFalse()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.IsReadOnly.Should().BeFalse();
+        }
+
+        [Fact]
+        public void IsReadOnly_CanBeSetToTrue()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.IsReadOnly = true;
+            viewModel.IsReadOnly.Should().BeTrue();
+        }
+
+        [Fact]
+        public void EnableEditCommand_IsNotNull()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.EnableEditCommand.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void EnableEditCommand_WhenExecuted_SetsIsReadOnlyToFalse()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.IsReadOnly = true;
+            
+            viewModel.EnableEditCommand.Execute(null);
+            
+            viewModel.IsReadOnly.Should().BeFalse();
+        }
+
+        [Fact]
+        public void IsEditButtonVisible_WhenIsReadOnlyTrue_ReturnsTrue()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.IsReadOnly = true;
+            viewModel.IsEditButtonVisible.Should().BeTrue();
+        }
+
+        [Fact]
+        public void IsEditButtonVisible_WhenIsReadOnlyFalse_ReturnsFalse()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.IsReadOnly = false;
+            viewModel.IsEditButtonVisible.Should().BeFalse();
+        }
+
+        [Fact]
+        public void IsReadOnly_WhenChanged_RaisesPropertyChanged()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var raised = false;
+            viewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(HardwareDefineWorkflowViewModel.IsReadOnly))
+                    raised = true;
+            };
+
+            viewModel.IsReadOnly = true;
+
+            raised.Should().BeTrue();
+        }
+
+        [Fact]
+        public void IsReadOnly_WhenChanged_RaisesIsEditButtonVisiblePropertyChanged()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var raised = false;
+            viewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(HardwareDefineWorkflowViewModel.IsEditButtonVisible))
+                    raised = true;
+            };
+
+            viewModel.IsReadOnly = true;
+
+            raised.Should().BeTrue();
+        }
+
+        #endregion
+
+        #region State Change on Edit Tests
+
+        [Fact]
+        public async Task LoadComponentForViewAsync_LoadsDeviceAndSetsIsReadOnlyTrue()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Devices.Add(new DeviceDto
+            {
+                Id = "dev-123",
+                Name = "TestDevice",
+                State = ComponentState.Uploaded
+            });
+            await repository.SaveAsync(dataStore);
+
+            // Act
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            await viewModel.LoadComponentForViewAsync("dev-123", HardwareLayer.Device);
+
+            // Assert
+            viewModel.IsReadOnly.Should().BeTrue();
+            viewModel.DeviceViewModel.Name.Should().Be("TestDevice");
+        }
+
+        [Fact]
+        public async Task EnableEditCommand_WhenComponentHasUploadedState_ChangesStateToDefinedInRepository()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Devices.Add(new DeviceDto
+            {
+                Id = "dev-456",
+                Name = "TestDevice",
+                State = ComponentState.Uploaded
+            });
+            await repository.SaveAsync(dataStore);
+
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            await viewModel.LoadComponentForViewAsync("dev-456", HardwareLayer.Device);
+
+            // Act
+            viewModel.EnableEditCommand.Execute(null);
+            await Task.Delay(100); // Wait for async operation
+
+            // Assert
+            dataStore = await repository.LoadAsync();
+            dataStore.Devices.First(d => d.Id == "dev-456").State.Should().Be(ComponentState.Defined);
+        }
+
+        [Fact]
+        public async Task EnableEditCommand_WhenComponentHasValidatedState_ChangesStateToDefinedInRepository()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Devices.Add(new DeviceDto
+            {
+                Id = "dev-789",
+                Name = "TestDevice",
+                State = ComponentState.Validated
+            });
+            await repository.SaveAsync(dataStore);
+
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            await viewModel.LoadComponentForViewAsync("dev-789", HardwareLayer.Device);
+
+            // Act
+            viewModel.EnableEditCommand.Execute(null);
+            await Task.Delay(100); // Wait for async operation
+
+            // Assert
+            dataStore = await repository.LoadAsync();
+            dataStore.Devices.First(d => d.Id == "dev-789").State.Should().Be(ComponentState.Defined);
+        }
+
+        [Fact]
+        public async Task LoadedComponentId_AfterLoadComponentForViewAsync_IsSetCorrectly()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+            dataStore.Devices.Add(new DeviceDto
+            {
+                Id = "dev-abc",
+                Name = "TestDevice",
+                State = ComponentState.Uploaded
+            });
+            await repository.SaveAsync(dataStore);
+
+            // Act
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            await viewModel.LoadComponentForViewAsync("dev-abc", HardwareLayer.Device);
+
+            // Assert
+            viewModel.LoadedComponentId.Should().Be("dev-abc");
+            viewModel.LoadedHardwareLayer.Should().Be(HardwareLayer.Device);
         }
 
         #endregion

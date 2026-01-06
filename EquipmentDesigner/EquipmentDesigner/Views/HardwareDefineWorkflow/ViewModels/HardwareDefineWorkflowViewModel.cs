@@ -18,6 +18,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
     public class HardwareDefineWorkflowViewModel : ViewModelBase
     {
         private int _currentStepIndex;
+        private bool _isReadOnly;
+        private string _loadedComponentId;
+        private HardwareLayer? _loadedHardwareLayer;
         private EquipmentDefineViewModel _equipmentViewModel;
         private SystemDefineViewModel _systemViewModel;
         private UnitDefineViewModel _unitViewModel;
@@ -120,6 +123,45 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         }
 
         /// <summary>
+        /// Gets or sets whether the view is in read-only mode.
+        /// </summary>
+        public bool IsReadOnly
+        {
+            get => _isReadOnly;
+            set
+            {
+                if (SetProperty(ref _isReadOnly, value))
+                {
+                    OnPropertyChanged(nameof(IsEditButtonVisible));
+                    UpdateChildViewModelsEditability(!value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Edit button should be visible (only in read-only mode).
+        /// </summary>
+        public bool IsEditButtonVisible => IsReadOnly;
+
+        /// <summary>
+        /// The ID of the loaded component (when viewing an existing component).
+        /// </summary>
+        public string LoadedComponentId
+        {
+            get => _loadedComponentId;
+            private set => SetProperty(ref _loadedComponentId, value);
+        }
+
+        /// <summary>
+        /// The type of the loaded component (when viewing an existing component).
+        /// </summary>
+        public HardwareLayer? LoadedHardwareLayer
+        {
+            get => _loadedHardwareLayer;
+            private set => SetProperty(ref _loadedHardwareLayer, value);
+        }
+
+        /// <summary>
         /// Equipment definition ViewModel.
         /// </summary>
         public EquipmentDefineViewModel EquipmentViewModel
@@ -174,6 +216,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// Command to navigate directly to a specific workflow step.
         /// </summary>
         public ICommand NavigateToStepCommand { get; private set; }
+
+        /// <summary>
+        /// Command to enable editing mode.
+        /// </summary>
+        public ICommand EnableEditCommand { get; private set; }
 
         private void InitializeWorkflowSteps()
         {
@@ -270,6 +317,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             // Initialize field counts for all steps
             InitializeStepFieldCounts();
+
+            // Set initial editability state (new workflow = editable, loaded for view = read-only)
+            UpdateChildViewModelsEditability(!IsReadOnly);
         }
 
         private void InitializeCommands()
@@ -278,6 +328,111 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             GoToPreviousStepCommand = new RelayCommand(ExecuteGoToPreviousStep, CanExecuteGoToPreviousStep);
             ExitToDashboardCommand = new RelayCommand(ExecuteExitToDashboard);
             NavigateToStepCommand = new RelayCommand<WorkflowStepViewModel>(ExecuteNavigateToStep, CanExecuteNavigateToStep);
+            EnableEditCommand = new RelayCommand(ExecuteEnableEdit);
+        }
+
+        private void ExecuteEnableEdit()
+        {
+            IsReadOnly = false;
+            
+            // If a component was loaded for viewing, change its state from Uploaded/Validated to Defined
+            if (!string.IsNullOrEmpty(LoadedComponentId) && LoadedHardwareLayer.HasValue)
+            {
+                ChangeComponentStateToDefinedAsync();
+            }
+        }
+
+        /// <summary>
+        /// Changes the loaded component's state from Uploaded/Validated to Defined in the repository.
+        /// </summary>
+        private async void ChangeComponentStateToDefinedAsync()
+        {
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+
+            switch (LoadedHardwareLayer.Value)
+            {
+                case HardwareLayer.Equipment:
+                    var equipment = dataStore.Equipments?.FirstOrDefault(e => e.Id == LoadedComponentId);
+                    if (equipment != null && (equipment.State == ComponentState.Uploaded || equipment.State == ComponentState.Validated))
+                    {
+                        equipment.State = ComponentState.Defined;
+                        equipment.UpdatedAt = DateTime.Now;
+                    }
+                    break;
+                case HardwareLayer.System:
+                    var system = dataStore.Systems?.FirstOrDefault(s => s.Id == LoadedComponentId);
+                    if (system != null && (system.State == ComponentState.Uploaded || system.State == ComponentState.Validated))
+                    {
+                        system.State = ComponentState.Defined;
+                        system.UpdatedAt = DateTime.Now;
+                    }
+                    break;
+                case HardwareLayer.Unit:
+                    var unit = dataStore.Units?.FirstOrDefault(u => u.Id == LoadedComponentId);
+                    if (unit != null && (unit.State == ComponentState.Uploaded || unit.State == ComponentState.Validated))
+                    {
+                        unit.State = ComponentState.Defined;
+                        unit.UpdatedAt = DateTime.Now;
+                    }
+                    break;
+                case HardwareLayer.Device:
+                    var device = dataStore.Devices?.FirstOrDefault(d => d.Id == LoadedComponentId);
+                    if (device != null && (device.State == ComponentState.Uploaded || device.State == ComponentState.Validated))
+                    {
+                        device.State = ComponentState.Defined;
+                        device.UpdatedAt = DateTime.Now;
+                    }
+                    break;
+            }
+
+            await repository.SaveAsync(dataStore);
+        }
+
+        /// <summary>
+        /// Loads an existing component for viewing in read-only mode.
+        /// </summary>
+        public async Task LoadComponentForViewAsync(string componentId, HardwareLayer hardwareLayer)
+        {
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+
+            LoadedComponentId = componentId;
+            LoadedHardwareLayer = hardwareLayer;
+
+            switch (hardwareLayer)
+            {
+                case HardwareLayer.Equipment:
+                    var equipment = dataStore.Equipments?.FirstOrDefault(e => e.Id == componentId);
+                    if (equipment != null)
+                    {
+                        EquipmentViewModel = EquipmentDefineViewModel.FromDto(equipment);
+                    }
+                    break;
+                case HardwareLayer.System:
+                    var system = dataStore.Systems?.FirstOrDefault(s => s.Id == componentId);
+                    if (system != null)
+                    {
+                        SystemViewModel = SystemDefineViewModel.FromDto(system);
+                    }
+                    break;
+                case HardwareLayer.Unit:
+                    var unit = dataStore.Units?.FirstOrDefault(u => u.Id == componentId);
+                    if (unit != null)
+                    {
+                        UnitViewModel = UnitDefineViewModel.FromDto(unit);
+                    }
+                    break;
+                case HardwareLayer.Device:
+                    var device = dataStore.Devices?.FirstOrDefault(d => d.Id == componentId);
+                    if (device != null)
+                    {
+                        DeviceViewModel = DeviceDefineViewModel.FromDto(device);
+                    }
+                    break;
+            }
+
+            IsReadOnly = true;
         }
 
         private void ExecuteGoToNextStep()
@@ -341,13 +496,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 StartType = StartType,
                 CurrentStepName = sessionDto.GetCurrentStepName(),
                 ComponentId = WorkflowId,
-                ComponentType = StartType switch
+                HardwareLayer = StartType switch
                 {
-                    HardwareLayer.Equipment => ComponentType.Equipment,
-                    HardwareLayer.System => ComponentType.System,
-                    HardwareLayer.Unit => ComponentType.Unit,
-                    HardwareLayer.Device => ComponentType.Device,
-                    _ => ComponentType.Equipment
+                    HardwareLayer.Equipment => HardwareLayer.Equipment,
+                    HardwareLayer.System => HardwareLayer.System,
+                    HardwareLayer.Unit => HardwareLayer.Unit,
+                    HardwareLayer.Device => HardwareLayer.Device,
+                    _ => HardwareLayer.Equipment
                 },
                 State = AllStepsRequiredFieldsFilled ? ComponentState.Defined : ComponentState.Undefined,
                 LastModifiedAt = DateTime.Now,
@@ -609,6 +764,17 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             // Navigate to Dashboard
             NavigationService.Instance.NavigateToDashboard();
+        }
+
+        /// <summary>
+        /// Updates the IsEditable property on all child ViewModels.
+        /// </summary>
+        private void UpdateChildViewModelsEditability(bool isEditable)
+        {
+            if (EquipmentViewModel != null) EquipmentViewModel.IsEditable = isEditable;
+            if (SystemViewModel != null) SystemViewModel.IsEditable = isEditable;
+            if (UnitViewModel != null) UnitViewModel.IsEditable = isEditable;
+            if (DeviceViewModel != null) DeviceViewModel.IsEditable = isEditable;
         }
     }
 }

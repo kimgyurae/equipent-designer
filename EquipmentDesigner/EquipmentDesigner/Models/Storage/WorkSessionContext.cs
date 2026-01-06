@@ -22,7 +22,7 @@ namespace EquipmentDesigner.Models.Storage
         /// <summary>
         /// 마지막으로 편집 중이던 컴포넌트 타입
         /// </summary>
-        public ComponentType? LastEditingComponentType { get; set; }
+        public HardwareLayer? LastEditingHardwareLayer { get; set; }
 
         /// <summary>
         /// 현재 워크플로우 단계 (0-based index)
@@ -34,18 +34,6 @@ namespace EquipmentDesigner.Models.Storage
         /// </summary>
         public List<IncompleteWorkflowInfo> IncompleteWorkflows { get; set; } = new List<IncompleteWorkflowInfo>();
     }
-
-    /// <summary>
-    /// 컴포넌트 타입 열거형
-    /// </summary>
-    public enum ComponentType
-    {
-        Equipment,
-        System,
-        Unit,
-        Device
-    }
-
     /// <summary>
     /// 미완성 워크플로우 정보
     /// </summary>
@@ -67,7 +55,7 @@ namespace EquipmentDesigner.Models.Storage
         public string CurrentStepName { get; set; }
 
         public string ComponentId { get; set; }
-        public ComponentType ComponentType { get; set; }
+        public HardwareLayer HardwareLayer { get; set; }
         public ComponentState State { get; set; }
         public DateTime LastModifiedAt { get; set; }
         public int CompletedFields { get; set; }

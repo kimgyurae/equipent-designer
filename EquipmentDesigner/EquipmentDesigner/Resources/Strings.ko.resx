@@ -204,6 +204,9 @@
   <data name="Workflow_Next" xml:space="preserve">
     <value>다음</value>
   </data>
+  <data name="Workflow_Edit" xml:space="preserve">
+    <value>편집</value>
+  </data>
   <data name="Equipment_DefineEquipment" xml:space="preserve">
     <value>Equipment 정의</value>
   </data>

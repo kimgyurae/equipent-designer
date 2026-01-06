@@ -36,6 +36,9 @@ namespace EquipmentDesigner.Views.Dashboard
             // Delete workflow command
             DeleteWorkflowCommand = new RelayCommand<WorkflowItem>(ExecuteDeleteWorkflow);
 
+            // View component command (opens in read-only mode)
+            ViewComponentCommand = new RelayCommand<ComponentItem>(ExecuteViewComponent);
+
             // Load data from repository
             LoadIncompleteWorkflowsAsync();
             LoadComponentsAsync();
@@ -57,6 +60,11 @@ namespace EquipmentDesigner.Views.Dashboard
         /// Command to delete an incomplete workflow.
         /// </summary>
         public ICommand DeleteWorkflowCommand { get; }
+
+        /// <summary>
+        /// Command to view a component in read-only mode.
+        /// </summary>
+        public ICommand ViewComponentCommand { get; }
 
         #endregion
 
@@ -164,7 +172,7 @@ namespace EquipmentDesigner.Views.Dashboard
                     foreach (var dto in dataStore.Equipments.Where(e =>
                         e.State == ComponentState.Defined || e.State == ComponentState.Uploaded || e.State == ComponentState.Validated))
                     {
-                        Equipments.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                        Equipments.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Equipment));
                     }
                 }
 
@@ -174,7 +182,7 @@ namespace EquipmentDesigner.Views.Dashboard
                     foreach (var dto in dataStore.Systems.Where(s =>
                         s.State == ComponentState.Defined || s.State == ComponentState.Uploaded || s.State == ComponentState.Validated))
                     {
-                        Systems.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                        Systems.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.System));
                     }
                 }
 
@@ -184,7 +192,7 @@ namespace EquipmentDesigner.Views.Dashboard
                     foreach (var dto in dataStore.Units.Where(u =>
                         u.State == ComponentState.Defined || u.State == ComponentState.Uploaded || u.State == ComponentState.Validated))
                     {
-                        Units.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                        Units.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Unit));
                     }
                 }
 
@@ -194,7 +202,7 @@ namespace EquipmentDesigner.Views.Dashboard
                     foreach (var dto in dataStore.Devices.Where(d =>
                         d.State == ComponentState.Defined || d.State == ComponentState.Uploaded || d.State == ComponentState.Validated))
                     {
-                        Devices.Add(CreateComponentItem(dto.Name, dto.Description, dto.State));
+                        Devices.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Device));
                     }
                 }
 
@@ -217,7 +225,7 @@ namespace EquipmentDesigner.Views.Dashboard
         /// <summary>
         /// Creates a ComponentItem with appropriate styling based on state.
         /// </summary>
-        private ComponentItem CreateComponentItem(string name, string description, ComponentState state)
+        private ComponentItem CreateComponentItem(string id, string name, string description, ComponentState state, HardwareLayer hardwareLayer)
         {
             Brush statusBackground;
             Brush statusBorder;
@@ -251,6 +259,8 @@ namespace EquipmentDesigner.Views.Dashboard
 
             return new ComponentItem
             {
+                Id = id,
+                HardwareLayer = hardwareLayer,
                 Name = name,
                 Description = description,
                 Status = statusText,
@@ -307,6 +317,18 @@ namespace EquipmentDesigner.Views.Dashboard
                 // Hide backdrop
                 mainWindow?.HideBackdrop();
             }
+        }
+
+        /// <summary>
+        /// Executes the view component command.
+        /// Opens the component in read-only mode.
+        /// </summary>
+        private void ExecuteViewComponent(ComponentItem item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.Id))
+                return;
+
+            NavigationService.Instance.ViewComponent(item.Id, item.HardwareLayer);
         }
 
         /// <summary>
@@ -386,6 +408,8 @@ namespace EquipmentDesigner.Views.Dashboard
     /// </summary>
     public class ComponentItem
     {
+        public string Id { get; set; }
+        public HardwareLayer HardwareLayer { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string Status { get; set; }

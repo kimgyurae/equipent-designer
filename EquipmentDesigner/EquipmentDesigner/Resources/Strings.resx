@@ -204,6 +204,9 @@
   <data name="Workflow_Next" xml:space="preserve">
     <value>Next</value>
   </data>
+  <data name="Workflow_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
   <data name="Equipment_DefineEquipment" xml:space="preserve">
     <value>Define Equipment</value>
   </data>
