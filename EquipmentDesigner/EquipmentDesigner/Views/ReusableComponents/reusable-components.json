@@ -11,6 +11,10 @@
         {
             "path": "TextBoxHelper.cs",
             "description": "Attached properties for TextBox placeholder text support. Enables placeholder display without custom control templates."
+        },
+        {
+            "path": "Toast/",
+            "description": "Toast notification component."
         }
     ]
 }
