@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using EquipmentDesigner.Models.Dtos;
 
 namespace EquipmentDesigner.Models.Storage
@@ -47,6 +48,12 @@ namespace EquipmentDesigner.Models.Storage
         /// Device 컴포넌트 데이터
         /// </summary>
         public DeviceDto DeviceData { get; set; }
+
+        /// <summary>
+        /// 트리 구조의 모든 노드 데이터.
+        /// 다중 인스턴스 지원을 위해 전체 트리 구조를 저장합니다.
+        /// </summary>
+        public List<TreeNodeDataDto> TreeNodes { get; set; } = new List<TreeNodeDataDto>();
 
         /// <summary>
         /// 현재 단계 이름 반환 (Dashboard 표시용)

@@ -10,7 +10,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
     /// <summary>
     /// ViewModel for Device definition form.
     /// </summary>
-    public class DeviceDefineViewModel : ViewModelBase
+    public class DeviceDefineViewModel : ViewModelBase, IHardwareDefineViewModel
     {
         private string _parentUnitId;
         private string _name = string.Empty;

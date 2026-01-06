@@ -1,7 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows.Input;
 using EquipmentDesigner.Models;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.EquipmentDefine;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine;
 
 namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 {
@@ -16,13 +21,35 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private int _filledFieldCount;
         private int _totalFieldCount;
         private string _componentName = string.Empty;
+        private IHardwareDefineViewModel _dataViewModel;
 
         public HardwareTreeNodeViewModel(HardwareLayer hardwareLayer, HardwareTreeNodeViewModel parent = null)
+            : this(hardwareLayer, parent, CreateDefaultViewModel(hardwareLayer))
+        {
+        }
+
+        public HardwareTreeNodeViewModel(HardwareLayer hardwareLayer, HardwareTreeNodeViewModel parent, IHardwareDefineViewModel dataViewModel)
         {
             HardwareLayer = hardwareLayer;
             Parent = parent;
             Children = new ObservableCollection<HardwareTreeNodeViewModel>();
             NodeId = Guid.NewGuid().ToString();
+            DataViewModel = dataViewModel;
+        }
+
+        /// <summary>
+        /// Creates a default ViewModel instance based on the hardware layer type.
+        /// </summary>
+        private static IHardwareDefineViewModel CreateDefaultViewModel(HardwareLayer layer)
+        {
+            return layer switch
+            {
+                HardwareLayer.Equipment => new EquipmentDefineViewModel(),
+                HardwareLayer.System => new SystemDefineViewModel(),
+                HardwareLayer.Unit => new UnitDefineViewModel(),
+                HardwareLayer.Device => new DeviceDefineViewModel(),
+                _ => null
+            };
         }
 
         /// <summary>
@@ -123,9 +150,70 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public string FieldProgressText => $"{FilledFieldCount}/{TotalFieldCount}";
 
         /// <summary>
+        /// The data ViewModel associated with this tree node.
+        /// Each node has its own independent ViewModel instance.
+        /// </summary>
+        public IHardwareDefineViewModel DataViewModel
+        {
+            get => _dataViewModel;
+            private set
+            {
+                if (_dataViewModel != null)
+                {
+                    _dataViewModel.PropertyChanged -= OnDataViewModelPropertyChanged;
+                }
+
+                if (SetProperty(ref _dataViewModel, value))
+                {
+                    if (_dataViewModel != null)
+                    {
+                        _dataViewModel.PropertyChanged += OnDataViewModelPropertyChanged;
+                        SyncFromDataViewModel();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles property changes from the associated data ViewModel.
+        /// Syncs relevant properties to the tree node.
+        /// </summary>
+        private void OnDataViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(IHardwareDefineViewModel.Name):
+                    ComponentName = DataViewModel?.Name ?? string.Empty;
+                    break;
+                case nameof(IHardwareDefineViewModel.FilledFieldCount):
+                    FilledFieldCount = DataViewModel?.FilledFieldCount ?? 0;
+                    break;
+                case nameof(IHardwareDefineViewModel.TotalFieldCount):
+                    TotalFieldCount = DataViewModel?.TotalFieldCount ?? 0;
+                    break;
+                case nameof(IHardwareDefineViewModel.CanProceedToNext):
+                    OnPropertyChanged(nameof(IsCompleted));
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Synchronizes all properties from the DataViewModel to the tree node.
+        /// </summary>
+        private void SyncFromDataViewModel()
+        {
+            if (DataViewModel != null)
+            {
+                ComponentName = DataViewModel.Name ?? string.Empty;
+                FilledFieldCount = DataViewModel.FilledFieldCount;
+                TotalFieldCount = DataViewModel.TotalFieldCount;
+            }
+        }
+
+        /// <summary>
         /// Whether all required fields are completed.
         /// </summary>
-        public bool IsCompleted => TotalFieldCount > 0 && FilledFieldCount >= TotalFieldCount;
+        public bool IsCompleted => DataViewModel?.CanProceedToNext ?? (TotalFieldCount > 0 && FilledFieldCount >= TotalFieldCount);
 
         /// <summary>
         /// Whether this node can have children (Equipment, System, Unit can have children).
@@ -189,7 +277,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             if (!CanHaveChildren || ChildHardwareLayer == null)
                 return null;
 
-            var child = new HardwareTreeNodeViewModel(ChildHardwareLayer.Value, this);
+            // Create new ViewModel for the child
+            var childViewModel = CreateDefaultViewModel(ChildHardwareLayer.Value);
+            var child = new HardwareTreeNodeViewModel(ChildHardwareLayer.Value, this, childViewModel);
             Children.Add(child);
             IsExpanded = true;
             return child;

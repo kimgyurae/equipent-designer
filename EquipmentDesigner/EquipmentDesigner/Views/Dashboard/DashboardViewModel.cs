@@ -22,6 +22,24 @@ namespace EquipmentDesigner.Views.Dashboard
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        private bool _isAdminModeVisible;
+
+        /// <summary>
+        /// Gets or sets whether Admin mode panel is visible.
+        /// </summary>
+        public bool IsAdminModeVisible
+        {
+            get => _isAdminModeVisible;
+            set
+            {
+                if (_isAdminModeVisible != value)
+                {
+                    _isAdminModeVisible = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public DashboardViewModel()
         {
             // Initialize navigation commands
@@ -38,6 +56,9 @@ namespace EquipmentDesigner.Views.Dashboard
 
             // View component command (opens in read-only mode)
             ViewComponentCommand = new RelayCommand<ComponentItem>(ExecuteViewComponent);
+
+            // Admin mode commands
+            DeleteAllIncompleteWorkflowsCommand = new RelayCommand(_ => ExecuteDeleteAllIncompleteWorkflows(), _ => HasIncompleteWorkflows);
 
             // Load data from repository
             LoadIncompleteWorkflowsAsync();
@@ -65,6 +86,11 @@ namespace EquipmentDesigner.Views.Dashboard
         /// Command to view a component in read-only mode.
         /// </summary>
         public ICommand ViewComponentCommand { get; }
+
+        /// <summary>
+        /// Command to delete all incomplete workflows (Admin mode).
+        /// </summary>
+        public ICommand DeleteAllIncompleteWorkflowsCommand { get; }
 
         #endregion
 
@@ -111,6 +137,14 @@ namespace EquipmentDesigner.Views.Dashboard
             $"You have {IncompleteWorkflowsCount} incomplete workflow{(IncompleteWorkflowsCount == 1 ? "" : "s")}. Click to continue where you left off.";
 
         #endregion
+
+        /// <summary>
+        /// Toggles Admin mode visibility.
+        /// </summary>
+        public void ToggleAdminMode()
+        {
+            IsAdminModeVisible = !IsAdminModeVisible;
+        }
 
         /// <summary>
         /// Loads incomplete workflows from the repository.
@@ -316,6 +350,88 @@ namespace EquipmentDesigner.Views.Dashboard
             {
                 // Hide backdrop
                 mainWindow?.HideBackdrop();
+            }
+        }
+
+        /// <summary>
+        /// Executes the delete all incomplete workflows command.
+        /// Shows confirmation dialog and deletes all if confirmed.
+        /// </summary>
+        private void ExecuteDeleteAllIncompleteWorkflows()
+        {
+            if (!HasIncompleteWorkflows)
+                return;
+
+            // Get MainWindow for backdrop control
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+
+            // Show backdrop
+            mainWindow?.ShowBackdrop();
+
+            try
+            {
+                // Show delete confirmation dialog
+                var dialog = new DeleteWorkflowDialog
+                {
+                    Owner = mainWindow
+                };
+
+                var result = dialog.ShowDialog();
+
+                if (result == true && dialog.IsConfirmed)
+                {
+                    // Delete all incomplete workflows
+                    DeleteAllIncompleteWorkflowsAsync();
+                }
+            }
+            finally
+            {
+                // Hide backdrop
+                mainWindow?.HideBackdrop();
+            }
+        }
+
+        /// <summary>
+        /// Deletes all incomplete workflows from the repository.
+        /// </summary>
+        private async void DeleteAllIncompleteWorkflowsAsync()
+        {
+            try
+            {
+                var repository = ServiceLocator.GetService<IDataRepository>();
+                var dataStore = await repository.LoadAsync();
+
+                if (dataStore?.SessionContext?.IncompleteWorkflows != null)
+                {
+                    // Get all workflow IDs to delete
+                    var workflowIds = dataStore.SessionContext.IncompleteWorkflows.Select(i => i.WorkflowId).ToList();
+
+                    // Remove from WorkflowSessions
+                    if (dataStore.WorkflowSessions != null)
+                    {
+                        foreach (var workflowId in workflowIds)
+                        {
+                            var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == workflowId);
+                            if (sessionToRemove != null)
+                            {
+                                dataStore.WorkflowSessions.Remove(sessionToRemove);
+                            }
+                        }
+                    }
+
+                    // Clear all incomplete workflows
+                    dataStore.SessionContext.IncompleteWorkflows.Clear();
+                }
+
+                // Save changes
+                await repository.SaveAsync(dataStore);
+
+                // Refresh the list
+                RefreshAsync();
+            }
+            catch
+            {
+                // Silently fail
             }
         }
 

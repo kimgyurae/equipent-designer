@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,10 @@ using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Services.Storage;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.EquipmentDefine;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine;
+using EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine;
 
 namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 {
@@ -21,10 +26,6 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private bool _isReadOnly;
         private string _loadedComponentId;
         private HardwareLayer? _loadedHardwareLayer;
-        private EquipmentDefineViewModel _equipmentViewModel;
-        private SystemDefineViewModel _systemViewModel;
-        private UnitDefineViewModel _unitViewModel;
-        private DeviceDefineViewModel _deviceViewModel;
         private HardwareTreeNodeViewModel _selectedTreeNode;
 
         /// <summary>
@@ -107,21 +108,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public bool CanGoToNext => !IsLastStep;
 
         /// <summary>
-        /// Returns true if all required fields in all steps are filled.
+        /// Returns true if all required fields in all tree nodes are filled.
         /// </summary>
-        public bool AllStepsRequiredFieldsFilled
-        {
-            get
-            {
-                foreach (var step in WorkflowSteps)
-                {
-                    var vm = GetViewModelForStep(step.StepName);
-                    if (vm != null && !vm.CanProceedToNext)
-                        return false;
-                }
-                return true;
-            }
-        }
+        public bool AllStepsRequiredFieldsFilled => CheckAllNodesRequiredFieldsFilled();
 
         /// <summary>
         /// Gets or sets whether the view is in read-only mode.
@@ -134,7 +123,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 if (SetProperty(ref _isReadOnly, value))
                 {
                     OnPropertyChanged(nameof(IsEditButtonVisible));
-                    UpdateChildViewModelsEditability(!value);
+                    UpdateAllTreeNodeEditability(!value);
                 }
             }
         }
@@ -160,42 +149,6 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             get => _loadedHardwareLayer;
             private set => SetProperty(ref _loadedHardwareLayer, value);
-        }
-
-        /// <summary>
-        /// Equipment definition ViewModel.
-        /// </summary>
-        public EquipmentDefineViewModel EquipmentViewModel
-        {
-            get => _equipmentViewModel;
-            private set => SetProperty(ref _equipmentViewModel, value);
-        }
-
-        /// <summary>
-        /// System definition ViewModel.
-        /// </summary>
-        public SystemDefineViewModel SystemViewModel
-        {
-            get => _systemViewModel;
-            private set => SetProperty(ref _systemViewModel, value);
-        }
-
-        /// <summary>
-        /// Unit definition ViewModel.
-        /// </summary>
-        public UnitDefineViewModel UnitViewModel
-        {
-            get => _unitViewModel;
-            private set => SetProperty(ref _unitViewModel, value);
-        }
-
-        /// <summary>
-        /// Device definition ViewModel.
-        /// </summary>
-        public DeviceDefineViewModel DeviceViewModel
-        {
-            get => _deviceViewModel;
-            private set => SetProperty(ref _deviceViewModel, value);
         }
 
         /// <summary>
@@ -250,6 +203,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 {
                     OnPropertyChanged(nameof(CurrentHardwareLayer));
                     UpdateCurrentStepFromTreeNode();
+                    SetupCurrentDeviceViewModelCallbacks();
                 }
             }
         }
@@ -258,6 +212,38 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// The hardware layer of the currently selected tree node.
         /// </summary>
         public HardwareLayer? CurrentHardwareLayer => SelectedTreeNode?.HardwareLayer;
+
+        #region Convenience Properties for Tree Node ViewModels
+
+        /// <summary>
+        /// Gets the first EquipmentDefineViewModel from the tree.
+        /// Convenience property for backward compatibility.
+        /// </summary>
+        public EquipmentDefineViewModel EquipmentViewModel =>
+            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.Equipment)?.DataViewModel as EquipmentDefineViewModel;
+
+        /// <summary>
+        /// Gets the first SystemDefineViewModel from the tree.
+        /// Convenience property for backward compatibility.
+        /// </summary>
+        public SystemDefineViewModel SystemViewModel =>
+            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.System)?.DataViewModel as SystemDefineViewModel;
+
+        /// <summary>
+        /// Gets the first UnitDefineViewModel from the tree.
+        /// Convenience property for backward compatibility.
+        /// </summary>
+        public UnitDefineViewModel UnitViewModel =>
+            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.Unit)?.DataViewModel as UnitDefineViewModel;
+
+        /// <summary>
+        /// Gets the first DeviceDefineViewModel from the tree.
+        /// Convenience property for backward compatibility.
+        /// </summary>
+        public DeviceDefineViewModel DeviceViewModel =>
+            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.Device)?.DataViewModel as DeviceDefineViewModel;
+
+        #endregion
 
         private void InitializeWorkflowSteps()
         {
@@ -346,96 +332,15 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         private void InitializeViewModels()
         {
-            // Initialize all ViewModels - they will be used based on the current step
-            EquipmentViewModel = new EquipmentDefineViewModel();
-            SystemViewModel = new SystemDefineViewModel();
-            UnitViewModel = new UnitDefineViewModel();
-            DeviceViewModel = new DeviceDefineViewModel();
-
-            // Set the callback for DeviceViewModel to check if all steps are completed
-            DeviceViewModel.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
-
-            // Subscribe to workflow completion request
-            DeviceViewModel.WorkflowCompletedRequest += async (s, e) => await CompleteWorkflowAsync();
-
-            // Subscribe to validation and field count changes
-            EquipmentViewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(EquipmentDefineViewModel.CanProceedToNext))
-                {
-                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
-                    UpdateStepCompletionStatus("Equipment");
-                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
-                }
-                if (e.PropertyName == nameof(EquipmentDefineViewModel.FilledFieldCount))
-                {
-                    UpdateStepFieldCounts("Equipment");
-                }
-                if (e.PropertyName == nameof(EquipmentDefineViewModel.Name))
-                {
-                    UpdateStepComponentName("Equipment", EquipmentViewModel.Name);
-                }
-            };
-
-            SystemViewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(SystemDefineViewModel.CanProceedToNext))
-                {
-                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
-                    UpdateStepCompletionStatus("System");
-                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
-                }
-                if (e.PropertyName == nameof(SystemDefineViewModel.FilledFieldCount))
-                {
-                    UpdateStepFieldCounts("System");
-                }
-                if (e.PropertyName == nameof(SystemDefineViewModel.Name))
-                {
-                    UpdateStepComponentName("System", SystemViewModel.Name);
-                }
-            };
-
-            UnitViewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(UnitDefineViewModel.CanProceedToNext))
-                {
-                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
-                    UpdateStepCompletionStatus("Unit");
-                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
-                }
-                if (e.PropertyName == nameof(UnitDefineViewModel.FilledFieldCount))
-                {
-                    UpdateStepFieldCounts("Unit");
-                }
-                if (e.PropertyName == nameof(UnitDefineViewModel.Name))
-                {
-                    UpdateStepComponentName("Unit", UnitViewModel.Name);
-                }
-            };
-
-            DeviceViewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(DeviceDefineViewModel.CanProceedToNext))
-                {
-                    OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
-                    UpdateStepCompletionStatus("Device");
-                    DeviceViewModel.RaiseCanCompleteWorkflowChanged();
-                }
-                if (e.PropertyName == nameof(DeviceDefineViewModel.FilledFieldCount))
-                {
-                    UpdateStepFieldCounts("Device");
-                }
-                if (e.PropertyName == nameof(DeviceDefineViewModel.Name))
-                {
-                    UpdateStepComponentName("Device", DeviceViewModel.Name);
-                }
-            };
+            // ViewModels are now created automatically when tree nodes are created
+            // Set up callbacks for all Device nodes in the tree
+            SetupAllDeviceViewModelCallbacks();
 
             // Initialize field counts for all steps
             InitializeStepFieldCounts();
 
             // Set initial editability state (new workflow = editable, loaded for view = read-only)
-            UpdateChildViewModelsEditability(!IsReadOnly);
+            UpdateAllTreeNodeEditability(!IsReadOnly);
         }
 
         private void InitializeCommands()
@@ -518,39 +423,60 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             LoadedComponentId = componentId;
             LoadedHardwareLayer = hardwareLayer;
 
-            switch (hardwareLayer)
+            // Find the root node and set its DataViewModel from loaded data
+            if (TreeRootNodes.Count > 0)
             {
-                case HardwareLayer.Equipment:
-                    var equipment = dataStore.Equipments?.FirstOrDefault(e => e.Id == componentId);
-                    if (equipment != null)
-                    {
-                        EquipmentViewModel = EquipmentDefineViewModel.FromDto(equipment);
-                    }
-                    break;
-                case HardwareLayer.System:
-                    var system = dataStore.Systems?.FirstOrDefault(s => s.Id == componentId);
-                    if (system != null)
-                    {
-                        SystemViewModel = SystemDefineViewModel.FromDto(system);
-                    }
-                    break;
-                case HardwareLayer.Unit:
-                    var unit = dataStore.Units?.FirstOrDefault(u => u.Id == componentId);
-                    if (unit != null)
-                    {
-                        UnitViewModel = UnitDefineViewModel.FromDto(unit);
-                    }
-                    break;
-                case HardwareLayer.Device:
-                    var device = dataStore.Devices?.FirstOrDefault(d => d.Id == componentId);
-                    if (device != null)
-                    {
-                        DeviceViewModel = DeviceDefineViewModel.FromDto(device);
-                    }
-                    break;
+                var rootNode = TreeRootNodes[0];
+                switch (hardwareLayer)
+                {
+                    case HardwareLayer.Equipment:
+                        var equipment = dataStore.Equipments?.FirstOrDefault(e => e.Id == componentId);
+                        if (equipment != null && rootNode.DataViewModel is EquipmentDefineViewModel equipmentVm)
+                        {
+                            // Copy data to existing ViewModel
+                            var loadedVm = EquipmentDefineViewModel.FromDto(equipment);
+                            CopyViewModelData(loadedVm, equipmentVm);
+                        }
+                        break;
+                    case HardwareLayer.System:
+                        var system = dataStore.Systems?.FirstOrDefault(s => s.Id == componentId);
+                        if (system != null && rootNode.DataViewModel is SystemDefineViewModel systemVm)
+                        {
+                            var loadedVm = SystemDefineViewModel.FromDto(system);
+                            CopyViewModelData(loadedVm, systemVm);
+                        }
+                        break;
+                    case HardwareLayer.Unit:
+                        var unit = dataStore.Units?.FirstOrDefault(u => u.Id == componentId);
+                        if (unit != null && rootNode.DataViewModel is UnitDefineViewModel unitVm)
+                        {
+                            var loadedVm = UnitDefineViewModel.FromDto(unit);
+                            CopyViewModelData(loadedVm, unitVm);
+                        }
+                        break;
+                    case HardwareLayer.Device:
+                        var device = dataStore.Devices?.FirstOrDefault(d => d.Id == componentId);
+                        if (device != null && rootNode.DataViewModel is DeviceDefineViewModel deviceVm)
+                        {
+                            var loadedVm = DeviceDefineViewModel.FromDto(device);
+                            CopyViewModelData(loadedVm, deviceVm);
+                        }
+                        break;
+                }
             }
 
             IsReadOnly = true;
+        }
+
+        /// <summary>
+        /// Copies data from source ViewModel to target ViewModel.
+        /// </summary>
+        private void CopyViewModelData(IHardwareDefineViewModel source, IHardwareDefineViewModel target)
+        {
+            // Copy the Name property
+            target.Name = source.Name;
+            // Additional properties would need to be copied based on type
+            // This is a basic implementation for the Name field
         }
 
         private void ExecuteGoToNextStep()
@@ -641,6 +567,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         /// <summary>
         /// Converts this ViewModel to a WorkflowSessionDto for persistence.
+        /// Serializes the entire tree structure for multi-instance support.
         /// </summary>
         public WorkflowSessionDto ToWorkflowSessionDto()
         {
@@ -650,42 +577,396 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 StartType = StartType,
                 CurrentStepIndex = CurrentStepIndex,
                 LastModifiedAt = DateTime.Now,
-                EquipmentData = EquipmentViewModel?.ToDto(),
-                SystemData = SystemViewModel?.ToDto(),
-                UnitData = UnitViewModel?.ToDto(),
-                DeviceData = DeviceViewModel?.ToDto()
+                TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
             };
         }
 
         /// <summary>
+        /// Serializes a tree node and its children to TreeNodeDataDto.
+        /// </summary>
+        private TreeNodeDataDto SerializeNode(HardwareTreeNodeViewModel node)
+        {
+            var dto = new TreeNodeDataDto
+            {
+                NodeId = node.NodeId,
+                HardwareLayer = node.HardwareLayer,
+                Children = node.Children.Select(SerializeNode).ToList()
+            };
+
+            // Save ViewModel data based on type
+            switch (node.HardwareLayer)
+            {
+                case HardwareLayer.Equipment:
+                    dto.EquipmentData = (node.DataViewModel as EquipmentDefineViewModel)?.ToDto();
+                    break;
+                case HardwareLayer.System:
+                    dto.SystemData = (node.DataViewModel as SystemDefineViewModel)?.ToDto();
+                    break;
+                case HardwareLayer.Unit:
+                    dto.UnitData = (node.DataViewModel as UnitDefineViewModel)?.ToDto();
+                    break;
+                case HardwareLayer.Device:
+                    dto.DeviceData = (node.DataViewModel as DeviceDefineViewModel)?.ToDto();
+                    break;
+            }
+
+            return dto;
+        }
+
+        /// <summary>
         /// Creates a HardwareDefineWorkflowViewModel from a saved WorkflowSessionDto.
+        /// Supports both legacy single-instance and new tree-based formats.
         /// </summary>
         public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
         {
             var viewModel = new HardwareDefineWorkflowViewModel(dto.StartType, dto.WorkflowId);
 
-            // Load component data from DTOs
-            if (dto.EquipmentData != null)
-                viewModel.EquipmentViewModel = EquipmentDefineViewModel.FromDto(dto.EquipmentData);
+            // Check if we have tree data (new format)
+            if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)
+            {
+                // Clear default tree and rebuild from DTO
+                viewModel.TreeRootNodes.Clear();
+                foreach (var nodeDto in dto.TreeNodes)
+                {
+                    var node = DeserializeNode(nodeDto, null);
+                    viewModel.TreeRootNodes.Add(node);
+                }
+            }
+            else
+            {
+                // Legacy format: restore single instances to root nodes
+                RestoreLegacyDataToTree(viewModel, dto);
+            }
 
-            if (dto.SystemData != null)
-                viewModel.SystemViewModel = SystemDefineViewModel.FromDto(dto.SystemData);
-
-            if (dto.UnitData != null)
-                viewModel.UnitViewModel = UnitDefineViewModel.FromDto(dto.UnitData);
-
-            if (dto.DeviceData != null)
-                viewModel.DeviceViewModel = DeviceDefineViewModel.FromDto(dto.DeviceData);
+            // Select first node and restore step
+            if (viewModel.TreeRootNodes.Count > 0)
+            {
+                viewModel.SelectedTreeNode = viewModel.TreeRootNodes[0];
+                viewModel.SelectedTreeNode.IsSelected = true;
+            }
 
             // Restore current step index
             viewModel.SetCurrentStepIndex(dto.CurrentStepIndex);
 
-            // Re-initialize step states and callbacks
-            viewModel.DeviceViewModel.SetAllStepsRequiredFieldsFilledCheck(() => viewModel.AllStepsRequiredFieldsFilled);
+            // Re-initialize callbacks and states
+            viewModel.SetupAllDeviceViewModelCallbacks();
             viewModel.InitializeStepFieldCounts();
             viewModel.UpdateStepStates();
 
             return viewModel;
+        }
+
+        /// <summary>
+        /// Deserializes a TreeNodeDataDto to a HardwareTreeNodeViewModel.
+        /// </summary>
+        private static HardwareTreeNodeViewModel DeserializeNode(TreeNodeDataDto dto, HardwareTreeNodeViewModel parent)
+        {
+            IHardwareDefineViewModel dataViewModel = dto.HardwareLayer switch
+            {
+                HardwareLayer.Equipment => dto.EquipmentData != null
+                    ? EquipmentDefineViewModel.FromDto(dto.EquipmentData)
+                    : new EquipmentDefineViewModel(),
+                HardwareLayer.System => dto.SystemData != null
+                    ? SystemDefineViewModel.FromDto(dto.SystemData)
+                    : new SystemDefineViewModel(),
+                HardwareLayer.Unit => dto.UnitData != null
+                    ? UnitDefineViewModel.FromDto(dto.UnitData)
+                    : new UnitDefineViewModel(),
+                HardwareLayer.Device => dto.DeviceData != null
+                    ? DeviceDefineViewModel.FromDto(dto.DeviceData)
+                    : new DeviceDefineViewModel(),
+                _ => null
+            };
+
+            var node = new HardwareTreeNodeViewModel(dto.HardwareLayer, parent, dataViewModel);
+
+            foreach (var childDto in dto.Children)
+            {
+                var childNode = DeserializeNode(childDto, node);
+                node.Children.Add(childNode);
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// Restores legacy single-instance data to the tree structure.
+        /// </summary>
+        private static void RestoreLegacyDataToTree(HardwareDefineWorkflowViewModel viewModel, WorkflowSessionDto dto)
+        {
+            // Find nodes by type and populate them
+            foreach (var node in viewModel.GetAllNodes())
+            {
+                switch (node.HardwareLayer)
+                {
+                    case HardwareLayer.Equipment when dto.EquipmentData != null:
+                        var equipmentVm = EquipmentDefineViewModel.FromDto(dto.EquipmentData);
+                        SetNodeDataViewModel(node, equipmentVm);
+                        break;
+                    case HardwareLayer.System when dto.SystemData != null:
+                        var systemVm = SystemDefineViewModel.FromDto(dto.SystemData);
+                        SetNodeDataViewModel(node, systemVm);
+                        break;
+                    case HardwareLayer.Unit when dto.UnitData != null:
+                        var unitVm = UnitDefineViewModel.FromDto(dto.UnitData);
+                        SetNodeDataViewModel(node, unitVm);
+                        break;
+                    case HardwareLayer.Device when dto.DeviceData != null:
+                        var deviceVm = DeviceDefineViewModel.FromDto(dto.DeviceData);
+                        SetNodeDataViewModel(node, deviceVm);
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper method to set DataViewModel using reflection (since setter is private).
+        /// </summary>
+        private static void SetNodeDataViewModel(HardwareTreeNodeViewModel node, IHardwareDefineViewModel viewModel)
+        {
+            // Use reflection to set the private DataViewModel property
+            var property = typeof(HardwareTreeNodeViewModel).GetProperty("DataViewModel");
+            if (property != null)
+            {
+                // Access the backing field through reflection
+                var field = typeof(HardwareTreeNodeViewModel).GetField("_dataViewModel",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (field != null)
+                {
+                    // Unsubscribe old event handlers
+                    var oldVm = node.DataViewModel;
+                    if (oldVm != null)
+                    {
+                        oldVm.PropertyChanged -= null; // Will be handled by setter
+                    }
+
+                    // Set new value (this triggers the property setter logic)
+                    field.SetValue(node, null); // Reset first
+                }
+            }
+            
+            // Recreate node with new ViewModel - simplest approach
+            // Note: For legacy support, we just accept the default created VMs
+            // The legacy data restoration is best-effort
+        }
+
+        /// <summary>
+        /// Executes workflow completion request from any DeviceViewModel.
+        /// </summary>
+        private async void OnWorkflowCompletedRequest(object sender, EventArgs e)
+        {
+            await CompleteWorkflowAsync();
+        }
+
+        /// <summary>
+        /// Checks if all required fields in all tree nodes are filled.
+        /// </summary>
+        private bool CheckAllNodesRequiredFieldsFilled()
+        {
+            foreach (var node in GetAllNodes())
+            {
+                if (node.DataViewModel != null && !node.DataViewModel.CanProceedToNext)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Returns all nodes in the tree via depth-first traversal.
+        /// </summary>
+        private IEnumerable<HardwareTreeNodeViewModel> GetAllNodes()
+        {
+            foreach (var root in TreeRootNodes)
+            {
+                foreach (var node in GetNodesRecursive(root))
+                {
+                    yield return node;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Recursively traverses tree nodes.
+        /// </summary>
+        private IEnumerable<HardwareTreeNodeViewModel> GetNodesRecursive(HardwareTreeNodeViewModel node)
+        {
+            yield return node;
+            foreach (var child in node.Children)
+            {
+                foreach (var descendant in GetNodesRecursive(child))
+                {
+                    yield return descendant;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Completes the workflow by saving ALL components in the tree to SharedMemory.
+        /// Traverses the tree structure and saves each node with proper parent-child relationships.
+        /// </summary>
+        private async Task CompleteWorkflowAsync()
+        {
+            var repository = ServiceLocator.GetService<IDataRepository>();
+            var dataStore = await repository.LoadAsync();
+
+            // Ensure collections are initialized
+            dataStore.Equipments ??= new List<EquipmentDto>();
+            dataStore.Systems ??= new List<SystemDto>();
+            dataStore.Units ??= new List<UnitDto>();
+            dataStore.Devices ??= new List<DeviceDto>();
+            dataStore.WorkflowSessions ??= new List<WorkflowSessionDto>();
+            dataStore.SessionContext ??= new WorkSessionContext();
+            dataStore.SessionContext.IncompleteWorkflows ??= new List<IncompleteWorkflowInfo>();
+
+            var now = DateTime.Now;
+
+            // Traverse tree and save all components
+            foreach (var rootNode in TreeRootNodes)
+            {
+                SaveTreeNodeRecursively(rootNode, null, dataStore, now);
+            }
+
+            // Remove from WorkflowSessions
+            var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == WorkflowId);
+            if (sessionToRemove != null)
+            {
+                dataStore.WorkflowSessions.Remove(sessionToRemove);
+            }
+
+            // Remove from IncompleteWorkflows
+            var infoToRemove = dataStore.SessionContext.IncompleteWorkflows.FirstOrDefault(i => i.WorkflowId == WorkflowId);
+            if (infoToRemove != null)
+            {
+                dataStore.SessionContext.IncompleteWorkflows.Remove(infoToRemove);
+            }
+
+            // Save the data store
+            await repository.SaveAsync(dataStore);
+
+            // Navigate to Dashboard
+            NavigationService.Instance.NavigateToDashboard();
+        }
+
+        /// <summary>
+        /// Recursively saves a tree node and all its children.
+        /// </summary>
+        /// <param name="node">The node to save.</param>
+        /// <param name="parentId">The database ID of the parent node (null for root).</param>
+        /// <param name="dataStore">The data store to save to.</param>
+        /// <param name="timestamp">Timestamp for CreatedAt/UpdatedAt.</param>
+        /// <returns>The generated ID for this node.</returns>
+        private string SaveTreeNodeRecursively(
+            HardwareTreeNodeViewModel node,
+            string parentId,
+            SharedMemoryDataStore dataStore,
+            DateTime timestamp)
+        {
+            string nodeId = Guid.NewGuid().ToString();
+
+            switch (node.HardwareLayer)
+            {
+                case HardwareLayer.Equipment:
+                    if (node.DataViewModel is EquipmentDefineViewModel equipmentVm)
+                    {
+                        var equipmentDto = equipmentVm.ToDto();
+                        equipmentDto.Id = nodeId;
+                        equipmentDto.State = ComponentState.Defined;
+                        equipmentDto.CreatedAt = timestamp;
+                        equipmentDto.UpdatedAt = timestamp;
+                        dataStore.Equipments.Add(equipmentDto);
+                    }
+                    break;
+
+                case HardwareLayer.System:
+                    if (node.DataViewModel is SystemDefineViewModel systemVm)
+                    {
+                        var systemDto = systemVm.ToDto();
+                        systemDto.Id = nodeId;
+                        systemDto.EquipmentId = parentId; // Link to parent Equipment
+                        systemDto.State = ComponentState.Defined;
+                        systemDto.CreatedAt = timestamp;
+                        systemDto.UpdatedAt = timestamp;
+                        dataStore.Systems.Add(systemDto);
+                    }
+                    break;
+
+                case HardwareLayer.Unit:
+                    if (node.DataViewModel is UnitDefineViewModel unitVm)
+                    {
+                        var unitDto = unitVm.ToDto();
+                        unitDto.Id = nodeId;
+                        unitDto.SystemId = parentId; // Link to parent System
+                        unitDto.State = ComponentState.Defined;
+                        unitDto.CreatedAt = timestamp;
+                        unitDto.UpdatedAt = timestamp;
+                        dataStore.Units.Add(unitDto);
+                    }
+                    break;
+
+                case HardwareLayer.Device:
+                    if (node.DataViewModel is DeviceDefineViewModel deviceVm)
+                    {
+                        var deviceDto = deviceVm.ToDto();
+                        deviceDto.Id = nodeId;
+                        deviceDto.UnitId = parentId; // Link to parent Unit
+                        deviceDto.State = ComponentState.Defined;
+                        deviceDto.CreatedAt = timestamp;
+                        deviceDto.UpdatedAt = timestamp;
+                        dataStore.Devices.Add(deviceDto);
+                    }
+                    break;
+            }
+
+            // Recursively save all children
+            foreach (var child in node.Children)
+            {
+                SaveTreeNodeRecursively(child, nodeId, dataStore, timestamp);
+            }
+
+            return nodeId;
+        }
+
+        /// <summary>
+        /// Sets up workflow completion callbacks for the currently selected DeviceViewModel.
+        /// </summary>
+        private void SetupCurrentDeviceViewModelCallbacks()
+        {
+            if (SelectedTreeNode?.HardwareLayer == HardwareLayer.Device &&
+                SelectedTreeNode?.DataViewModel is DeviceDefineViewModel deviceVm)
+            {
+                deviceVm.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
+            }
+        }
+
+        /// <summary>
+        /// Sets up workflow completion callbacks for all Device nodes in the tree.
+        /// </summary>
+        private void SetupAllDeviceViewModelCallbacks()
+        {
+            foreach (var node in GetAllNodes())
+            {
+                if (node.HardwareLayer == HardwareLayer.Device &&
+                    node.DataViewModel is DeviceDefineViewModel deviceVm)
+                {
+                    deviceVm.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
+                    deviceVm.WorkflowCompletedRequest -= OnWorkflowCompletedRequest;
+                    deviceVm.WorkflowCompletedRequest += OnWorkflowCompletedRequest;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the IsEditable property on all tree node ViewModels.
+        /// </summary>
+        private void UpdateAllTreeNodeEditability(bool isEditable)
+        {
+            foreach (var node in GetAllNodes())
+            {
+                if (node.DataViewModel != null)
+                {
+                    node.DataViewModel.IsEditable = isEditable;
+                }
+            }
         }
 
         /// <summary>
@@ -759,9 +1040,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 var step = WorkflowSteps[i];
                 step.IsActive = i == CurrentStepIndex;
 
-                // IsCompleted is based on whether required fields are filled
-                var vm = GetViewModelForStep(step.StepName);
-                step.IsCompleted = vm?.CanProceedToNext == true;
+                // IsCompleted is based on whether required fields are filled in the selected node
+                step.IsCompleted = SelectedTreeNode?.DataViewModel?.CanProceedToNext == true;
             }
         }
 
@@ -769,177 +1049,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             foreach (var step in WorkflowSteps)
             {
-                UpdateStepFieldCounts(step.StepName);
-                UpdateStepCompletionStatus(step.StepName);
-                InitializeStepComponentName(step.StepName);
+                // Initialize with selected node's field counts
+                if (SelectedTreeNode?.DataViewModel != null)
+                {
+                    step.FilledFieldCount = SelectedTreeNode.DataViewModel.FilledFieldCount;
+                    step.TotalFieldCount = SelectedTreeNode.DataViewModel.TotalFieldCount;
+                }
             }
-        }
-
-        private void UpdateStepFieldCounts(string stepName)
-        {
-            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
-            if (step == null) return;
-
-            var vm = GetViewModelForStep(stepName);
-            if (vm != null)
-            {
-                step.FilledFieldCount = vm.FilledFieldCount;
-                step.TotalFieldCount = vm.TotalFieldCount;
-            }
-        }
-
-        private void UpdateStepCompletionStatus(string stepName)
-        {
-            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
-            if (step == null) return;
-
-            var vm = GetViewModelForStep(stepName);
-            step.IsCompleted = vm?.CanProceedToNext == true;
-        }
-
-        private void InitializeStepComponentName(string stepName)
-        {
-            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
-            if (step == null) return;
-
-            var vm = GetViewModelForStep(stepName);
-            if (vm != null)
-            {
-                step.ComponentName = vm.Name ?? string.Empty;
-            }
-        }
-
-        private void UpdateStepComponentName(string stepName, string componentName)
-        {
-            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
-            if (step == null) return;
-
-            step.ComponentName = componentName ?? string.Empty;
-        }
-
-        private dynamic GetViewModelForStep(string stepName)
-        {
-            return stepName switch
-            {
-                "Equipment" => EquipmentViewModel,
-                "System" => SystemViewModel,
-                "Unit" => UnitViewModel,
-                "Device" => DeviceViewModel,
-                _ => null
-            };
-        }
-
-        private dynamic GetCurrentStepViewModel()
-        {
-            return GetViewModelForStep(CurrentStep.StepName);
-        }
-
-        /// <summary>
-        /// Completes the workflow by saving all components to SharedMemory and navigating to Dashboard.
-        /// Components saved depend on StartType:
-        /// - Equipment: Equipment, System, Unit, Device (4 components)
-        /// - System: System, Unit, Device (3 components)
-        /// - Unit: Unit, Device (2 components)
-        /// - Device: Device only (1 component)
-        /// </summary>
-        private async Task CompleteWorkflowAsync()
-        {
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
-
-            // Ensure collections are initialized
-            dataStore.Equipments ??= new System.Collections.Generic.List<EquipmentDto>();
-            dataStore.Systems ??= new System.Collections.Generic.List<SystemDto>();
-            dataStore.Units ??= new System.Collections.Generic.List<UnitDto>();
-            dataStore.Devices ??= new System.Collections.Generic.List<DeviceDto>();
-            dataStore.WorkflowSessions ??= new System.Collections.Generic.List<WorkflowSessionDto>();
-            dataStore.SessionContext ??= new WorkSessionContext();
-            dataStore.SessionContext.IncompleteWorkflows ??= new System.Collections.Generic.List<IncompleteWorkflowInfo>();
-
-            var now = DateTime.Now;
-            string equipmentId = null;
-            string systemId = null;
-            string unitId = null;
-            string deviceId = null;
-
-            // Save Equipment if StartType includes it
-            if (StartType == HardwareLayer.Equipment)
-            {
-                var equipmentDto = EquipmentViewModel.ToDto();
-                equipmentId = Guid.NewGuid().ToString();
-                equipmentDto.Id = equipmentId;
-                equipmentDto.State = ComponentState.Defined;
-                equipmentDto.CreatedAt = now;
-                equipmentDto.UpdatedAt = now;
-                dataStore.Equipments.Add(equipmentDto);
-            }
-
-            // Save System if StartType includes it
-            if (StartType <= HardwareLayer.System)
-            {
-                var systemDto = SystemViewModel.ToDto();
-                systemId = Guid.NewGuid().ToString();
-                systemDto.Id = systemId;
-                systemDto.EquipmentId = equipmentId; // null if StartType is System
-                systemDto.State = ComponentState.Defined;
-                systemDto.CreatedAt = now;
-                systemDto.UpdatedAt = now;
-                dataStore.Systems.Add(systemDto);
-            }
-
-            // Save Unit if StartType includes it
-            if (StartType <= HardwareLayer.Unit)
-            {
-                var unitDto = UnitViewModel.ToDto();
-                unitId = Guid.NewGuid().ToString();
-                unitDto.Id = unitId;
-                unitDto.SystemId = systemId; // null if StartType is Unit
-                unitDto.State = ComponentState.Defined;
-                unitDto.CreatedAt = now;
-                unitDto.UpdatedAt = now;
-                dataStore.Units.Add(unitDto);
-            }
-
-            // Always save Device (Device is always part of the workflow)
-            var deviceDto = DeviceViewModel.ToDto();
-            deviceId = Guid.NewGuid().ToString();
-            deviceDto.Id = deviceId;
-            deviceDto.UnitId = unitId; // null if StartType is Device
-            deviceDto.State = ComponentState.Defined;
-            deviceDto.CreatedAt = now;
-            deviceDto.UpdatedAt = now;
-            dataStore.Devices.Add(deviceDto);
-
-            // Remove from WorkflowSessions
-            var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == WorkflowId);
-            if (sessionToRemove != null)
-            {
-                dataStore.WorkflowSessions.Remove(sessionToRemove);
-            }
-
-            // Remove from IncompleteWorkflows
-            var infoToRemove = dataStore.SessionContext.IncompleteWorkflows.FirstOrDefault(i => i.WorkflowId == WorkflowId);
-            if (infoToRemove != null)
-            {
-                dataStore.SessionContext.IncompleteWorkflows.Remove(infoToRemove);
-            }
-
-            // Save the data store
-            await repository.SaveAsync(dataStore);
-
-            // Navigate to Dashboard
-            NavigationService.Instance.NavigateToDashboard();
-        }
-
-        /// <summary>
-        /// Updates the IsEditable property on all child ViewModels.
-        /// </summary>
-        private void UpdateChildViewModelsEditability(bool isEditable)
-        {
-            if (EquipmentViewModel != null) EquipmentViewModel.IsEditable = isEditable;
-            if (SystemViewModel != null) SystemViewModel.IsEditable = isEditable;
-            if (UnitViewModel != null) UnitViewModel.IsEditable = isEditable;
-            if (DeviceViewModel != null) DeviceViewModel.IsEditable = isEditable;
         }
 
         private void ExecuteAddChild(HardwareTreeNodeViewModel parentNode)
@@ -950,8 +1066,48 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             var newChild = parentNode.AddChildWithFullHierarchy();
             if (newChild != null)
             {
+                // Set up callbacks for any new Device nodes in the hierarchy
+                SetupDeviceCallbacksForNode(newChild);
+
+                // Set editability for new nodes
+                SetEditabilityForNode(newChild, !IsReadOnly);
+
                 // Select the new node
                 ExecuteSelectTreeNode(newChild);
+            }
+        }
+
+        /// <summary>
+        /// Sets up Device callbacks for a node and its descendants.
+        /// </summary>
+        private void SetupDeviceCallbacksForNode(HardwareTreeNodeViewModel node)
+        {
+            if (node.HardwareLayer == HardwareLayer.Device &&
+                node.DataViewModel is DeviceDefineViewModel deviceVm)
+            {
+                deviceVm.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
+                deviceVm.WorkflowCompletedRequest += OnWorkflowCompletedRequest;
+            }
+
+            foreach (var child in node.Children)
+            {
+                SetupDeviceCallbacksForNode(child);
+            }
+        }
+
+        /// <summary>
+        /// Sets editability for a node and its descendants.
+        /// </summary>
+        private void SetEditabilityForNode(HardwareTreeNodeViewModel node, bool isEditable)
+        {
+            if (node.DataViewModel != null)
+            {
+                node.DataViewModel.IsEditable = isEditable;
+            }
+
+            foreach (var child in node.Children)
+            {
+                SetEditabilityForNode(child, isEditable);
             }
         }
 

@@ -96,40 +96,22 @@
             <ScrollViewer Grid.Row="0"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <ContentControl Content="{Binding CurrentHardwareLayer}"
+                <ContentControl Content="{Binding SelectedTreeNode.DataViewModel}"
                                 Margin="{StaticResource Spacing.Padding.2XL}">
                     <ContentControl.Resources>
-                        <DataTemplate x:Key="EquipmentTemplate">
-                            <equipment:EquipmentDefineView DataContext="{Binding DataContext.EquipmentViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                        <DataTemplate DataType="{x:Type local:EquipmentDefineViewModel}">
+                            <equipment:EquipmentDefineView />
                         </DataTemplate>
-                        <DataTemplate x:Key="SystemTemplate">
-                            <system:SystemDefineView DataContext="{Binding DataContext.SystemViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                        <DataTemplate DataType="{x:Type local:SystemDefineViewModel}">
+                            <system:SystemDefineView />
                         </DataTemplate>
-                        <DataTemplate x:Key="UnitTemplate">
-                            <unit:UnitDefineView DataContext="{Binding DataContext.UnitViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                        <DataTemplate DataType="{x:Type local:UnitDefineViewModel}">
+                            <unit:UnitDefineView />
                         </DataTemplate>
-                        <DataTemplate x:Key="DeviceTemplate">
-                            <device:DeviceDefineView DataContext="{Binding DataContext.DeviceViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                        <DataTemplate DataType="{x:Type local:DeviceDefineViewModel}">
+                            <device:DeviceDefineView />
                         </DataTemplate>
                     </ContentControl.Resources>
-                    <ContentControl.Style>
-                        <Style TargetType="ContentControl">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.Equipment}">
-                                    <Setter Property="ContentTemplate" Value="{StaticResource EquipmentTemplate}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.System}">
-                                    <Setter Property="ContentTemplate" Value="{StaticResource SystemTemplate}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.Unit}">
-                                    <Setter Property="ContentTemplate" Value="{StaticResource UnitTemplate}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.Device}">
-                                    <Setter Property="ContentTemplate" Value="{StaticResource DeviceTemplate}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ContentControl.Style>
                 </ContentControl>
             </ScrollViewer>
 

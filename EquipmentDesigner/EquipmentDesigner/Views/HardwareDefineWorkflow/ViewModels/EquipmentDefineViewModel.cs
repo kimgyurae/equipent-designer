@@ -9,7 +9,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
     /// <summary>
     /// ViewModel for Equipment definition form.
     /// </summary>
-    public class EquipmentDefineViewModel : ViewModelBase
+    public class EquipmentDefineViewModel : ViewModelBase, IHardwareDefineViewModel
     {
         private string _equipmentType = string.Empty;
         private string _name = string.Empty;
