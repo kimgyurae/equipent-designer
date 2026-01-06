@@ -166,9 +166,9 @@ namespace EquipmentDesigner.Views.Dashboard
                         {
                             WorkflowId = info.WorkflowId,
                             StartedFrom = info.StartType.ToString(),
-                            CurrentStep = info.CurrentStepName ?? info.StartType.ToString(),
+                            ComponentState = info.State.ToString(),
                             Date = info.LastModifiedAt.ToString("yyyy. M. d.")
-                        });
+                        });;
                     }
                 }
 
@@ -515,7 +515,8 @@ namespace EquipmentDesigner.Views.Dashboard
         public string WorkflowId { get; set; }
 
         public string StartedFrom { get; set; }
-        public string CurrentStep { get; set; }
+
+        public string ComponentState { get; set; }
         public string Date { get; set; }
     }
 

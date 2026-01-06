@@ -325,7 +325,7 @@
     <value>Add Another Device</value>
   </data>
   <data name="Device_CompleteWorkflow" xml:space="preserve">
-    <value>Complete Workflow</value>
+    <value>Confirm Workflow</value>
   </data>
   <data name="Device_ParentUnit" xml:space="preserve">
     <value>Parent Unit</value>
@@ -437,5 +437,14 @@
   </data>
   <data name="DeleteWorkflow_Tooltip" xml:space="preserve">
     <value>Delete workflow</value>
+  </data>
+  <data name="Workflow_UploadToServer" xml:space="preserve">
+    <value>Upload to Server</value>
+  </data>
+  <data name="Toast_WorkflowCompleted_Title" xml:space="preserve">
+    <value>Workflow Completed</value>
+  </data>
+  <data name="Toast_WorkflowCompleted_Description" xml:space="preserve">
+    <value>All hardware definitions have been saved successfully.</value>
   </data>
 </root>

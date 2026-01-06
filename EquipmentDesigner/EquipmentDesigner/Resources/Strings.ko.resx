@@ -325,7 +325,7 @@
     <value>Device 추가</value>
   </data>
   <data name="Device_CompleteWorkflow" xml:space="preserve">
-    <value>워크플로우 완료</value>
+    <value>워크플로우 확정</value>
   </data>
   <data name="Device_ParentUnit" xml:space="preserve">
     <value>상위 Unit</value>
@@ -437,5 +437,8 @@
   </data>
   <data name="DeleteWorkflow_Tooltip" xml:space="preserve">
     <value>워크플로우 삭제</value>
+  </data>
+  <data name="Workflow_UploadToServer" xml:space="preserve">
+    <value>서버에 업로드</value>
   </data>
 </root>
