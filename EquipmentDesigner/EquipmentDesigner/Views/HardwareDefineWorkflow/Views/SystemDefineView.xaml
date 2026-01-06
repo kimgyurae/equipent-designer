@@ -8,7 +8,7 @@
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
              mc:Ignorable="d"
-             d:DesignHeight="900" d:DesignWidth="800">
+             d:DesignHeight="990" d:DesignWidth="800">
 
     <Grid>
         <!-- Main Content -->
@@ -185,7 +185,7 @@
                     BorderBrush="{StaticResource Brush.Border.Primary}"
                     BorderThickness="{StaticResource Border.Thin}"
                     CornerRadius="{StaticResource Radius.LG}"
-                    Padding="{StaticResource Spacing.Padding.Card}">
+                    Padding="{StaticResource Spacing.Padding.Card}" Height="291">
                 <StackPanel>
                     <!-- Commands Header -->
                     <Grid Margin="0,0,0,16">

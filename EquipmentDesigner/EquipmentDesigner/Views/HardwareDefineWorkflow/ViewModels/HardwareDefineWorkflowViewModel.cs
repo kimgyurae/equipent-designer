@@ -25,6 +25,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private SystemDefineViewModel _systemViewModel;
         private UnitDefineViewModel _unitViewModel;
         private DeviceDefineViewModel _deviceViewModel;
+        private HardwareTreeNodeViewModel _selectedTreeNode;
 
         /// <summary>
         /// Creates a new workflow with a unique ID.
@@ -222,6 +223,42 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// </summary>
         public ICommand EnableEditCommand { get; private set; }
 
+        /// <summary>
+        /// Command to add a new child to a tree node.
+        /// </summary>
+        public ICommand AddChildCommand { get; private set; }
+
+        /// <summary>
+        /// Command to select a tree node.
+        /// </summary>
+        public ICommand SelectTreeNodeCommand { get; private set; }
+
+        /// <summary>
+        /// Root nodes for the hardware tree structure.
+        /// </summary>
+        public ObservableCollection<HardwareTreeNodeViewModel> TreeRootNodes { get; private set; }
+
+        /// <summary>
+        /// Currently selected tree node.
+        /// </summary>
+        public HardwareTreeNodeViewModel SelectedTreeNode
+        {
+            get => _selectedTreeNode;
+            set
+            {
+                if (SetProperty(ref _selectedTreeNode, value))
+                {
+                    OnPropertyChanged(nameof(CurrentHardwareLayer));
+                    UpdateCurrentStepFromTreeNode();
+                }
+            }
+        }
+
+        /// <summary>
+        /// The hardware layer of the currently selected tree node.
+        /// </summary>
+        public HardwareLayer? CurrentHardwareLayer => SelectedTreeNode?.HardwareLayer;
+
         private void InitializeWorkflowSteps()
         {
             int stepNumber = 1;
@@ -242,6 +279,69 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             }
 
             WorkflowSteps.Add(new WorkflowStepViewModel(stepNumber, "Device"));
+
+            // Initialize tree structure
+            InitializeTreeStructure();
+        }
+
+        /// <summary>
+        /// Initializes the hierarchical tree structure based on StartType.
+        /// </summary>
+        private void InitializeTreeStructure()
+        {
+            TreeRootNodes = new ObservableCollection<HardwareTreeNodeViewModel>();
+
+            HardwareTreeNodeViewModel rootNode = null;
+            HardwareTreeNodeViewModel currentParent = null;
+
+            // Build tree based on StartType
+            if (StartType == HardwareLayer.Equipment)
+            {
+                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.Equipment);
+                TreeRootNodes.Add(rootNode);
+                currentParent = rootNode;
+
+                // Add initial System node under Equipment
+                var systemNode = currentParent.AddChild();
+                currentParent = systemNode;
+            }
+            else if (StartType == HardwareLayer.System)
+            {
+                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.System);
+                TreeRootNodes.Add(rootNode);
+                currentParent = rootNode;
+            }
+
+            if (StartType <= HardwareLayer.System && currentParent != null)
+            {
+                // Add initial Unit node under System
+                var unitNode = currentParent.AddChild();
+                currentParent = unitNode;
+            }
+            else if (StartType == HardwareLayer.Unit)
+            {
+                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.Unit);
+                TreeRootNodes.Add(rootNode);
+                currentParent = rootNode;
+            }
+
+            if (StartType <= HardwareLayer.Unit && currentParent != null)
+            {
+                // Add initial Device node under Unit
+                currentParent.AddChild();
+            }
+            else if (StartType == HardwareLayer.Device)
+            {
+                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.Device);
+                TreeRootNodes.Add(rootNode);
+            }
+
+            // Select the root node by default
+            if (TreeRootNodes.Count > 0)
+            {
+                SelectedTreeNode = TreeRootNodes[0];
+                SelectedTreeNode.IsSelected = true;
+            }
         }
 
         private void InitializeViewModels()
@@ -271,6 +371,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 {
                     UpdateStepFieldCounts("Equipment");
                 }
+                if (e.PropertyName == nameof(EquipmentDefineViewModel.Name))
+                {
+                    UpdateStepComponentName("Equipment", EquipmentViewModel.Name);
+                }
             };
 
             SystemViewModel.PropertyChanged += (s, e) =>
@@ -284,6 +388,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 if (e.PropertyName == nameof(SystemDefineViewModel.FilledFieldCount))
                 {
                     UpdateStepFieldCounts("System");
+                }
+                if (e.PropertyName == nameof(SystemDefineViewModel.Name))
+                {
+                    UpdateStepComponentName("System", SystemViewModel.Name);
                 }
             };
 
@@ -299,6 +407,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 {
                     UpdateStepFieldCounts("Unit");
                 }
+                if (e.PropertyName == nameof(UnitDefineViewModel.Name))
+                {
+                    UpdateStepComponentName("Unit", UnitViewModel.Name);
+                }
             };
 
             DeviceViewModel.PropertyChanged += (s, e) =>
@@ -312,6 +424,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 if (e.PropertyName == nameof(DeviceDefineViewModel.FilledFieldCount))
                 {
                     UpdateStepFieldCounts("Device");
+                }
+                if (e.PropertyName == nameof(DeviceDefineViewModel.Name))
+                {
+                    UpdateStepComponentName("Device", DeviceViewModel.Name);
                 }
             };
 
@@ -329,6 +445,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             ExitToDashboardCommand = new RelayCommand(ExecuteExitToDashboard);
             NavigateToStepCommand = new RelayCommand<WorkflowStepViewModel>(ExecuteNavigateToStep, CanExecuteNavigateToStep);
             EnableEditCommand = new RelayCommand(ExecuteEnableEdit);
+            AddChildCommand = new RelayCommand<HardwareTreeNodeViewModel>(ExecuteAddChild, CanExecuteAddChild);
+            SelectTreeNodeCommand = new RelayCommand<HardwareTreeNodeViewModel>(ExecuteSelectTreeNode);
         }
 
         private void ExecuteEnableEdit()
@@ -608,6 +726,32 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             return step.CanNavigateTo;
         }
 
+        /// <summary>
+        /// Updates the current step index based on the selected tree node's hardware layer.
+        /// </summary>
+        private void UpdateCurrentStepFromTreeNode()
+        {
+            if (SelectedTreeNode == null)
+                return;
+
+            var stepName = SelectedTreeNode.HardwareLayer.ToString();
+            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
+            if (step != null)
+            {
+                var index = WorkflowSteps.IndexOf(step);
+                if (index >= 0 && index != _currentStepIndex)
+                {
+                    _currentStepIndex = index;
+                    OnPropertyChanged(nameof(CurrentStepIndex));
+                    OnPropertyChanged(nameof(CurrentStep));
+                    OnPropertyChanged(nameof(IsFirstStep));
+                    OnPropertyChanged(nameof(IsLastStep));
+                    OnPropertyChanged(nameof(CanGoToNext));
+                    UpdateStepStates();
+                }
+            }
+        }
+
         private void UpdateStepStates()
         {
             for (int i = 0; i < WorkflowSteps.Count; i++)
@@ -627,6 +771,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             {
                 UpdateStepFieldCounts(step.StepName);
                 UpdateStepCompletionStatus(step.StepName);
+                InitializeStepComponentName(step.StepName);
             }
         }
 
@@ -650,6 +795,26 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             var vm = GetViewModelForStep(stepName);
             step.IsCompleted = vm?.CanProceedToNext == true;
+        }
+
+        private void InitializeStepComponentName(string stepName)
+        {
+            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
+            if (step == null) return;
+
+            var vm = GetViewModelForStep(stepName);
+            if (vm != null)
+            {
+                step.ComponentName = vm.Name ?? string.Empty;
+            }
+        }
+
+        private void UpdateStepComponentName(string stepName, string componentName)
+        {
+            var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
+            if (step == null) return;
+
+            step.ComponentName = componentName ?? string.Empty;
         }
 
         private dynamic GetViewModelForStep(string stepName)
@@ -775,6 +940,40 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             if (SystemViewModel != null) SystemViewModel.IsEditable = isEditable;
             if (UnitViewModel != null) UnitViewModel.IsEditable = isEditable;
             if (DeviceViewModel != null) DeviceViewModel.IsEditable = isEditable;
+        }
+
+        private void ExecuteAddChild(HardwareTreeNodeViewModel parentNode)
+        {
+            if (parentNode == null || !parentNode.CanHaveChildren)
+                return;
+
+            var newChild = parentNode.AddChildWithFullHierarchy();
+            if (newChild != null)
+            {
+                // Select the new node
+                ExecuteSelectTreeNode(newChild);
+            }
+        }
+
+        private bool CanExecuteAddChild(HardwareTreeNodeViewModel parentNode)
+        {
+            return parentNode != null && parentNode.CanHaveChildren && !IsReadOnly;
+        }
+
+        private void ExecuteSelectTreeNode(HardwareTreeNodeViewModel node)
+        {
+            if (node == null)
+                return;
+
+            // Deselect previous node
+            if (SelectedTreeNode != null)
+            {
+                SelectedTreeNode.IsSelected = false;
+            }
+
+            // Select new node
+            node.IsSelected = true;
+            SelectedTreeNode = node;
         }
     }
 }

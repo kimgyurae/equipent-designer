@@ -8,6 +8,7 @@
              xmlns:system="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine"
              xmlns:unit="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine"
              xmlns:device="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine"
+             xmlns:models="clr-namespace:EquipmentDesigner.Models"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
@@ -19,7 +20,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <!-- Left Navigation Panel -->
-            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="300"/>
             <!-- Main Content Area -->
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
@@ -69,92 +70,18 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Workflow Steps -->
-                <ItemsControl ItemsSource="{Binding WorkflowSteps}"
-                              Margin="8,0,8,16">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="0,2"
-                                    Padding="12,10"
-                                    CornerRadius="{StaticResource Radius.MD}">
-                                <Border.InputBindings>
-                                    <MouseBinding MouseAction="LeftClick"
-                                                  Command="{Binding DataContext.NavigateToStepCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                  CommandParameter="{Binding}"/>
-                                </Border.InputBindings>
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="Cursor" Value="Hand"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                <Setter Property="Background" Value="{StaticResource Brush.Status.Active.Background}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Step Number Circle -->
-                                    <Border Grid.Column="0"
-                                            Width="28" Height="28"
-                                            CornerRadius="{StaticResource Radius.Full}"
-                                            VerticalAlignment="Center"
-                                            Background="{StaticResource Brush.Button.Primary.Background}">
-                                        <TextBlock Text="{Binding StepNumber}"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   FontSize="{StaticResource Font.Size.SM}"
-                                                   FontWeight="{StaticResource Font.Weight.Medium}"
-                                                   Foreground="{StaticResource Brush.Text.Inverse}"/>
-                                    </Border>
-
-                                    <!-- Step Name -->
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding StepName}"
-                                               VerticalAlignment="Center"
-                                               Margin="12,0,0,0"
-                                               Foreground="{StaticResource Brush.Text.Primary}">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Body}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                        <Setter Property="FontWeight" Value="{StaticResource Font.Weight.Medium}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-
-                                    <!-- Field Progress and Completed Checkmark -->
-                                    <StackPanel Grid.Column="2" 
-                                                Orientation="Horizontal" 
-                                                VerticalAlignment="Center">
-                                        <!-- Field Progress Text -->
-                                        <TextBlock Text="{Binding FieldProgressText}"
-                                                   Style="{StaticResource Typography.Body.Small}"
-                                                   Foreground="{StaticResource Brush.Text.Secondary}"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,0,8,0"/>
-                                        <!-- Completed Checkmark -->
-                                        <Path Data="M5 13l4 4L19 7"
-                                              Stroke="{StaticResource Brush.Status.Success}"
-                                              StrokeThickness="2"
-                                              Width="16" Height="16"
-                                              Stretch="Uniform"
-                                              VerticalAlignment="Center"
-                                              Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <!-- Workflow Steps - Tree Structure -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Margin="0,0,0,16">
+                    <ItemsControl ItemsSource="{Binding TreeRootNodes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <local:HardwareTreeItemControl DataContext="{Binding}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
             </DockPanel>
         </Border>
 
@@ -169,7 +96,7 @@
             <ScrollViewer Grid.Row="0"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
-                <ContentControl Content="{Binding CurrentStep.StepName}"
+                <ContentControl Content="{Binding CurrentHardwareLayer}"
                                 Margin="{StaticResource Spacing.Padding.2XL}">
                     <ContentControl.Resources>
                         <DataTemplate x:Key="EquipmentTemplate">
@@ -188,16 +115,16 @@
                     <ContentControl.Style>
                         <Style TargetType="ContentControl">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="Equipment">
+                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.Equipment}">
                                     <Setter Property="ContentTemplate" Value="{StaticResource EquipmentTemplate}"/>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="System">
+                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.System}">
                                     <Setter Property="ContentTemplate" Value="{StaticResource SystemTemplate}"/>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="Unit">
+                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.Unit}">
                                     <Setter Property="ContentTemplate" Value="{StaticResource UnitTemplate}"/>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="Device">
+                                <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}}" Value="{x:Static models:HardwareLayer.Device}">
                                     <Setter Property="ContentTemplate" Value="{StaticResource DeviceTemplate}"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -215,47 +142,12 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Previous Button -->
-                    <Button Grid.Column="0"
-                            Command="{Binding GoToPreviousStepCommand}"
-                            Padding="{StaticResource Spacing.Padding.Button.Large}"
-                            MinWidth="120"
-                            Height="{StaticResource Size.Button.Height.LG}"
-                            Background="{StaticResource Brush.Button.Secondary.Background}"
-                            BorderThickness="0"
-                            Cursor="Hand">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsFirstStep}" Value="True">
-                                        <Setter Property="Visibility" Value="Hidden"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="M15 19l-7-7 7-7"
-                                  Stroke="{StaticResource Brush.Text.Primary}"
-                                  StrokeThickness="2"
-                                  Width="16" Height="16"
-                                  Stretch="Uniform"
-                                  VerticalAlignment="Center"/>
-                            <TextBlock Text="{lex:Loc Key=Workflow_Previous}"
-                                       Style="{StaticResource Typography.Button}"
-                                       Foreground="{StaticResource Brush.Text.Primary}"
-                                       Margin="8,0,0,0"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
                     <!-- Edit Button (visible in read-only mode) -->
-                    <Button Grid.Column="1"
+                    <Button Grid.Column="0"
                             Command="{Binding EnableEditCommand}"
                             Padding="{StaticResource Spacing.Padding.Button.Large}"
                             MinWidth="100"
@@ -282,7 +174,7 @@
                     </Button>
 
                     <!-- Next Button -->
-                    <Button Grid.Column="3"
+                    <Button Grid.Column="2"
                             Command="{Binding GoToNextStepCommand}"
                             Padding="{StaticResource Spacing.Padding.Button.Large}"
                             MinWidth="120"

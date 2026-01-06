@@ -8,7 +8,7 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Start from Equipment definition (Equipment → System → Unit → Device).
         /// </summary>
-        Equipment,
+        Equipment = 0,
 
         /// <summary>
         /// Start from System definition (System → Unit → Device).

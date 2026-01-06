@@ -9,6 +9,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private bool _isCompleted;
         private int _filledFieldCount;
         private int _totalFieldCount;
+        private string _componentName = string.Empty;
 
         public WorkflowStepViewModel(int stepNumber, string stepName)
         {
@@ -25,6 +26,34 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// The display name of this step.
         /// </summary>
         public string StepName { get; }
+
+        /// <summary>
+        /// The hardware layer type label (Equipment, System, Unit, Device).
+        /// This is the same as StepName but provides semantic clarity.
+        /// </summary>
+        public string HardwareLayerType => StepName;
+
+        /// <summary>
+        /// The actual component name from the associated ViewModel.
+        /// </summary>
+        public string ComponentName
+        {
+            get => _componentName;
+            set
+            {
+                if (SetProperty(ref _componentName, value))
+                {
+                    OnPropertyChanged(nameof(DisplayName));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Display name for the step: shows ComponentName if set, otherwise "New {HardwareLayerType}".
+        /// </summary>
+        public string DisplayName => string.IsNullOrWhiteSpace(ComponentName) 
+            ? $"New {HardwareLayerType}" 
+            : ComponentName;
 
         /// <summary>
         /// Whether this step is currently active.

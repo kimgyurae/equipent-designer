@@ -170,7 +170,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Equipments != null)
                 {
                     foreach (var dto in dataStore.Equipments.Where(e =>
-                        e.State == ComponentState.Defined || e.State == ComponentState.Uploaded || e.State == ComponentState.Validated))
+                        e.State == ComponentState.Uploaded || e.State == ComponentState.Validated))
                     {
                         Equipments.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Equipment));
                     }
@@ -180,7 +180,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Systems != null)
                 {
                     foreach (var dto in dataStore.Systems.Where(s =>
-                        s.State == ComponentState.Defined || s.State == ComponentState.Uploaded || s.State == ComponentState.Validated))
+                        s.State == ComponentState.Uploaded || s.State == ComponentState.Validated))
                     {
                         Systems.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.System));
                     }
@@ -190,7 +190,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Units != null)
                 {
                     foreach (var dto in dataStore.Units.Where(u =>
-                        u.State == ComponentState.Defined || u.State == ComponentState.Uploaded || u.State == ComponentState.Validated))
+                        u.State == ComponentState.Uploaded || u.State == ComponentState.Validated))
                     {
                         Units.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Unit));
                     }
@@ -200,7 +200,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Devices != null)
                 {
                     foreach (var dto in dataStore.Devices.Where(d =>
-                        d.State == ComponentState.Defined || d.State == ComponentState.Uploaded || d.State == ComponentState.Validated))
+                        d.State == ComponentState.Uploaded || d.State == ComponentState.Validated))
                     {
                         Devices.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Device));
                     }
