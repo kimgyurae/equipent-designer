@@ -9,10 +9,8 @@ using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.EquipmentDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine;
+using EquipmentDesigner.Views.ReusableComponents.Toast;
+using EquipmentDesigner.Resources;
 
 namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 {
@@ -27,6 +25,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private string _loadedComponentId;
         private HardwareLayer? _loadedHardwareLayer;
         private HardwareTreeNodeViewModel _selectedTreeNode;
+        private bool _isWorkflowCompleted;
+        private bool _hasDataChangedSinceCompletion;
 
         /// <summary>
         /// Creates a new workflow with a unique ID.
@@ -185,6 +185,61 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// Command to select a tree node.
         /// </summary>
         public ICommand SelectTreeNodeCommand { get; private set; }
+
+        /// <summary>
+        /// Command to complete the workflow.
+        /// </summary>
+        public ICommand CompleteWorkflowCommand { get; private set; }
+
+        /// <summary>
+        /// Command to upload to server (placeholder).
+        /// </summary>
+        public ICommand UploadToServerCommand { get; private set; }
+
+        /// <summary>
+        /// Gets whether the workflow has been completed.
+        /// </summary>
+        public bool IsWorkflowCompleted
+        {
+            get => _isWorkflowCompleted;
+            private set
+            {
+                if (SetProperty(ref _isWorkflowCompleted, value))
+                {
+                    OnPropertyChanged(nameof(CanCompleteWorkflow));
+                    OnPropertyChanged(nameof(ShowUploadButton));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets whether data has changed since workflow completion.
+        /// </summary>
+        public bool HasDataChangedSinceCompletion
+        {
+            get => _hasDataChangedSinceCompletion;
+            private set
+            {
+                if (SetProperty(ref _hasDataChangedSinceCompletion, value))
+                {
+                    OnPropertyChanged(nameof(ShowUploadButton));
+                    if (value)
+                    {
+                        IsWorkflowCompleted = false;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the workflow can be completed.
+        /// </summary>
+        public bool CanCompleteWorkflow => !IsReadOnly && !IsWorkflowCompleted && AllStepsRequiredFieldsFilled;
+
+        /// <summary>
+        /// Returns true if the upload button should be shown.
+        /// </summary>
+        public bool ShowUploadButton => IsWorkflowCompleted && !HasDataChangedSinceCompletion;
 
         /// <summary>
         /// Root nodes for the hardware tree structure.
@@ -352,6 +407,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             EnableEditCommand = new RelayCommand(ExecuteEnableEdit);
             AddChildCommand = new RelayCommand<HardwareTreeNodeViewModel>(ExecuteAddChild, CanExecuteAddChild);
             SelectTreeNodeCommand = new RelayCommand<HardwareTreeNodeViewModel>(ExecuteSelectTreeNode);
+            CompleteWorkflowCommand = new RelayCommand(ExecuteCompleteWorkflowCommand, CanExecuteCompleteWorkflowCommand);
+            UploadToServerCommand = new RelayCommand(ExecuteUploadToServer);
         }
 
         private void ExecuteEnableEdit()
@@ -509,6 +566,42 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             await SaveWorkflowStateAsync();
             NavigationService.Instance.NavigateToDashboard();
+        }
+
+        private async void ExecuteCompleteWorkflowCommand()
+        {
+            await CompleteWorkflowAsync();
+            IsWorkflowCompleted = true;
+            HasDataChangedSinceCompletion = false;
+            
+            // Show success toast
+            ToastService.Instance.ShowSuccess(
+                Strings.Toast_WorkflowCompleted_Title,
+                Strings.Toast_WorkflowCompleted_Description);
+        }
+
+        private bool CanExecuteCompleteWorkflowCommand()
+        {
+            return CanCompleteWorkflow;
+        }
+
+        private void ExecuteUploadToServer()
+        {
+            // TODO: Implement server upload logic
+        }
+
+        /// <summary>
+        /// Called when any data in any tree node changes.
+        /// Resets the workflow completion state if data is modified after completion.
+        /// </summary>
+        public void OnDataChanged()
+        {
+            if (IsWorkflowCompleted)
+            {
+                HasDataChangedSinceCompletion = true;
+            }
+            OnPropertyChanged(nameof(CanCompleteWorkflow));
+            OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
         }
 
         /// <summary>
@@ -842,9 +935,6 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             // Save the data store
             await repository.SaveAsync(dataStore);
-
-            // Navigate to Dashboard
-            NavigationService.Instance.NavigateToDashboard();
         }
 
         /// <summary>
@@ -945,6 +1035,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             foreach (var node in GetAllNodes())
             {
+                // Subscribe to PropertyChanged for data change detection on all nodes
+                if (node.DataViewModel != null)
+                {
+                    node.DataViewModel.PropertyChanged -= OnNodeDataPropertyChanged;
+                    node.DataViewModel.PropertyChanged += OnNodeDataPropertyChanged;
+                }
+
                 if (node.HardwareLayer == HardwareLayer.Device &&
                     node.DataViewModel is DeviceDefineViewModel deviceVm)
                 {
@@ -953,6 +1050,23 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                     deviceVm.WorkflowCompletedRequest += OnWorkflowCompletedRequest;
                 }
             }
+        }
+
+        /// <summary>
+        /// Handles PropertyChanged events from node ViewModels to detect data changes.
+        /// </summary>
+        private void OnNodeDataPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            // Skip properties that don't represent actual data changes
+            if (e.PropertyName == nameof(IHardwareDefineViewModel.IsEditable) ||
+                e.PropertyName == nameof(IHardwareDefineViewModel.CanProceedToNext) ||
+                e.PropertyName == nameof(IHardwareDefineViewModel.FilledFieldCount) ||
+                e.PropertyName == nameof(IHardwareDefineViewModel.TotalFieldCount))
+            {
+                return;
+            }
+
+            OnDataChanged();
         }
 
         /// <summary>

@@ -88,12 +88,134 @@
         <!-- Main Content Area -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            <!-- Top Action Bar -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource Brush.Surface.Primary}"
+                    BorderBrush="{StaticResource Brush.Border.Primary}"
+                    BorderThickness="0,0,0,1"
+                    Padding="24,16">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <!-- Complete Workflow Button -->
+                    <Button Command="{Binding CompleteWorkflowCommand}"
+                            Padding="{StaticResource Spacing.Padding.Button}"
+                            Height="{StaticResource Size.Button.Height.MD}"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Visibility="{Binding ShowUploadButton, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="{StaticResource Radius.LG}"/>
+                            </Style>
+                        </Button.Resources>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="{StaticResource Brush.Button.Success.Background}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Background" Value="{StaticResource Brush.Button.Disabled.Background}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M5 13l4 4L19 7"
+                                  StrokeThickness="2"
+                                  Width="16" Height="16"
+                                  Stretch="Uniform"
+                                  VerticalAlignment="Center">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Stroke" Value="{StaticResource Brush.Text.Inverse}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
+                                                <Setter Property="Stroke" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                            <TextBlock Text="{lex:Loc Key=Device_CompleteWorkflow}"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Button}">
+                                        <Setter Property="Foreground" Value="{StaticResource Brush.Text.Inverse}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
+                                                <Setter Property="Foreground" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Upload to Server Button -->
+                    <Button Command="{Binding UploadToServerCommand}"
+                            Padding="{StaticResource Spacing.Padding.Button}"
+                            Height="{StaticResource Size.Button.Height.MD}"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Visibility="{Binding ShowUploadButton, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="{StaticResource Radius.LG}"/>
+                            </Style>
+                        </Button.Resources>
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Background" Value="{StaticResource Brush.Button.Disabled.Background}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                                  StrokeThickness="2"
+                                  Width="16" Height="16"
+                                  Stretch="Uniform"
+                                  VerticalAlignment="Center">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Stroke" Value="{StaticResource Brush.Text.Inverse}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
+                                                <Setter Property="Stroke" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                            <TextBlock Text="{lex:Loc Key=Workflow_UploadToServer}"
+                                       Margin="8,0,0,0"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Button}">
+                                        <Setter Property="Foreground" Value="{StaticResource Brush.Text.Inverse}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
+                                                <Setter Property="Foreground" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+
             <!-- Content Area -->
-            <ScrollViewer Grid.Row="0"
+            <ScrollViewer Grid.Row="1"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
                 <ContentControl Content="{Binding SelectedTreeNode.DataViewModel}"
@@ -116,7 +238,7 @@
             </ScrollViewer>
 
             <!-- Bottom Navigation Bar -->
-            <Border Grid.Row="1"
+            <Border Grid.Row="2"
                     Background="{StaticResource Brush.Surface.Primary}"
                     BorderBrush="{StaticResource Brush.Border.Primary}"
                     BorderThickness="0,1,0,0"
