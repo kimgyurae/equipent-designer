@@ -33,6 +33,11 @@ namespace EquipmentDesigner.Services
         public event Action<NavigationTarget> ViewComponentRequested;
 
         /// <summary>
+        /// Event raised when navigating to workflow complete view is requested.
+        /// </summary>
+        public event Action<NavigationTarget> WorkflowCompleteRequested;
+
+        /// <summary>
         /// Navigate to the Hardware Define Workflow with the specified start type.
         /// </summary>
         public void NavigateToHardwareDefineWorkflow(HardwareLayer startType)
@@ -80,6 +85,19 @@ namespace EquipmentDesigner.Services
                 IsReadOnly = true
             });
         }
+
+        /// <summary>
+        /// Navigate to the workflow complete view.
+        /// </summary>
+        /// <param name="sessionDto">The workflow session DTO containing the completed workflow data.</param>
+        public void NavigateToWorkflowComplete(WorkflowSessionDto sessionDto)
+        {
+            WorkflowCompleteRequested?.Invoke(new NavigationTarget
+            {
+                TargetType = NavigationTargetType.WorkflowComplete,
+                SessionDto = sessionDto
+            });
+        }
     }
 
     /// <summary>
@@ -109,6 +127,11 @@ namespace EquipmentDesigner.Services
         /// Whether to open in read-only mode.
         /// </summary>
         public bool IsReadOnly { get; set; }
+
+        /// <summary>
+        /// Workflow session data for workflow complete scenarios.
+        /// </summary>
+        public WorkflowSessionDto SessionDto { get; set; }
     }
 
     /// <summary>
@@ -117,6 +140,7 @@ namespace EquipmentDesigner.Services
     public enum NavigationTargetType
     {
         Dashboard,
-        HardwareDefineWorkflow
+        HardwareDefineWorkflow,
+        WorkflowComplete
     }
 }

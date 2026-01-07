@@ -22,24 +22,13 @@ namespace EquipmentDesigner.Services.Storage
         protected override string GetDefaultFilePath()
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var appFolder = Path.Combine(appData, "EquipmentDesigner");
+            var appFolder = Path.Combine(appData, "EquipmentDesigner", "remote");
             return Path.Combine(appFolder, "uploaded-hardwares.json");
         }
 
         protected override void UpdateLastSavedAt(HardwareDefinitionDataStore dataStore, DateTime timestamp)
         {
             dataStore.LastSavedAt = timestamp;
-        }
-
-        /// <summary>
-        /// Gets the default file path for uploaded-hardwares.json.
-        /// Exposed for testing purposes.
-        /// </summary>
-        public static string GetDefaultUploadedWorkflowFilePath()
-        {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var appFolder = Path.Combine(appData, "EquipmentDesigner");
-            return Path.Combine(appFolder, "uploaded-hardwares.json");
         }
     }
 }

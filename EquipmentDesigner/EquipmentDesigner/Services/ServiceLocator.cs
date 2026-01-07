@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 
 namespace EquipmentDesigner.Services
@@ -135,6 +136,10 @@ namespace EquipmentDesigner.Services
             // Unified structure for uploaded workflows
             var uploadedWorkflowRepository = new UploadedWorkflowRepository();
             RegisterSingleton<IUploadedWorkflowRepository>(uploadedWorkflowRepository);
+
+            // Hardware API Service (wraps UploadedWorkflowRepository for REST API semantics)
+            var hardwareApiService = new MockHardwareApiService(uploadedWorkflowRepository);
+            RegisterSingleton<IHardwareApiService>(hardwareApiService);
         }
 
         /// <summary>
@@ -149,6 +154,10 @@ namespace EquipmentDesigner.Services
             // Unified structure for uploaded workflows
             var uploadedWorkflowRepository = new MemoryUploadedWorkflowRepository();
             RegisterSingleton<IUploadedWorkflowRepository>(uploadedWorkflowRepository);
+
+            // Hardware API Service for testing
+            var hardwareApiService = new MockHardwareApiService(uploadedWorkflowRepository);
+            RegisterSingleton<IHardwareApiService>(hardwareApiService);
         }
     }
 }
