@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using EquipmentDesigner.Models.Storage;
 
 namespace EquipmentDesigner.Services.Storage
 {
@@ -44,5 +45,21 @@ namespace EquipmentDesigner.Services.Storage
         {
             IsDirty = true;
         }
+    }
+
+    /// <summary>
+    /// Memory-based workflow repository for testing purposes.
+    /// Implements IWorkflowRepository for incomplete workflow data.
+    /// </summary>
+    public class MemoryWorkflowRepository : MemoryTypedRepository<HardwareDefinitionDataStore>, IWorkflowRepository
+    {
+    }
+
+    /// <summary>
+    /// Memory-based uploaded workflow repository for testing purposes.
+    /// Implements IUploadedWorkflowRepository for uploaded workflow data.
+    /// </summary>
+    public class MemoryUploadedWorkflowRepository : MemoryTypedRepository<HardwareDefinitionDataStore>, IUploadedWorkflowRepository
+    {
     }
 }

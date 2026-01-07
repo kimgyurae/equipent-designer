@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using EquipmentDesigner.Models.Storage;
 
 namespace EquipmentDesigner.Services.Storage
 {
@@ -41,5 +42,21 @@ namespace EquipmentDesigner.Services.Storage
         /// Gets whether there are unsaved changes.
         /// </summary>
         bool IsDirty { get; }
+    }
+
+    /// <summary>
+    /// Repository interface for incomplete workflow data.
+    /// Used to differentiate from uploaded workflow repository.
+    /// </summary>
+    public interface IWorkflowRepository : ITypedDataRepository<HardwareDefinitionDataStore>
+    {
+    }
+
+    /// <summary>
+    /// Repository interface for uploaded workflow data.
+    /// Used to differentiate from incomplete workflow repository.
+    /// </summary>
+    public interface IUploadedWorkflowRepository : ITypedDataRepository<HardwareDefinitionDataStore>
+    {
     }
 }

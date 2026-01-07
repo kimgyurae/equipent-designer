@@ -7,7 +7,7 @@ namespace EquipmentDesigner.Models.Storage
     /// <summary>
     /// 워크플로우 세션 DTO - 미완료 워크플로우의 전체 상태 저장
     /// </summary>
-    public class WorkflowSessionDto2
+    public class WorkflowSessionDto
     {
         /// <summary>
         /// 워크플로우 세션 고유 식별자
@@ -20,8 +20,6 @@ namespace EquipmentDesigner.Models.Storage
         public HardwareLayer StartType { get; set; }
 
         public ComponentState State { get; set; }
-
-        public string ComponentId { get; set; }
         public HardwareLayer HardwareLayer { get; set; }
         public DateTime LastModifiedAt { get; set; }
 

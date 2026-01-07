@@ -3,7 +3,6 @@ using FluentAssertions;
 using Xunit;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
-using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 
 namespace EquipmentDesigner.Tests.Services
@@ -27,11 +26,11 @@ namespace EquipmentDesigner.Tests.Services
         public void RegisterSingleton_WithTypedRepository_RegistersServiceInstance()
         {
             // Arrange
-            var repository = new MemoryTypedRepository<IncompleteWorkflowDataStore>();
+            var repository = new MemoryWorkflowRepository();
 
             // Act
-            ServiceLocator.RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(repository);
-            var resolved = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            ServiceLocator.RegisterSingleton<IWorkflowRepository>(repository);
+            var resolved = ServiceLocator.GetService<IWorkflowRepository>();
 
             // Assert
             resolved.Should().BeSameAs(repository);
@@ -41,12 +40,12 @@ namespace EquipmentDesigner.Tests.Services
         public void RegisterSingleton_ReturnsSameInstanceOnMultipleCalls()
         {
             // Arrange
-            var repository = new MemoryTypedRepository<IncompleteWorkflowDataStore>();
-            ServiceLocator.RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(repository);
+            var repository = new MemoryWorkflowRepository();
+            ServiceLocator.RegisterSingleton<IWorkflowRepository>(repository);
 
             // Act
-            var first = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
-            var second = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var first = ServiceLocator.GetService<IWorkflowRepository>();
+            var second = ServiceLocator.GetService<IWorkflowRepository>();
 
             // Assert
             first.Should().BeSameAs(second);
@@ -56,23 +55,23 @@ namespace EquipmentDesigner.Tests.Services
         public void RegisterFactory_WithTypedRepository_RegistersFactoryMethod()
         {
             // Arrange & Act
-            ServiceLocator.RegisterFactory<ITypedDataRepository<IncompleteWorkflowDataStore>>(() => new MemoryTypedRepository<IncompleteWorkflowDataStore>());
-            var resolved = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            ServiceLocator.RegisterFactory<IWorkflowRepository>(() => new MemoryWorkflowRepository());
+            var resolved = ServiceLocator.GetService<IWorkflowRepository>();
 
             // Assert
             resolved.Should().NotBeNull();
-            resolved.Should().BeOfType<MemoryTypedRepository<IncompleteWorkflowDataStore>>();
+            resolved.Should().BeOfType<MemoryWorkflowRepository>();
         }
 
         [Fact]
         public void RegisterFactory_CreatesNewInstanceEachCall()
         {
             // Arrange
-            ServiceLocator.RegisterFactory<ITypedDataRepository<IncompleteWorkflowDataStore>>(() => new MemoryTypedRepository<IncompleteWorkflowDataStore>());
+            ServiceLocator.RegisterFactory<IWorkflowRepository>(() => new MemoryWorkflowRepository());
 
             // Act
-            var first = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
-            var second = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var first = ServiceLocator.GetService<IWorkflowRepository>();
+            var second = ServiceLocator.GetService<IWorkflowRepository>();
 
             // Assert
             first.Should().NotBeSameAs(second);
@@ -86,19 +85,19 @@ namespace EquipmentDesigner.Tests.Services
         public void GetService_WhenNotRegistered_ThrowsInvalidOperationException()
         {
             // Act & Assert
-            Action action = () => ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            Action action = () => ServiceLocator.GetService<IWorkflowRepository>();
             action.Should().Throw<InvalidOperationException>()
-                .WithMessage("*ITypedDataRepository*not registered*");
+                .WithMessage("*IWorkflowRepository*not registered*");
         }
 
         [Fact]
         public void TryGetService_WhenRegistered_ReturnsTrue()
         {
             // Arrange
-            ServiceLocator.RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(new MemoryTypedRepository<IncompleteWorkflowDataStore>());
+            ServiceLocator.RegisterSingleton<IWorkflowRepository>(new MemoryWorkflowRepository());
 
             // Act
-            var result = ServiceLocator.TryGetService<ITypedDataRepository<IncompleteWorkflowDataStore>>(out var service);
+            var result = ServiceLocator.TryGetService<IWorkflowRepository>(out var service);
 
             // Assert
             result.Should().BeTrue();
@@ -109,7 +108,7 @@ namespace EquipmentDesigner.Tests.Services
         public void TryGetService_WhenNotRegistered_ReturnsFalse()
         {
             // Act
-            var result = ServiceLocator.TryGetService<ITypedDataRepository<IncompleteWorkflowDataStore>>(out var service);
+            var result = ServiceLocator.TryGetService<IWorkflowRepository>(out var service);
 
             // Assert
             result.Should().BeFalse();
@@ -120,17 +119,17 @@ namespace EquipmentDesigner.Tests.Services
         public void IsRegistered_WhenRegistered_ReturnsTrue()
         {
             // Arrange
-            ServiceLocator.RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(new MemoryTypedRepository<IncompleteWorkflowDataStore>());
+            ServiceLocator.RegisterSingleton<IWorkflowRepository>(new MemoryWorkflowRepository());
 
             // Act & Assert
-            ServiceLocator.IsRegistered<ITypedDataRepository<IncompleteWorkflowDataStore>>().Should().BeTrue();
+            ServiceLocator.IsRegistered<IWorkflowRepository>().Should().BeTrue();
         }
 
         [Fact]
         public void IsRegistered_WhenNotRegistered_ReturnsFalse()
         {
             // Act & Assert
-            ServiceLocator.IsRegistered<ITypedDataRepository<IncompleteWorkflowDataStore>>().Should().BeFalse();
+            ServiceLocator.IsRegistered<IWorkflowRepository>().Should().BeFalse();
         }
 
         #endregion
@@ -141,13 +140,13 @@ namespace EquipmentDesigner.Tests.Services
         public void Reset_ClearsAllRegistrations()
         {
             // Arrange
-            ServiceLocator.RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(new MemoryTypedRepository<IncompleteWorkflowDataStore>());
+            ServiceLocator.RegisterSingleton<IWorkflowRepository>(new MemoryWorkflowRepository());
 
             // Act
             ServiceLocator.Reset();
 
             // Assert
-            ServiceLocator.IsRegistered<ITypedDataRepository<IncompleteWorkflowDataStore>>().Should().BeFalse();
+            ServiceLocator.IsRegistered<IWorkflowRepository>().Should().BeFalse();
         }
 
         #endregion
@@ -161,18 +160,14 @@ namespace EquipmentDesigner.Tests.Services
             ServiceLocator.ConfigureForProduction();
 
             // Assert
-            ServiceLocator.IsRegistered<ITypedDataRepository<IncompleteWorkflowDataStore>>().Should().BeTrue();
-            ServiceLocator.IsRegistered<ITypedDataRepository<UploadedHardwareDataStore>>().Should().BeTrue();
-            ServiceLocator.IsRegistered<IEquipmentApiService>().Should().BeTrue();
+            ServiceLocator.IsRegistered<IWorkflowRepository>().Should().BeTrue();
+            ServiceLocator.IsRegistered<IUploadedWorkflowRepository>().Should().BeTrue();
 
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             workflowRepository.Should().BeOfType<WorkflowRepository>();
 
-            var uploadedHardwareRepository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            uploadedHardwareRepository.Should().BeOfType<UploadedHardwareRepository>();
-
-            var apiService = ServiceLocator.GetService<IEquipmentApiService>();
-            apiService.Should().BeOfType<MockEquipmentApiService>();
+            var uploadedWorkflowRepository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
+            uploadedWorkflowRepository.Should().BeOfType<UploadedWorkflowRepository>();
         }
 
         [Fact]
@@ -182,14 +177,11 @@ namespace EquipmentDesigner.Tests.Services
             ServiceLocator.ConfigureForTesting();
 
             // Assert
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
-            workflowRepository.Should().BeOfType<MemoryTypedRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
+            workflowRepository.Should().BeOfType<MemoryWorkflowRepository>();
 
-            var uploadedHardwareRepository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            uploadedHardwareRepository.Should().BeOfType<MemoryTypedRepository<UploadedHardwareDataStore>>();
-
-            var apiService = ServiceLocator.GetService<IEquipmentApiService>();
-            apiService.Should().BeOfType<MockEquipmentApiService>();
+            var uploadedWorkflowRepository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
+            uploadedWorkflowRepository.Should().BeOfType<MemoryUploadedWorkflowRepository>();
         }
 
         #endregion

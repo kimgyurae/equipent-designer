@@ -5,16 +5,17 @@ using EquipmentDesigner.Models.Storage;
 namespace EquipmentDesigner.Services.Storage
 {
     /// <summary>
-    /// Repository for managing incomplete workflow data.
-    /// Persists to workflows.json in LocalApplicationData folder.
+    /// Repository for managing uploaded workflow data.
+    /// Persists to uploaded-hardwares.json in LocalApplicationData folder.
+    /// Uses the same HardwareDefinitionDataStore structure as WorkflowRepository.
     /// </summary>
-    public class WorkflowRepository : TypedJsonFileRepository<HardwareDefinitionDataStore>, IWorkflowRepository
+    public class UploadedWorkflowRepository : TypedJsonFileRepository<HardwareDefinitionDataStore>, IUploadedWorkflowRepository
     {
-        public WorkflowRepository() : base(null)
+        public UploadedWorkflowRepository() : base(null)
         {
         }
 
-        public WorkflowRepository(string filePath) : base(filePath)
+        public UploadedWorkflowRepository(string filePath) : base(filePath)
         {
         }
 
@@ -22,7 +23,7 @@ namespace EquipmentDesigner.Services.Storage
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var appFolder = Path.Combine(appData, "EquipmentDesigner");
-            return Path.Combine(appFolder, "workflows.json");
+            return Path.Combine(appFolder, "uploaded-hardwares.json");
         }
 
         protected override void UpdateLastSavedAt(HardwareDefinitionDataStore dataStore, DateTime timestamp)
@@ -31,14 +32,14 @@ namespace EquipmentDesigner.Services.Storage
         }
 
         /// <summary>
-        /// Gets the default file path for workflows.json.
+        /// Gets the default file path for uploaded-hardwares.json.
         /// Exposed for testing purposes.
         /// </summary>
-        public static string GetDefaultWorkflowFilePath()
+        public static string GetDefaultUploadedWorkflowFilePath()
         {
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var appFolder = Path.Combine(appData, "EquipmentDesigner");
-            return Path.Combine(appFolder, "workflows.json");
+            return Path.Combine(appFolder, "uploaded-hardwares.json");
         }
     }
 }

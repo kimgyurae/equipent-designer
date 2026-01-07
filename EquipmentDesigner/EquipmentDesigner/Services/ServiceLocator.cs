@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using EquipmentDesigner.Models.Storage;
-using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 
 namespace EquipmentDesigner.Services
@@ -131,13 +130,11 @@ namespace EquipmentDesigner.Services
         {
             // Register typed repositories for multi-file support
             var workflowRepository = new WorkflowRepository();
-            RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(workflowRepository);
+            RegisterSingleton<IWorkflowRepository>(workflowRepository);
 
-            var uploadedHardwareRepository = new UploadedHardwareRepository();
-            RegisterSingleton<ITypedDataRepository<UploadedHardwareDataStore>>(uploadedHardwareRepository);
-
-            var apiService = new MockEquipmentApiService(uploadedHardwareRepository);
-            RegisterSingleton<IEquipmentApiService>(apiService);
+            // Unified structure for uploaded workflows
+            var uploadedWorkflowRepository = new UploadedWorkflowRepository();
+            RegisterSingleton<IUploadedWorkflowRepository>(uploadedWorkflowRepository);
         }
 
         /// <summary>
@@ -146,14 +143,12 @@ namespace EquipmentDesigner.Services
         public static void ConfigureForTesting()
         {
             // Register typed memory repositories for multi-file support testing
-            var workflowRepository = new MemoryTypedRepository<IncompleteWorkflowDataStore>();
-            RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(workflowRepository);
+            var workflowRepository = new MemoryWorkflowRepository();
+            RegisterSingleton<IWorkflowRepository>(workflowRepository);
 
-            var uploadedHardwareRepository = new MemoryTypedRepository<UploadedHardwareDataStore>();
-            RegisterSingleton<ITypedDataRepository<UploadedHardwareDataStore>>(uploadedHardwareRepository);
-
-            var apiService = new MockEquipmentApiService(uploadedHardwareRepository);
-            RegisterSingleton<IEquipmentApiService>(apiService);
+            // Unified structure for uploaded workflows
+            var uploadedWorkflowRepository = new MemoryUploadedWorkflowRepository();
+            RegisterSingleton<IUploadedWorkflowRepository>(uploadedWorkflowRepository);
         }
     }
 }

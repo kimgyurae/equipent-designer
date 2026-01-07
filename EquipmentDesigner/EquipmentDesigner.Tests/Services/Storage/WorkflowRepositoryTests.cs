@@ -35,7 +35,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public void ITypedDataRepository_Interface_ProvidesGenericLoadSaveOperations()
         {
             // Assert - WorkflowRepository implements the generic interface
-            _repository.Should().BeAssignableTo<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            _repository.Should().BeAssignableTo<IWorkflowRepository>();
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             // Arrange
             var nestedPath = Path.Combine(Path.GetTempPath(), $"nested_{Guid.NewGuid()}", "data", "workflows.json");
             var repository = new WorkflowRepository(nestedPath);
-            var dataStore = new IncompleteWorkflowDataStore();
+            var dataStore = new HardwareDefinitionDataStore();
 
             try
             {
@@ -113,7 +113,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task SaveAsync_UpdatesLastSavedAtTimestamp()
         {
             // Arrange
-            var dataStore = new IncompleteWorkflowDataStore();
+            var dataStore = new HardwareDefinitionDataStore();
             var beforeSave = DateTime.Now.AddSeconds(-1);
 
             // Act
@@ -128,8 +128,8 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task SaveAsync_SerializesWithCamelCaseAndIndented()
         {
             // Arrange
-            var dataStore = new IncompleteWorkflowDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            var dataStore = new HardwareDefinitionDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "test-workflow-1",
                 StartType = HardwareLayer.Equipment
@@ -171,7 +171,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             _repository.IsDirty.Should().BeTrue();
 
             // Act
-            await _repository.SaveAsync(new IncompleteWorkflowDataStore());
+            await _repository.SaveAsync(new HardwareDefinitionDataStore());
 
             // Assert
             _repository.IsDirty.Should().BeFalse();
@@ -185,15 +185,15 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task LoadAsync_DeserializesWorkflowSessionsList()
         {
             // Arrange
-            var originalDataStore = new IncompleteWorkflowDataStore();
-            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            var originalDataStore = new HardwareDefinitionDataStore();
+            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-001",
                 StartType = HardwareLayer.Equipment,
                 State = ComponentState.Undefined,
                 LastModifiedAt = DateTime.Now
             });
-            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-002",
                 StartType = HardwareLayer.System,
@@ -217,8 +217,8 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task SaveAsync_SerializesNestedTreeNodeData()
         {
             // Arrange
-            var dataStore = new IncompleteWorkflowDataStore();
-            var session = new WorkflowSessionDto2
+            var dataStore = new HardwareDefinitionDataStore();
+            var session = new WorkflowSessionDto
             {
                 WorkflowId = "wf-tree",
                 StartType = HardwareLayer.Equipment,
@@ -257,10 +257,10 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task FindWorkflowById_ReturnsCorrectSession()
         {
             // Arrange
-            var dataStore = new IncompleteWorkflowDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-001" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-002" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-003" });
+            var dataStore = new HardwareDefinitionDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-001" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-002" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-003" });
             await _repository.SaveAsync(dataStore);
 
             // Act
@@ -276,14 +276,14 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task AddingNewSession_PreservesExistingSessions()
         {
             // Arrange - save initial data
-            var dataStore = new IncompleteWorkflowDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "existing-1" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "existing-2" });
+            var dataStore = new HardwareDefinitionDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "existing-1" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "existing-2" });
             await _repository.SaveAsync(dataStore);
 
             // Act - load, add new, save
             var loaded = await _repository.LoadAsync();
-            loaded.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "new-session" });
+            loaded.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "new-session" });
             await _repository.SaveAsync(loaded);
 
             // Assert - reload and verify
@@ -298,13 +298,13 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task UpdatingSession_ReplacesOnlyThatSession()
         {
             // Arrange
-            var dataStore = new IncompleteWorkflowDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            var dataStore = new HardwareDefinitionDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-update",
                 State = ComponentState.Undefined
             });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-unchanged",
                 State = ComponentState.Undefined
@@ -329,10 +329,10 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task RemovingSession_RemovesOnlyThatSession()
         {
             // Arrange
-            var dataStore = new IncompleteWorkflowDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-keep-1" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-remove" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-keep-2" });
+            var dataStore = new HardwareDefinitionDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-keep-1" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-remove" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-keep-2" });
             await _repository.SaveAsync(dataStore);
 
             // Act - load, remove, save

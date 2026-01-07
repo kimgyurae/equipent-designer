@@ -607,8 +607,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100); // Wait for async operation
 
-            // Assert - CompleteWorkflowAsync saves to IncompleteWorkflowDataStore
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepository.LoadAsync();
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
@@ -632,8 +632,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert - CompleteWorkflowAsync saves to IncompleteWorkflowDataStore
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepository.LoadAsync();
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
@@ -654,8 +654,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert - CompleteWorkflowAsync saves to IncompleteWorkflowDataStore
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepository.LoadAsync();
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
@@ -679,8 +679,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert - CompleteWorkflowAsync now saves to IncompleteWorkflowDataStore with Defined state
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            // Assert - CompleteWorkflowAsync now saves to HardwareDefinitionDataStore with Defined state
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepository.LoadAsync();
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
@@ -705,7 +705,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
 
             // Assert - Workflow should contain tree nodes
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepository.LoadAsync();
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
@@ -735,7 +735,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
 
             // Assert - Should update, not create duplicate
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepository.LoadAsync();
 
             workflowData.WorkflowSessions.Count(w => w.WorkflowId == viewModel.WorkflowId).Should().Be(1);
@@ -756,7 +756,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
 
             // Assert
-            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepository.LoadAsync();
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
@@ -847,116 +847,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.IsReadOnly = true;
 
             raised.Should().BeTrue();
-        }
-
-        #endregion
-
-        #region State Change on Edit Tests
-
-        [Fact]
-        public async Task LoadComponentForViewAsync_LoadsDeviceAndSetsIsReadOnlyTrue()
-        {
-            // Arrange
-            ServiceLocator.Reset();
-            ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            var dataStore = await repository.LoadAsync();
-            dataStore.Devices.Add(new DeviceDto
-            {
-                Id = "dev-123",
-                Name = "TestDevice",
-                State = ComponentState.Uploaded
-            });
-            await repository.SaveAsync(dataStore);
-
-            // Act
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
-            await viewModel.LoadComponentForViewAsync("dev-123", HardwareLayer.Device);
-
-            // Assert
-            viewModel.IsReadOnly.Should().BeTrue();
-            viewModel.DeviceViewModel.Name.Should().Be("TestDevice");
-        }
-
-        [Fact]
-        public async Task EnableEditCommand_WhenComponentHasUploadedState_ChangesStateToDefinedInRepository()
-        {
-            // Arrange
-            ServiceLocator.Reset();
-            ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            var dataStore = await repository.LoadAsync();
-            dataStore.Devices.Add(new DeviceDto
-            {
-                Id = "dev-456",
-                Name = "TestDevice",
-                State = ComponentState.Uploaded
-            });
-            await repository.SaveAsync(dataStore);
-
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
-            await viewModel.LoadComponentForViewAsync("dev-456", HardwareLayer.Device);
-
-            // Act
-            viewModel.EnableEditCommand.Execute(null);
-            await Task.Delay(100); // Wait for async operation
-
-            // Assert
-            dataStore = await repository.LoadAsync();
-            dataStore.Devices.First(d => d.Id == "dev-456").State.Should().Be(ComponentState.Defined);
-        }
-
-        [Fact]
-        public async Task EnableEditCommand_WhenComponentHasValidatedState_ChangesStateToDefinedInRepository()
-        {
-            // Arrange
-            ServiceLocator.Reset();
-            ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            var dataStore = await repository.LoadAsync();
-            dataStore.Devices.Add(new DeviceDto
-            {
-                Id = "dev-789",
-                Name = "TestDevice",
-                State = ComponentState.Validated
-            });
-            await repository.SaveAsync(dataStore);
-
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
-            await viewModel.LoadComponentForViewAsync("dev-789", HardwareLayer.Device);
-
-            // Act
-            viewModel.EnableEditCommand.Execute(null);
-            await Task.Delay(100); // Wait for async operation
-
-            // Assert
-            dataStore = await repository.LoadAsync();
-            dataStore.Devices.First(d => d.Id == "dev-789").State.Should().Be(ComponentState.Defined);
-        }
-
-        [Fact]
-        public async Task LoadedComponentId_AfterLoadComponentForViewAsync_IsSetCorrectly()
-        {
-            // Arrange
-            ServiceLocator.Reset();
-            ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            var dataStore = await repository.LoadAsync();
-            dataStore.Devices.Add(new DeviceDto
-            {
-                Id = "dev-abc",
-                Name = "TestDevice",
-                State = ComponentState.Uploaded
-            });
-            await repository.SaveAsync(dataStore);
-
-            // Act
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
-            await viewModel.LoadComponentForViewAsync("dev-abc", HardwareLayer.Device);
-
-            // Assert
-            viewModel.LoadedComponentId.Should().Be("dev-abc");
-            viewModel.LoadedHardwareLayer.Should().Be(HardwareLayer.Device);
         }
 
         #endregion
@@ -1099,14 +989,13 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.UploadToServerCommand.Execute(null);
             await Task.Delay(100);
             
-            // Assert - Check UploadedHardwareRepository
-            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            // Assert - Check UploadedWorkflowDataStore (unified structure)
+            var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var uploadedData = await uploadedRepo.LoadAsync();
             
-            uploadedData.Equipments.Should().HaveCount(1);
-            uploadedData.Systems.Should().HaveCount(1);
-            uploadedData.Units.Should().HaveCount(1);
-            uploadedData.Devices.Should().HaveCount(1);
+            uploadedData.WorkflowSessions.Should().HaveCount(1);
+            uploadedData.WorkflowSessions[0].StartType.Should().Be(HardwareLayer.Equipment);
+            uploadedData.WorkflowSessions[0].TreeNodes.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
@@ -1127,10 +1016,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert
-            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var uploadedData = await uploadedRepo.LoadAsync();
             
-            uploadedData.Devices.First().State.Should().Be(ComponentState.Uploaded);
+            uploadedData.WorkflowSessions.Should().HaveCount(1);
+            uploadedData.WorkflowSessions[0].State.Should().Be(ComponentState.Uploaded);
         }
 
         [Fact]
@@ -1153,18 +1043,16 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.UploadToServerCommand.Execute(null);
             await Task.Delay(100);
             
-            // Assert
-            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            // Assert - Check that tree structure preserves hierarchy
+            var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var uploadedData = await uploadedRepo.LoadAsync();
             
-            var equipment = uploadedData.Equipments.First();
-            var system = uploadedData.Systems.First();
-            var unit = uploadedData.Units.First();
-            var device = uploadedData.Devices.First();
-            
-            system.EquipmentId.Should().Be(equipment.Id);
-            unit.SystemId.Should().Be(system.Id);
-            device.UnitId.Should().Be(unit.Id);
+            var session = uploadedData.WorkflowSessions[0];
+            session.TreeNodes.Should().NotBeNullOrEmpty();
+            var rootNode = session.TreeNodes[0];
+            rootNode.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            rootNode.EquipmentData.Should().NotBeNull();
+            rootNode.EquipmentData.Name.Should().Be("TestEquipment");
         }
 
         [Fact]
@@ -1177,9 +1065,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Pre-populate workflow repository
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Add(new WorkflowSessionDto2
+            workflowData.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = viewModel.WorkflowId,
                 StartType = HardwareLayer.Device,
@@ -1195,10 +1083,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.UploadToServerCommand.Execute(null);
             await Task.Delay(100);
             
-            // Assert - Both repositories updated
-            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            // Assert - UploadedWorkflowDataStore updated with unified structure
+            var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var uploadedData = await uploadedRepo.LoadAsync();
-            uploadedData.Devices.Should().HaveCount(1);
+            uploadedData.WorkflowSessions.Should().HaveCount(1);
+            uploadedData.WorkflowSessions[0].State.Should().Be(ComponentState.Uploaded);
             
             // Workflow should be removed from IncompleteWorkflowDataStore after successful upload
             workflowData = await workflowRepo.LoadAsync();
@@ -1215,9 +1104,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Pre-populate workflow repository with a session
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Add(new WorkflowSessionDto2
+            workflowData.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = viewModel.WorkflowId,
                 StartType = HardwareLayer.Device,
@@ -1256,7 +1145,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert - Check WorkflowRepository was used
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
             
             workflowData.WorkflowSessions.Should().HaveCount(1);
@@ -1264,7 +1153,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public async Task SaveWorkflowStateAsync_CreatesWorkflowSessionDto2InIncompleteWorkflowDataStore()
+        public async Task SaveWorkflowStateAsync_CreatesWorkflowSessionDtoInIncompleteWorkflowDataStore()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -1277,7 +1166,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
             
             var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
@@ -1303,7 +1192,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
             
             var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
@@ -1337,7 +1226,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
             
             // Should still only have 1 session (updated, not duplicated)
@@ -1361,7 +1250,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
             
             var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
@@ -1382,7 +1271,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
             
             var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
@@ -1404,7 +1293,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(100);
             
             // Assert
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
             
             var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);

@@ -153,7 +153,7 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+                var repository = ServiceLocator.GetService<IWorkflowRepository>();
                 var dataStore = await repository.LoadAsync();
 
                 IncompleteWorkflows.Clear();
@@ -183,13 +183,14 @@ namespace EquipmentDesigner.Views.Dashboard
         }
 
         /// <summary>
-        /// Loads components from the repository and filters by Uploaded or Validated state.
+        /// Loads components from the unified repository.
+        /// Filters by Uploaded or Validated state and routes to cards based on StartType.
         /// </summary>
         private async void LoadComponentsAsync()
         {
             try
             {
-                var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+                var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
                 var dataStore = await repository.LoadAsync();
 
                 // Clear existing collections
@@ -198,45 +199,40 @@ namespace EquipmentDesigner.Views.Dashboard
                 Units.Clear();
                 Devices.Clear();
 
-                if (dataStore == null) return;
+                if (dataStore?.WorkflowSessions == null) return;
 
-                // Filter and load Equipments (Defined, Uploaded or Validated only)
-                if (dataStore.Equipments != null)
+                // Filter and load from WorkflowSessions based on StartType
+                foreach (var session in dataStore.WorkflowSessions.Where(s =>
+                    s.State == ComponentState.Uploaded ||
+                    s.State == ComponentState.Validated))
                 {
-                    foreach (var dto in dataStore.Equipments.Where(e =>
-                        e.State == ComponentState.Defined || e.State == ComponentState.Uploaded || e.State == ComponentState.Validated))
-                    {
-                        Equipments.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Equipment));
-                    }
-                }
+                    // Extract component info from root tree node
+                    var rootNode = session.TreeNodes?.FirstOrDefault();
+                    if (rootNode == null) continue;
 
-                // Filter and load Systems (Defined, Uploaded or Validated only)
-                if (dataStore.Systems != null)
-                {
-                    foreach (var dto in dataStore.Systems.Where(s =>
-                        s.State == ComponentState.Defined || s.State == ComponentState.Uploaded || s.State == ComponentState.Validated))
-                    {
-                        Systems.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.System));
-                    }
-                }
+                    var (name, description) = ExtractComponentInfo(rootNode);
+                    var componentItem = CreateComponentItem(
+                        session.WorkflowId,  // Use WorkflowId as ID for navigation
+                        name ?? "Unnamed",
+                        description ?? "",
+                        session.State,
+                        session.StartType);
 
-                // Filter and load Units (Defined, Uploaded or Validated only)
-                if (dataStore.Units != null)
-                {
-                    foreach (var dto in dataStore.Units.Where(u =>
-                        u.State == ComponentState.Defined || u.State == ComponentState.Uploaded || u.State == ComponentState.Validated))
+                    // Add to correct collection based on StartType
+                    switch (session.StartType)
                     {
-                        Units.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Unit));
-                    }
-                }
-
-                // Filter and load Devices (Defined, Uploaded or Validated only)
-                if (dataStore.Devices != null)
-                {
-                    foreach (var dto in dataStore.Devices.Where(d =>
-                        d.State == ComponentState.Defined || d.State == ComponentState.Uploaded || d.State == ComponentState.Validated))
-                    {
-                        Devices.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Device));
+                        case HardwareLayer.Equipment:
+                            Equipments.Add(componentItem);
+                            break;
+                        case HardwareLayer.System:
+                            Systems.Add(componentItem);
+                            break;
+                        case HardwareLayer.Unit:
+                            Units.Add(componentItem);
+                            break;
+                        case HardwareLayer.Device:
+                            Devices.Add(componentItem);
+                            break;
                     }
                 }
 
@@ -257,6 +253,21 @@ namespace EquipmentDesigner.Views.Dashboard
         }
 
         /// <summary>
+        /// Extracts name and description from a tree node based on its hardware layer.
+        /// </summary>
+        private (string name, string description) ExtractComponentInfo(TreeNodeDataDto node)
+        {
+            return node.HardwareLayer switch
+            {
+                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description),
+                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description),
+                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description),
+                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description),
+                _ => (null, null)
+            };
+        }
+
+        /// <summary>
         /// Creates a ComponentItem with appropriate styling based on state.
         /// </summary>
         private ComponentItem CreateComponentItem(string id, string name, string description, ComponentState state, HardwareLayer hardwareLayer)
@@ -273,14 +284,6 @@ namespace EquipmentDesigner.Views.Dashboard
                 statusBackground = new SolidColorBrush(Color.FromRgb(220, 252, 231)); // Light green
                 statusBorder = new SolidColorBrush(Color.FromRgb(34, 197, 94));       // Green
                 statusForeground = new SolidColorBrush(Color.FromRgb(22, 101, 52));   // Dark green
-            }
-            else if (state == ComponentState.Defined)
-            {
-                // Yellow/Amber theme for Defined
-                statusText = "Defined";
-                statusBackground = new SolidColorBrush(Color.FromRgb(254, 249, 195)); // Light yellow
-                statusBorder = new SolidColorBrush(Color.FromRgb(234, 179, 8));       // Amber
-                statusForeground = new SolidColorBrush(Color.FromRgb(133, 77, 14));   // Dark amber
             }
             else
             {
@@ -398,7 +401,7 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+                var repository = ServiceLocator.GetService<IWorkflowRepository>();
                 var dataStore = await repository.LoadAsync();
 
                 if (dataStore?.WorkflowSessions != null)
@@ -438,7 +441,7 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+                var repository = ServiceLocator.GetService<IWorkflowRepository>();
                 var dataStore = await repository.LoadAsync();
 
                 // Remove from WorkflowSessions

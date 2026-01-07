@@ -434,113 +434,24 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// </summary>
         private async void ChangeComponentStateToDefinedAsync()
         {
-            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            var dataStore = await repository.LoadAsync();
-
-            switch (LoadedHardwareLayer.Value)
+            try
             {
-                case HardwareLayer.Equipment:
-                    var equipment = dataStore.Equipments?.FirstOrDefault(e => e.Id == LoadedComponentId);
-                    if (equipment != null && (equipment.State == ComponentState.Uploaded || equipment.State == ComponentState.Validated))
-                    {
-                        equipment.State = ComponentState.Defined;
-                        equipment.UpdatedAt = DateTime.Now;
-                    }
-                    break;
-                case HardwareLayer.System:
-                    var system = dataStore.Systems?.FirstOrDefault(s => s.Id == LoadedComponentId);
-                    if (system != null && (system.State == ComponentState.Uploaded || system.State == ComponentState.Validated))
-                    {
-                        system.State = ComponentState.Defined;
-                        system.UpdatedAt = DateTime.Now;
-                    }
-                    break;
-                case HardwareLayer.Unit:
-                    var unit = dataStore.Units?.FirstOrDefault(u => u.Id == LoadedComponentId);
-                    if (unit != null && (unit.State == ComponentState.Uploaded || unit.State == ComponentState.Validated))
-                    {
-                        unit.State = ComponentState.Defined;
-                        unit.UpdatedAt = DateTime.Now;
-                    }
-                    break;
-                case HardwareLayer.Device:
-                    var device = dataStore.Devices?.FirstOrDefault(d => d.Id == LoadedComponentId);
-                    if (device != null && (device.State == ComponentState.Uploaded || device.State == ComponentState.Validated))
-                    {
-                        device.State = ComponentState.Defined;
-                        device.UpdatedAt = DateTime.Now;
-                    }
-                    break;
-            }
+                var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
+                var dataStore = await repository.LoadAsync();
 
-            await repository.SaveAsync(dataStore);
-        }
-
-        /// <summary>
-        /// Loads an existing component for viewing in read-only mode.
-        /// </summary>
-        public async Task LoadComponentForViewAsync(string componentId, HardwareLayer hardwareLayer)
-        {
-            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
-            var dataStore = await repository.LoadAsync();
-
-            LoadedComponentId = componentId;
-            LoadedHardwareLayer = hardwareLayer;
-
-            // Find the root node and set its DataViewModel from loaded data
-            if (TreeRootNodes.Count > 0)
-            {
-                var rootNode = TreeRootNodes[0];
-                switch (hardwareLayer)
+                // Find the workflow session by WorkflowId (LoadedComponentId is the WorkflowId)
+                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.WorkflowId == LoadedComponentId);
+                if (session != null && (session.State == ComponentState.Uploaded || session.State == ComponentState.Validated))
                 {
-                    case HardwareLayer.Equipment:
-                        var equipment = dataStore.Equipments?.FirstOrDefault(e => e.Id == componentId);
-                        if (equipment != null && rootNode.DataViewModel is EquipmentDefineViewModel equipmentVm)
-                        {
-                            // Copy data to existing ViewModel
-                            var loadedVm = EquipmentDefineViewModel.FromDto(equipment);
-                            CopyViewModelData(loadedVm, equipmentVm);
-                        }
-                        break;
-                    case HardwareLayer.System:
-                        var system = dataStore.Systems?.FirstOrDefault(s => s.Id == componentId);
-                        if (system != null && rootNode.DataViewModel is SystemDefineViewModel systemVm)
-                        {
-                            var loadedVm = SystemDefineViewModel.FromDto(system);
-                            CopyViewModelData(loadedVm, systemVm);
-                        }
-                        break;
-                    case HardwareLayer.Unit:
-                        var unit = dataStore.Units?.FirstOrDefault(u => u.Id == componentId);
-                        if (unit != null && rootNode.DataViewModel is UnitDefineViewModel unitVm)
-                        {
-                            var loadedVm = UnitDefineViewModel.FromDto(unit);
-                            CopyViewModelData(loadedVm, unitVm);
-                        }
-                        break;
-                    case HardwareLayer.Device:
-                        var device = dataStore.Devices?.FirstOrDefault(d => d.Id == componentId);
-                        if (device != null && rootNode.DataViewModel is DeviceDefineViewModel deviceVm)
-                        {
-                            var loadedVm = DeviceDefineViewModel.FromDto(device);
-                            CopyViewModelData(loadedVm, deviceVm);
-                        }
-                        break;
+                    session.State = ComponentState.Defined;
+                    session.LastModifiedAt = DateTime.Now;
+                    await repository.SaveAsync(dataStore);
                 }
             }
-
-            IsReadOnly = true;
-        }
-
-        /// <summary>
-        /// Copies data from source ViewModel to target ViewModel.
-        /// </summary>
-        private void CopyViewModelData(IHardwareDefineViewModel source, IHardwareDefineViewModel target)
-        {
-            // Copy the Name property
-            target.Name = source.Name;
-            // Additional properties would need to be copied based on type
-            // This is a basic implementation for the Name field
+            catch
+            {
+                // Silently fail - non-critical operation
+            }
         }
 
         private void ExecuteGoToNextStep()
@@ -601,33 +512,31 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         /// <summary>
         /// Uploads workflow data to server by:
-        /// 1. Mapping tree data to flat hardware lists using TreeToFlatMapper
-        /// 2. Saving to UploadedHardwareRepository (uploaded-hardwares.json)
-        /// 3. Updating workflow state in WorkflowRepository (workflows.json)
+        /// 1. Creating WorkflowSessionDto with Uploaded state
+        /// 2. Saving to UploadedWorkflowRepository (uploaded-hardwares.json)
+        /// 3. Removing from WorkflowRepository (workflows.json)
         /// </summary>
         private async void UploadToServerAsync()
         {
-            var mapper = new TreeToFlatMapper();
+            // Create session DTO with Uploaded state
+            var sessionDto = ToWorkflowSessionDto();
+            sessionDto.State = ComponentState.Uploaded;
 
-            // Convert tree nodes to TreeNodeDataDto for mapping
-            var treeNodeDtos = TreeRootNodes.Select(SerializeNode).ToList();
-
-            // Map tree structure to flat hardware lists
-            var mappingResult = mapper.MapTreeToFlat(treeNodeDtos);
-
-            // Save to UploadedHardwareRepository
-            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            // Save to UploadedWorkflowRepository (unified structure)
+            var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var uploadedData = await uploadedRepo.LoadAsync();
 
-            uploadedData.Equipments.AddRange(mappingResult.Equipments);
-            uploadedData.Systems.AddRange(mappingResult.Systems);
-            uploadedData.Units.AddRange(mappingResult.Units);
-            uploadedData.Devices.AddRange(mappingResult.Devices);
+            // Update existing or add new session
+            var existingIndex = uploadedData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
+            if (existingIndex >= 0)
+                uploadedData.WorkflowSessions[existingIndex] = sessionDto;
+            else
+                uploadedData.WorkflowSessions.Add(sessionDto);
 
             await uploadedRepo.SaveAsync(uploadedData);
 
             // Remove workflow from WorkflowRepository after successful upload
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
             var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == WorkflowId);
@@ -659,16 +568,16 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         /// <summary>
         /// Saves the current workflow state to repository.
-        /// Uses the new WorkflowRepository (ITypedDataRepository<IncompleteWorkflowDataStore>)
-        /// instead of the legacy IDataRepository.
+        /// Uses the new WorkflowRepository (IWorkflowRepository)
+        /// structure to persist in-progress workflow sessions.
         /// </summary>
         private async Task SaveWorkflowStateAsync()
         {
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
-            // Create or update WorkflowSessionDto2
-            var sessionDto = ToWorkflowSessionDto2();
+            // Create or update WorkflowSessionDto
+            var sessionDto = ToWorkflowSessionDto();
             var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
 
             if (existingIndex >= 0)
@@ -754,17 +663,16 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         #endregion
 
         /// <summary>
-        /// Converts this ViewModel to a WorkflowSessionDto2 for persistence.
+        /// Converts this ViewModel to a WorkflowSessionDto for persistence.
         /// Serializes the entire tree structure for multi-instance support.
         /// </summary>
-        public WorkflowSessionDto2 ToWorkflowSessionDto2()
+        public WorkflowSessionDto ToWorkflowSessionDto()
         {
-            return new WorkflowSessionDto2
+            return new WorkflowSessionDto
             {
                 WorkflowId = WorkflowId,
                 StartType = StartType,
                 State = AllStepsRequiredFieldsFilled ? ComponentState.Defined : ComponentState.Undefined,
-                ComponentId = WorkflowId,
                 HardwareLayer = StartType,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
@@ -805,52 +713,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         /// <summary>
         /// Creates a HardwareDefineWorkflowViewModel from a saved WorkflowSessionDto.
-        /// Supports both legacy single-instance and new tree-based formats.
-        /// </summary>
-        public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
-        {
-            var viewModel = new HardwareDefineWorkflowViewModel(dto.StartType, dto.WorkflowId);
-
-            // Check if we have tree data (new format)
-            if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)
-            {
-                // Clear default tree and rebuild from DTO
-                viewModel.TreeRootNodes.Clear();
-                foreach (var nodeDto in dto.TreeNodes)
-                {
-                    var node = DeserializeNode(nodeDto, null);
-                    viewModel.TreeRootNodes.Add(node);
-                }
-            }
-            else
-            {
-                // Legacy format: restore single instances to root nodes
-                RestoreLegacyDataToTree(viewModel, dto);
-            }
-
-            // Select first node and restore step
-            if (viewModel.TreeRootNodes.Count > 0)
-            {
-                viewModel.SelectedTreeNode = viewModel.TreeRootNodes[0];
-                viewModel.SelectedTreeNode.IsSelected = true;
-            }
-
-            // Restore current step index
-            viewModel.SetCurrentStepIndex(dto.CurrentStepIndex);
-
-            // Re-initialize callbacks and states
-            viewModel.SetupAllDeviceViewModelCallbacks();
-            viewModel.InitializeStepFieldCounts();
-            viewModel.UpdateStepStates();
-
-            return viewModel;
-        }
-
-        /// <summary>
-        /// Creates a HardwareDefineWorkflowViewModel from a saved WorkflowSessionDto2.
         /// Uses tree-based format exclusively.
         /// </summary>
-        public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto2(WorkflowSessionDto2 dto)
+        public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
         {
             var viewModel = new HardwareDefineWorkflowViewModel(dto.StartType, dto.WorkflowId);
 
@@ -915,37 +780,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             return node;
         }
-
-        /// <summary>
-        /// Restores legacy single-instance data to the tree structure.
-        /// </summary>
-        private static void RestoreLegacyDataToTree(HardwareDefineWorkflowViewModel viewModel, WorkflowSessionDto dto)
-        {
-            // Find nodes by type and populate them
-            foreach (var node in viewModel.GetAllNodes())
-            {
-                switch (node.HardwareLayer)
-                {
-                    case HardwareLayer.Equipment when dto.EquipmentData != null:
-                        var equipmentVm = EquipmentDefineViewModel.FromDto(dto.EquipmentData);
-                        SetNodeDataViewModel(node, equipmentVm);
-                        break;
-                    case HardwareLayer.System when dto.SystemData != null:
-                        var systemVm = SystemDefineViewModel.FromDto(dto.SystemData);
-                        SetNodeDataViewModel(node, systemVm);
-                        break;
-                    case HardwareLayer.Unit when dto.UnitData != null:
-                        var unitVm = UnitDefineViewModel.FromDto(dto.UnitData);
-                        SetNodeDataViewModel(node, unitVm);
-                        break;
-                    case HardwareLayer.Device when dto.DeviceData != null:
-                        var deviceVm = DeviceDefineViewModel.FromDto(dto.DeviceData);
-                        SetNodeDataViewModel(node, deviceVm);
-                        break;
-                }
-            }
-        }
-
+       
         /// <summary>
         /// Helper method to set DataViewModel using reflection (since setter is private).
         /// </summary>
@@ -1033,11 +868,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// </summary>
         private async Task CompleteWorkflowAsync()
         {
-            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
-            // Create or update WorkflowSessionDto2 with Defined state
-            var sessionDto = ToWorkflowSessionDto2();
+            // Create or update WorkflowSessionDto with Defined state
+            var sessionDto = ToWorkflowSessionDto();
             sessionDto.State = ComponentState.Defined;
             
             var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
@@ -1048,85 +883,6 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 workflowData.WorkflowSessions.Add(sessionDto);
 
             await workflowRepo.SaveAsync(workflowData);
-        }
-
-        /// <summary>
-        /// Recursively saves a tree node and all its children.
-        /// </summary>
-        /// <param name="node">The node to save.</param>
-        /// <param name="parentId">The database ID of the parent node (null for root).</param>
-        /// <param name="dataStore">The data store to save to.</param>
-        /// <param name="timestamp">Timestamp for CreatedAt/UpdatedAt.</param>
-        /// <returns>The generated ID for this node.</returns>
-        private string SaveTreeNodeRecursively(
-            HardwareTreeNodeViewModel node,
-            string parentId,
-            UploadedHardwareDataStore dataStore,
-            DateTime timestamp)
-        {
-            string nodeId = Guid.NewGuid().ToString();
-
-            switch (node.HardwareLayer)
-            {
-                case HardwareLayer.Equipment:
-                    if (node.DataViewModel is EquipmentDefineViewModel equipmentVm)
-                    {
-                        var equipmentDto = equipmentVm.ToDto();
-                        equipmentDto.Id = nodeId;
-                        equipmentDto.State = ComponentState.Defined;
-                        equipmentDto.CreatedAt = timestamp;
-                        equipmentDto.UpdatedAt = timestamp;
-                        dataStore.Equipments.Add(equipmentDto);
-                    }
-                    break;
-
-                case HardwareLayer.System:
-                    if (node.DataViewModel is SystemDefineViewModel systemVm)
-                    {
-                        var systemDto = systemVm.ToDto();
-                        systemDto.Id = nodeId;
-                        systemDto.EquipmentId = parentId; // Link to parent Equipment
-                        systemDto.State = ComponentState.Defined;
-                        systemDto.CreatedAt = timestamp;
-                        systemDto.UpdatedAt = timestamp;
-                        dataStore.Systems.Add(systemDto);
-                    }
-                    break;
-
-                case HardwareLayer.Unit:
-                    if (node.DataViewModel is UnitDefineViewModel unitVm)
-                    {
-                        var unitDto = unitVm.ToDto();
-                        unitDto.Id = nodeId;
-                        unitDto.SystemId = parentId; // Link to parent System
-                        unitDto.State = ComponentState.Defined;
-                        unitDto.CreatedAt = timestamp;
-                        unitDto.UpdatedAt = timestamp;
-                        dataStore.Units.Add(unitDto);
-                    }
-                    break;
-
-                case HardwareLayer.Device:
-                    if (node.DataViewModel is DeviceDefineViewModel deviceVm)
-                    {
-                        var deviceDto = deviceVm.ToDto();
-                        deviceDto.Id = nodeId;
-                        deviceDto.UnitId = parentId; // Link to parent Unit
-                        deviceDto.State = ComponentState.Defined;
-                        deviceDto.CreatedAt = timestamp;
-                        deviceDto.UpdatedAt = timestamp;
-                        dataStore.Devices.Add(deviceDto);
-                    }
-                    break;
-            }
-
-            // Recursively save all children
-            foreach (var child in node.Children)
-            {
-                SaveTreeNodeRecursively(child, nodeId, dataStore, timestamp);
-            }
-
-            return nodeId;
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 // API 서버가 준비되지 않은 경우 USE_MOCK_DATA 심볼을 정의하여 하드코딩된 Mock 데이터 사용
 // csproj에서 <DefineConstants>USE_MOCK_DATA</DefineConstants> 추가 또는
 // 빌드 시 /p:DefineConstants="USE_MOCK_DATA" 사용
-#define USE_MOCK_DATA
+// #define USE_MOCK_DATA
 
 using System;
 using System.Collections.Generic;

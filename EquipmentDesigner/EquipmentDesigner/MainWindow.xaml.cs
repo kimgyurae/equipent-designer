@@ -109,24 +109,25 @@ namespace EquipmentDesigner
 
             try
             {
-                // Determine the HardwareLayer based on HardwareLayer
-                var startType = target.HardwareLayer switch
-                {
-                    HardwareLayer.Equipment => HardwareLayer.Equipment,
-                    HardwareLayer.System => HardwareLayer.System,
-                    HardwareLayer.Unit => HardwareLayer.Unit,
-                    HardwareLayer.Device => HardwareLayer.Device,
-                    _ => HardwareLayer.Device
-                };
+                // Load from UploadedWorkflowDataStore (ComponentId is WorkflowId)
+                var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedWorkflowDataStore>>();
+                var dataStore = await repository.LoadAsync();
 
-                var workflowViewModel = new HardwareDefineWorkflowViewModel(startType);
-                await workflowViewModel.LoadComponentForViewAsync(target.ComponentId, target.HardwareLayer);
+                var sessionDto = dataStore?.WorkflowSessions?
+                    .FirstOrDefault(s => s.WorkflowId == target.ComponentId);
 
-                var workflowView = new HardwareDefineWorkflowView
+                if (sessionDto != null)
                 {
-                    DataContext = workflowViewModel
-                };
-                MainContent.Content = workflowView;
+                    // Use FromWorkflowSessionDto2 to rebuild the workflow
+                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto2(sessionDto);
+                    workflowViewModel.IsReadOnly = true;  // Set read-only mode
+
+                    var workflowView = new HardwareDefineWorkflowView
+                    {
+                        DataContext = workflowViewModel
+                    };
+                    MainContent.Content = workflowView;
+                }
             }
             catch
             {
