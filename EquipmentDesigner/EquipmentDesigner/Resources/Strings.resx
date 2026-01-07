@@ -453,4 +453,28 @@
   <data name="Toast_UploadComplete_Description" xml:space="preserve">
     <value>Data has been uploaded to the server.</value>
   </data>
+  <data name="EditModeSelection_Title" xml:space="preserve">
+    <value>Select Edit Mode</value>
+  </data>
+  <data name="EditModeSelection_DirectEdit_Title" xml:space="preserve">
+    <value>Edit Directly</value>
+  </data>
+  <data name="EditModeSelection_DirectEdit_Description" xml:space="preserve">
+    <value>Edit the existing data directly. Changes will be reflected in the original immediately, so please work carefully.</value>
+  </data>
+  <data name="EditModeSelection_DirectEdit_Warning" xml:space="preserve">
+    <value>⚠️ Warning: Overwrites existing data</value>
+  </data>
+  <data name="EditModeSelection_CreateCopy_Title" xml:space="preserve">
+    <value>Create Copy and Edit (Recommended)</value>
+  </data>
+  <data name="EditModeSelection_CreateCopy_Description" xml:space="preserve">
+    <value>Create a copy of the existing data and edit it. The original data will be safely preserved.</value>
+  </data>
+  <data name="EditModeSelection_CreateCopy_Recommendation" xml:space="preserve">
+    <value>✓ Recommended: Use this option if you're not sure</value>
+  </data>
+  <data name="EditModeSelection_Confirm" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
 </root>
