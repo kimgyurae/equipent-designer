@@ -153,22 +153,22 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<IDataRepository>();
+                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
                 var dataStore = await repository.LoadAsync();
 
                 IncompleteWorkflows.Clear();
 
-                if (dataStore?.SessionContext?.IncompleteWorkflows != null)
+                if (dataStore?.WorkflowSessions != null)
                 {
-                    foreach (var info in dataStore.SessionContext.IncompleteWorkflows)
+                    foreach (var session in dataStore.WorkflowSessions)
                     {
                         IncompleteWorkflows.Add(new WorkflowItem
                         {
-                            WorkflowId = info.WorkflowId,
-                            StartedFrom = info.StartType.ToString(),
-                            ComponentState = info.State.ToString(),
-                            Date = info.LastModifiedAt.ToString("yyyy. M. d.")
-                        });;
+                            WorkflowId = session.WorkflowId,
+                            StartedFrom = session.StartType.ToString(),
+                            ComponentState = session.State.ToString(),
+                            Date = session.LastModifiedAt.ToString("yyyy. M. d.")
+                        });
                     }
                 }
 
@@ -189,7 +189,7 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<IDataRepository>();
+                var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
                 var dataStore = await repository.LoadAsync();
 
                 // Clear existing collections
@@ -204,7 +204,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Equipments != null)
                 {
                     foreach (var dto in dataStore.Equipments.Where(e =>
-                        e.State == ComponentState.Uploaded || e.State == ComponentState.Validated))
+                        e.State == ComponentState.Defined || e.State == ComponentState.Uploaded || e.State == ComponentState.Validated))
                     {
                         Equipments.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Equipment));
                     }
@@ -214,7 +214,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Systems != null)
                 {
                     foreach (var dto in dataStore.Systems.Where(s =>
-                        s.State == ComponentState.Uploaded || s.State == ComponentState.Validated))
+                        s.State == ComponentState.Defined || s.State == ComponentState.Uploaded || s.State == ComponentState.Validated))
                     {
                         Systems.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.System));
                     }
@@ -224,7 +224,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Units != null)
                 {
                     foreach (var dto in dataStore.Units.Where(u =>
-                        u.State == ComponentState.Uploaded || u.State == ComponentState.Validated))
+                        u.State == ComponentState.Defined || u.State == ComponentState.Uploaded || u.State == ComponentState.Validated))
                     {
                         Units.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Unit));
                     }
@@ -234,7 +234,7 @@ namespace EquipmentDesigner.Views.Dashboard
                 if (dataStore.Devices != null)
                 {
                     foreach (var dto in dataStore.Devices.Where(d =>
-                        d.State == ComponentState.Uploaded || d.State == ComponentState.Validated))
+                        d.State == ComponentState.Defined || d.State == ComponentState.Uploaded || d.State == ComponentState.Validated))
                     {
                         Devices.Add(CreateComponentItem(dto.Id, dto.Name, dto.Description, dto.State, HardwareLayer.Device));
                     }
@@ -398,29 +398,13 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<IDataRepository>();
+                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
                 var dataStore = await repository.LoadAsync();
 
-                if (dataStore?.SessionContext?.IncompleteWorkflows != null)
+                if (dataStore?.WorkflowSessions != null)
                 {
-                    // Get all workflow IDs to delete
-                    var workflowIds = dataStore.SessionContext.IncompleteWorkflows.Select(i => i.WorkflowId).ToList();
-
-                    // Remove from WorkflowSessions
-                    if (dataStore.WorkflowSessions != null)
-                    {
-                        foreach (var workflowId in workflowIds)
-                        {
-                            var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == workflowId);
-                            if (sessionToRemove != null)
-                            {
-                                dataStore.WorkflowSessions.Remove(sessionToRemove);
-                            }
-                        }
-                    }
-
-                    // Clear all incomplete workflows
-                    dataStore.SessionContext.IncompleteWorkflows.Clear();
+                    // Clear all workflow sessions
+                    dataStore.WorkflowSessions.Clear();
                 }
 
                 // Save changes
@@ -454,7 +438,7 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<IDataRepository>();
+                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
                 var dataStore = await repository.LoadAsync();
 
                 // Remove from WorkflowSessions
@@ -464,16 +448,6 @@ namespace EquipmentDesigner.Views.Dashboard
                     if (sessionToRemove != null)
                     {
                         dataStore.WorkflowSessions.Remove(sessionToRemove);
-                    }
-                }
-
-                // Remove from IncompleteWorkflows
-                if (dataStore?.SessionContext?.IncompleteWorkflows != null)
-                {
-                    var infoToRemove = dataStore.SessionContext.IncompleteWorkflows.FirstOrDefault(i => i.WorkflowId == workflowId);
-                    if (infoToRemove != null)
-                    {
-                        dataStore.SessionContext.IncompleteWorkflows.Remove(infoToRemove);
                     }
                 }
 

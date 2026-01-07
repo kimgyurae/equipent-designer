@@ -441,4 +441,10 @@
   <data name="Workflow_UploadToServer" xml:space="preserve">
     <value>서버에 업로드</value>
   </data>
+  <data name="Toast_WorkflowCompleted_Title" xml:space="preserve">
+    <value>워크플로우 완료</value>
+  </data>
+  <data name="Toast_WorkflowCompleted_Description" xml:space="preserve">
+    <value>모든 하드웨어 정의가 성공적으로 저장되었습니다.</value>
+  </data>
 </root>

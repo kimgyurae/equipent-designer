@@ -427,7 +427,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// </summary>
         private async void ChangeComponentStateToDefinedAsync()
         {
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
 
             switch (LoadedHardwareLayer.Value)
@@ -474,7 +474,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// </summary>
         public async Task LoadComponentForViewAsync(string componentId, HardwareLayer hardwareLayer)
         {
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
 
             LoadedComponentId = componentId;
@@ -587,7 +587,51 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         private void ExecuteUploadToServer()
         {
-            // TODO: Implement server upload logic
+            UploadToServerAsync();
+        }
+
+        /// <summary>
+        /// Uploads workflow data to server by:
+        /// 1. Mapping tree data to flat hardware lists using TreeToFlatMapper
+        /// 2. Saving to UploadedHardwareRepository (uploaded-hardwares.json)
+        /// 3. Updating workflow state in WorkflowRepository (workflows.json)
+        /// </summary>
+        private async void UploadToServerAsync()
+        {
+            var mapper = new TreeToFlatMapper();
+
+            // Convert tree nodes to TreeNodeDataDto for mapping
+            var treeNodeDtos = TreeRootNodes.Select(SerializeNode).ToList();
+
+            // Map tree structure to flat hardware lists
+            var mappingResult = mapper.MapTreeToFlat(treeNodeDtos);
+
+            // Save to UploadedHardwareRepository
+            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            var uploadedData = await uploadedRepo.LoadAsync();
+
+            uploadedData.Equipments.AddRange(mappingResult.Equipments);
+            uploadedData.Systems.AddRange(mappingResult.Systems);
+            uploadedData.Units.AddRange(mappingResult.Units);
+            uploadedData.Devices.AddRange(mappingResult.Devices);
+
+            await uploadedRepo.SaveAsync(uploadedData);
+
+            // Remove workflow from WorkflowRepository after successful upload
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == WorkflowId);
+            if (session != null)
+            {
+                workflowData.WorkflowSessions.Remove(session);
+                await workflowRepo.SaveAsync(workflowData);
+            }
+
+            // Show success toast
+            ToastService.Instance.ShowSuccess(
+                "Upload Complete",
+                "Data has been uploaded to the server.");
         }
 
         /// <summary>
@@ -606,69 +650,39 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         /// <summary>
         /// Saves the current workflow state to repository.
+        /// Uses the new WorkflowRepository (ITypedDataRepository<IncompleteWorkflowDataStore>)
+        /// instead of the legacy IDataRepository.
         /// </summary>
         private async Task SaveWorkflowStateAsync()
         {
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
 
-            // Ensure collections are initialized
-            dataStore.WorkflowSessions ??= new System.Collections.Generic.List<WorkflowSessionDto>();
-            dataStore.SessionContext ??= new WorkSessionContext();
-            dataStore.SessionContext.IncompleteWorkflows ??= new System.Collections.Generic.List<IncompleteWorkflowInfo>();
-
-            // Create or update workflow session
-            var sessionDto = ToWorkflowSessionDto();
-            var existingIndex = dataStore.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
+            // Create or update WorkflowSessionDto2
+            var sessionDto = ToWorkflowSessionDto2();
+            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
 
             if (existingIndex >= 0)
-                dataStore.WorkflowSessions[existingIndex] = sessionDto;
+                workflowData.WorkflowSessions[existingIndex] = sessionDto;
             else
-                dataStore.WorkflowSessions.Add(sessionDto);
+                workflowData.WorkflowSessions.Add(sessionDto);
 
-            // Update incomplete workflow info for dashboard display
-            var incompleteInfo = new IncompleteWorkflowInfo
-            {
-                WorkflowId = WorkflowId,
-                StartType = StartType,
-                CurrentStepName = sessionDto.GetCurrentStepName(),
-                ComponentId = WorkflowId,
-                HardwareLayer = StartType switch
-                {
-                    HardwareLayer.Equipment => HardwareLayer.Equipment,
-                    HardwareLayer.System => HardwareLayer.System,
-                    HardwareLayer.Unit => HardwareLayer.Unit,
-                    HardwareLayer.Device => HardwareLayer.Device,
-                    _ => HardwareLayer.Equipment
-                },
-                State = AllStepsRequiredFieldsFilled ? ComponentState.Defined : ComponentState.Undefined,
-                LastModifiedAt = DateTime.Now,
-                CompletedFields = WorkflowSteps.Sum(s => s.FilledFieldCount),
-                TotalFields = WorkflowSteps.Sum(s => s.TotalFieldCount)
-            };
-
-            var existingInfoIndex = dataStore.SessionContext.IncompleteWorkflows
-                .FindIndex(i => i.WorkflowId == WorkflowId);
-
-            if (existingInfoIndex >= 0)
-                dataStore.SessionContext.IncompleteWorkflows[existingInfoIndex] = incompleteInfo;
-            else
-                dataStore.SessionContext.IncompleteWorkflows.Add(incompleteInfo);
-
-            await repository.SaveAsync(dataStore);
+            await workflowRepo.SaveAsync(workflowData);
         }
 
         /// <summary>
-        /// Converts this ViewModel to a WorkflowSessionDto for persistence.
+        /// Converts this ViewModel to a WorkflowSessionDto2 for persistence.
         /// Serializes the entire tree structure for multi-instance support.
         /// </summary>
-        public WorkflowSessionDto ToWorkflowSessionDto()
+        public WorkflowSessionDto2 ToWorkflowSessionDto2()
         {
-            return new WorkflowSessionDto
+            return new WorkflowSessionDto2
             {
                 WorkflowId = WorkflowId,
                 StartType = StartType,
-                CurrentStepIndex = CurrentStepIndex,
+                State = AllStepsRequiredFieldsFilled ? ComponentState.Defined : ComponentState.Undefined,
+                ComponentId = WorkflowId,
+                HardwareLayer = StartType,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
             };
@@ -740,6 +754,43 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             // Restore current step index
             viewModel.SetCurrentStepIndex(dto.CurrentStepIndex);
+
+            // Re-initialize callbacks and states
+            viewModel.SetupAllDeviceViewModelCallbacks();
+            viewModel.InitializeStepFieldCounts();
+            viewModel.UpdateStepStates();
+
+            return viewModel;
+        }
+
+        /// <summary>
+        /// Creates a HardwareDefineWorkflowViewModel from a saved WorkflowSessionDto2.
+        /// Uses tree-based format exclusively.
+        /// </summary>
+        public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto2(WorkflowSessionDto2 dto)
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(dto.StartType, dto.WorkflowId);
+
+            // Rebuild tree from TreeNodes
+            if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)
+            {
+                viewModel.TreeRootNodes.Clear();
+                foreach (var nodeDto in dto.TreeNodes)
+                {
+                    var node = DeserializeNode(nodeDto, null);
+                    viewModel.TreeRootNodes.Add(node);
+                }
+            }
+
+            // Select first node
+            if (viewModel.TreeRootNodes.Count > 0)
+            {
+                viewModel.SelectedTreeNode = viewModel.TreeRootNodes[0];
+                viewModel.SelectedTreeNode.IsSelected = true;
+            }
+
+            // Calculate step index based on tree state (default to 0)
+            viewModel.SetCurrentStepIndex(0);
 
             // Re-initialize callbacks and states
             viewModel.SetupAllDeviceViewModelCallbacks();
@@ -894,47 +945,26 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         }
 
         /// <summary>
-        /// Completes the workflow by saving ALL components in the tree to SharedMemory.
-        /// Traverses the tree structure and saves each node with proper parent-child relationships.
+        /// Completes the workflow by updating the workflow state to Defined in workflows.json.
+        /// Updates the existing workflow entry with ComponentState.Defined.
         /// </summary>
         private async Task CompleteWorkflowAsync()
         {
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
 
-            // Ensure collections are initialized
-            dataStore.Equipments ??= new List<EquipmentDto>();
-            dataStore.Systems ??= new List<SystemDto>();
-            dataStore.Units ??= new List<UnitDto>();
-            dataStore.Devices ??= new List<DeviceDto>();
-            dataStore.WorkflowSessions ??= new List<WorkflowSessionDto>();
-            dataStore.SessionContext ??= new WorkSessionContext();
-            dataStore.SessionContext.IncompleteWorkflows ??= new List<IncompleteWorkflowInfo>();
+            // Create or update WorkflowSessionDto2 with Defined state
+            var sessionDto = ToWorkflowSessionDto2();
+            sessionDto.State = ComponentState.Defined;
+            
+            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
 
-            var now = DateTime.Now;
+            if (existingIndex >= 0)
+                workflowData.WorkflowSessions[existingIndex] = sessionDto;
+            else
+                workflowData.WorkflowSessions.Add(sessionDto);
 
-            // Traverse tree and save all components
-            foreach (var rootNode in TreeRootNodes)
-            {
-                SaveTreeNodeRecursively(rootNode, null, dataStore, now);
-            }
-
-            // Remove from WorkflowSessions
-            var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == WorkflowId);
-            if (sessionToRemove != null)
-            {
-                dataStore.WorkflowSessions.Remove(sessionToRemove);
-            }
-
-            // Remove from IncompleteWorkflows
-            var infoToRemove = dataStore.SessionContext.IncompleteWorkflows.FirstOrDefault(i => i.WorkflowId == WorkflowId);
-            if (infoToRemove != null)
-            {
-                dataStore.SessionContext.IncompleteWorkflows.Remove(infoToRemove);
-            }
-
-            // Save the data store
-            await repository.SaveAsync(dataStore);
+            await workflowRepo.SaveAsync(workflowData);
         }
 
         /// <summary>
@@ -948,7 +978,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private string SaveTreeNodeRecursively(
             HardwareTreeNodeViewModel node,
             string parentId,
-            SharedMemoryDataStore dataStore,
+            UploadedHardwareDataStore dataStore,
             DateTime timestamp)
         {
             string nodeId = Guid.NewGuid().ToString();

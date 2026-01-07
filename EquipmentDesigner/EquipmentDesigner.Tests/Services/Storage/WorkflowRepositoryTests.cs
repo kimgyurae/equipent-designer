@@ -1,0 +1,353 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Xunit;
+using EquipmentDesigner.Services.Storage;
+using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.Models.Dtos;
+
+namespace EquipmentDesigner.Tests.Services.Storage
+{
+    public class WorkflowRepositoryTests : IDisposable
+    {
+        private readonly string _testFilePath;
+        private readonly WorkflowRepository _repository;
+
+        public WorkflowRepositoryTests()
+        {
+            _testFilePath = Path.Combine(Path.GetTempPath(), $"test_workflows_{Guid.NewGuid()}.json");
+            _repository = new WorkflowRepository(_testFilePath);
+        }
+
+        public void Dispose()
+        {
+            if (File.Exists(_testFilePath))
+            {
+                File.Delete(_testFilePath);
+            }
+        }
+
+        #region Generic Repository Infrastructure Tests
+
+        [Fact]
+        public void ITypedDataRepository_Interface_ProvidesGenericLoadSaveOperations()
+        {
+            // Assert - WorkflowRepository implements the generic interface
+            _repository.Should().BeAssignableTo<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+        }
+
+        [Fact]
+        public void GetDefaultFilePath_ReturnsWorkflowsJsonPath()
+        {
+            // Act
+            var defaultPath = WorkflowRepository.GetDefaultWorkflowFilePath();
+
+            // Assert
+            var expectedPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "EquipmentDesigner",
+                "workflows.json");
+            defaultPath.Should().Be(expectedPath);
+        }
+
+        [Fact]
+        public async Task LoadAsync_WhenFileNotExists_ReturnsNewEmptyDataStore()
+        {
+            // Arrange - ensure file doesn't exist
+            if (File.Exists(_testFilePath))
+                File.Delete(_testFilePath);
+
+            // Act
+            var result = await _repository.LoadAsync();
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Version.Should().Be("1.0");
+            result.WorkflowSessions.Should().NotBeNull();
+            result.WorkflowSessions.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task LoadAsync_WhenJsonCorrupted_ReturnsEmptyDataStoreGracefully()
+        {
+            // Arrange
+            await File.WriteAllTextAsync(_testFilePath, "{ invalid json content");
+
+            // Act
+            var result = await _repository.LoadAsync();
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Version.Should().Be("1.0");
+            result.WorkflowSessions.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task SaveAsync_CreatesDirectoryIfNotExists()
+        {
+            // Arrange
+            var nestedPath = Path.Combine(Path.GetTempPath(), $"nested_{Guid.NewGuid()}", "data", "workflows.json");
+            var repository = new WorkflowRepository(nestedPath);
+            var dataStore = new IncompleteWorkflowDataStore();
+
+            try
+            {
+                // Act
+                await repository.SaveAsync(dataStore);
+
+                // Assert
+                File.Exists(nestedPath).Should().BeTrue();
+            }
+            finally
+            {
+                // Cleanup
+                var dir = Path.GetDirectoryName(nestedPath);
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, true);
+            }
+        }
+
+        [Fact]
+        public async Task SaveAsync_UpdatesLastSavedAtTimestamp()
+        {
+            // Arrange
+            var dataStore = new IncompleteWorkflowDataStore();
+            var beforeSave = DateTime.Now.AddSeconds(-1);
+
+            // Act
+            await _repository.SaveAsync(dataStore);
+            var loaded = await _repository.LoadAsync();
+
+            // Assert
+            loaded.LastSavedAt.Should().BeAfter(beforeSave);
+        }
+
+        [Fact]
+        public async Task SaveAsync_SerializesWithCamelCaseAndIndented()
+        {
+            // Arrange
+            var dataStore = new IncompleteWorkflowDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            {
+                WorkflowId = "test-workflow-1",
+                StartType = HardwareLayer.Equipment
+            });
+
+            // Act
+            await _repository.SaveAsync(dataStore);
+            var json = await File.ReadAllTextAsync(_testFilePath);
+
+            // Assert - camelCase property names
+            json.Should().Contain("workflowId");
+            json.Should().Contain("startType");
+            // Assert - indented (contains newlines)
+            json.Should().Contain("\n");
+        }
+
+        [Fact]
+        public void IsDirty_InitiallyFalse()
+        {
+            // Assert
+            _repository.IsDirty.Should().BeFalse();
+        }
+
+        [Fact]
+        public void MarkDirty_SetsIsDirtyToTrue()
+        {
+            // Act
+            _repository.MarkDirty();
+
+            // Assert
+            _repository.IsDirty.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task SaveAsync_ResetsIsDirtyToFalse()
+        {
+            // Arrange
+            _repository.MarkDirty();
+            _repository.IsDirty.Should().BeTrue();
+
+            // Act
+            await _repository.SaveAsync(new IncompleteWorkflowDataStore());
+
+            // Assert
+            _repository.IsDirty.Should().BeFalse();
+        }
+
+        #endregion
+
+        #region Workflow Repository Specific Behaviors
+
+        [Fact]
+        public async Task LoadAsync_DeserializesWorkflowSessionsList()
+        {
+            // Arrange
+            var originalDataStore = new IncompleteWorkflowDataStore();
+            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            {
+                WorkflowId = "wf-001",
+                StartType = HardwareLayer.Equipment,
+                State = ComponentState.Undefined,
+                LastModifiedAt = DateTime.Now
+            });
+            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            {
+                WorkflowId = "wf-002",
+                StartType = HardwareLayer.System,
+                State = ComponentState.Defined,
+                LastModifiedAt = DateTime.Now
+            });
+            await _repository.SaveAsync(originalDataStore);
+
+            // Act
+            var loaded = await _repository.LoadAsync();
+
+            // Assert
+            loaded.WorkflowSessions.Should().HaveCount(2);
+            loaded.WorkflowSessions[0].WorkflowId.Should().Be("wf-001");
+            loaded.WorkflowSessions[0].StartType.Should().Be(HardwareLayer.Equipment);
+            loaded.WorkflowSessions[1].WorkflowId.Should().Be("wf-002");
+            loaded.WorkflowSessions[1].State.Should().Be(ComponentState.Defined);
+        }
+
+        [Fact]
+        public async Task SaveAsync_SerializesNestedTreeNodeData()
+        {
+            // Arrange
+            var dataStore = new IncompleteWorkflowDataStore();
+            var session = new WorkflowSessionDto2
+            {
+                WorkflowId = "wf-tree",
+                StartType = HardwareLayer.Equipment,
+                TreeNodes = new System.Collections.Generic.List<TreeNodeDataDto>
+                {
+                    new TreeNodeDataDto
+                    {
+                        NodeId = "node-1",
+                        HardwareLayer = HardwareLayer.Equipment,
+                        Children = new System.Collections.Generic.List<TreeNodeDataDto>
+                        {
+                            new TreeNodeDataDto
+                            {
+                                NodeId = "node-2",
+                                HardwareLayer = HardwareLayer.System
+                            }
+                        }
+                    }
+                }
+            };
+            dataStore.WorkflowSessions.Add(session);
+
+            // Act
+            await _repository.SaveAsync(dataStore);
+            var loaded = await _repository.LoadAsync();
+
+            // Assert
+            loaded.WorkflowSessions.Should().HaveCount(1);
+            loaded.WorkflowSessions[0].TreeNodes.Should().HaveCount(1);
+            loaded.WorkflowSessions[0].TreeNodes[0].NodeId.Should().Be("node-1");
+            loaded.WorkflowSessions[0].TreeNodes[0].Children.Should().HaveCount(1);
+            loaded.WorkflowSessions[0].TreeNodes[0].Children[0].NodeId.Should().Be("node-2");
+        }
+
+        [Fact]
+        public async Task FindWorkflowById_ReturnsCorrectSession()
+        {
+            // Arrange
+            var dataStore = new IncompleteWorkflowDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-001" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-002" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-003" });
+            await _repository.SaveAsync(dataStore);
+
+            // Act
+            var loaded = await _repository.LoadAsync();
+            var found = loaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-002");
+
+            // Assert
+            found.Should().NotBeNull();
+            found.WorkflowId.Should().Be("wf-002");
+        }
+
+        [Fact]
+        public async Task AddingNewSession_PreservesExistingSessions()
+        {
+            // Arrange - save initial data
+            var dataStore = new IncompleteWorkflowDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "existing-1" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "existing-2" });
+            await _repository.SaveAsync(dataStore);
+
+            // Act - load, add new, save
+            var loaded = await _repository.LoadAsync();
+            loaded.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "new-session" });
+            await _repository.SaveAsync(loaded);
+
+            // Assert - reload and verify
+            var reloaded = await _repository.LoadAsync();
+            reloaded.WorkflowSessions.Should().HaveCount(3);
+            reloaded.WorkflowSessions.Should().Contain(s => s.WorkflowId == "existing-1");
+            reloaded.WorkflowSessions.Should().Contain(s => s.WorkflowId == "existing-2");
+            reloaded.WorkflowSessions.Should().Contain(s => s.WorkflowId == "new-session");
+        }
+
+        [Fact]
+        public async Task UpdatingSession_ReplacesOnlyThatSession()
+        {
+            // Arrange
+            var dataStore = new IncompleteWorkflowDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            {
+                WorkflowId = "wf-update",
+                State = ComponentState.Undefined
+            });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2
+            {
+                WorkflowId = "wf-unchanged",
+                State = ComponentState.Undefined
+            });
+            await _repository.SaveAsync(dataStore);
+
+            // Act - load, update, save
+            var loaded = await _repository.LoadAsync();
+            var toUpdate = loaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-update");
+            toUpdate.State = ComponentState.Defined;
+            await _repository.SaveAsync(loaded);
+
+            // Assert
+            var reloaded = await _repository.LoadAsync();
+            reloaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-update").State
+                .Should().Be(ComponentState.Defined);
+            reloaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-unchanged").State
+                .Should().Be(ComponentState.Undefined);
+        }
+
+        [Fact]
+        public async Task RemovingSession_RemovesOnlyThatSession()
+        {
+            // Arrange
+            var dataStore = new IncompleteWorkflowDataStore();
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-keep-1" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-remove" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto2 { WorkflowId = "wf-keep-2" });
+            await _repository.SaveAsync(dataStore);
+
+            // Act - load, remove, save
+            var loaded = await _repository.LoadAsync();
+            loaded.WorkflowSessions.RemoveAll(s => s.WorkflowId == "wf-remove");
+            await _repository.SaveAsync(loaded);
+
+            // Assert
+            var reloaded = await _repository.LoadAsync();
+            reloaded.WorkflowSessions.Should().HaveCount(2);
+            reloaded.WorkflowSessions.Should().NotContain(s => s.WorkflowId == "wf-remove");
+            reloaded.WorkflowSessions.Should().Contain(s => s.WorkflowId == "wf-keep-1");
+            reloaded.WorkflowSessions.Should().Contain(s => s.WorkflowId == "wf-keep-2");
+        }
+
+        #endregion
+    }
+}

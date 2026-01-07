@@ -3,28 +3,25 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using EquipmentDesigner.Models.Storage;
 
 namespace EquipmentDesigner.Services.Storage
 {
     /// <summary>
-    /// JSON 파일 기반 저장소 구현
+    /// Abstract base class for typed JSON file repositories.
+    /// Provides common file I/O operations for different data store types.
     /// </summary>
-    public class JsonFileRepository : IDataRepository
+    /// <typeparam name="T">The type of data store to persist</typeparam>
+    public abstract class TypedJsonFileRepository<T> : ITypedDataRepository<T> where T : class, new()
     {
         private readonly string _filePath;
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly object _lock = new object();
         private Timer _autoSaveTimer;
-        private SharedMemoryDataStore _cachedData;
+        private T _cachedData;
 
         public bool IsDirty { get; private set; }
 
-        public JsonFileRepository() : this(null)
-        {
-        }
-
-        public JsonFileRepository(string filePath)
+        protected TypedJsonFileRepository(string filePath = null)
         {
             _filePath = filePath ?? GetDefaultFilePath();
             _jsonOptions = new JsonSerializerOptions
@@ -34,51 +31,54 @@ namespace EquipmentDesigner.Services.Storage
             };
         }
 
-        private static string GetDefaultFilePath()
-        {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var appFolder = Path.Combine(appData, "EquipmentDesigner");
-            return Path.Combine(appFolder, "equipment_data.json");
-        }
+        /// <summary>
+        /// Gets the default file path for this repository type.
+        /// Must be implemented by derived classes.
+        /// </summary>
+        protected abstract string GetDefaultFilePath();
 
-        public async Task<SharedMemoryDataStore> LoadAsync()
+        /// <summary>
+        /// Called before saving to update timestamps or perform other pre-save operations.
+        /// </summary>
+        protected abstract void UpdateLastSavedAt(T dataStore, DateTime timestamp);
+
+        public async Task<T> LoadAsync()
         {
             try
             {
                 if (!File.Exists(_filePath))
                 {
-                    _cachedData = new SharedMemoryDataStore();
+                    _cachedData = new T();
                     return _cachedData;
                 }
 
                 var json = await File.ReadAllTextAsync(_filePath);
-                _cachedData = JsonSerializer.Deserialize<SharedMemoryDataStore>(json, _jsonOptions);
+                _cachedData = JsonSerializer.Deserialize<T>(json, _jsonOptions);
 
                 if (_cachedData == null)
                 {
-                    _cachedData = new SharedMemoryDataStore();
+                    _cachedData = new T();
                 }
 
                 return _cachedData;
             }
             catch (JsonException)
             {
-                // Corrupted JSON - return empty datastore
-                _cachedData = new SharedMemoryDataStore();
+                _cachedData = new T();
                 return _cachedData;
             }
             catch (Exception)
             {
-                _cachedData = new SharedMemoryDataStore();
+                _cachedData = new T();
                 return _cachedData;
             }
         }
 
-        public async Task SaveAsync(SharedMemoryDataStore dataStore)
+        public async Task SaveAsync(T dataStore)
         {
             lock (_lock)
             {
-                dataStore.LastSavedAt = DateTime.Now;
+                UpdateLastSavedAt(dataStore, DateTime.Now);
                 _cachedData = dataStore;
             }
 
@@ -122,5 +122,10 @@ namespace EquipmentDesigner.Services.Storage
                 IsDirty = true;
             }
         }
+
+        /// <summary>
+        /// Gets the file path for testing purposes.
+        /// </summary>
+        internal string FilePath => _filePath;
     }
 }

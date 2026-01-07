@@ -11,17 +11,17 @@ using EquipmentDesigner.Services.Storage;
 namespace EquipmentDesigner.Services.Api
 {
     /// <summary>
-    /// SharedMemory 기반 Mock API 서비스
+    /// UploadedHardwareDataStore 기반 Mock API 서비스
     /// USE_MOCK_DATA 환경에서 사용
     /// </summary>
     public class MockEquipmentApiService : IEquipmentApiService
     {
-        private readonly IDataRepository _repository;
-        private SharedMemoryDataStore _dataStore;
+        private readonly ITypedDataRepository<UploadedHardwareDataStore> _repository;
+        private UploadedHardwareDataStore _dataStore;
         private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
         private bool _initialized;
 
-        public MockEquipmentApiService(IDataRepository repository)
+        public MockEquipmentApiService(ITypedDataRepository<UploadedHardwareDataStore> repository)
         {
             _repository = repository;
         }
@@ -156,7 +156,6 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Equipments[index] = equipment;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, HardwareLayer.Equipment);
             return ApiResponse<EquipmentDto>.Ok(equipment);
         }
 
@@ -274,7 +273,6 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Systems[index] = system;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, HardwareLayer.System);
             return ApiResponse<SystemDto>.Ok(system);
         }
 
@@ -376,7 +374,6 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Units[index] = unit;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, HardwareLayer.Unit);
             return ApiResponse<UnitDto>.Ok(unit);
         }
 
@@ -478,7 +475,6 @@ namespace EquipmentDesigner.Services.Api
             _dataStore.Devices[index] = device;
             _repository.MarkDirty();
 
-            UpdateSessionContext(id, HardwareLayer.Device);
             return ApiResponse<DeviceDto>.Ok(device);
         }
 
@@ -523,87 +519,6 @@ namespace EquipmentDesigner.Services.Api
                            (d.DisplayName?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false))
                 .ToList();
             return ApiResponse<List<DeviceDto>>.Ok(results);
-        }
-
-        #endregion
-
-        #region Session Context Management
-
-        private void UpdateSessionContext(string componentId, HardwareLayer hardwareLayer)
-        {
-            if (_dataStore.SessionContext == null)
-            {
-                _dataStore.SessionContext = new WorkSessionContext();
-            }
-
-            _dataStore.SessionContext.LastEditingComponentId = componentId;
-            _dataStore.SessionContext.LastEditingHardwareLayer = hardwareLayer;
-
-            UpdateIncompleteWorkflows();
-        }
-
-        private void UpdateIncompleteWorkflows()
-        {
-            if (_dataStore.SessionContext == null)
-            {
-                _dataStore.SessionContext = new WorkSessionContext();
-            }
-
-            _dataStore.SessionContext.IncompleteWorkflows.Clear();
-
-            // Add Undefined state equipments
-            foreach (var eq in _dataStore.Equipments.Where(e => e.State == ComponentState.Undefined))
-            {
-                _dataStore.SessionContext.IncompleteWorkflows.Add(new IncompleteWorkflowInfo
-                {
-                    ComponentId = eq.Id,
-                    HardwareLayer = HardwareLayer.Equipment,
-                    State = eq.State,
-                    LastModifiedAt = eq.UpdatedAt,
-                    CompletedFields = CalculateCompletedFields(eq),
-                    TotalFields = 8
-                });
-            }
-
-            // Add Undefined state systems
-            foreach (var sys in _dataStore.Systems.Where(s => s.State == ComponentState.Undefined))
-            {
-                _dataStore.SessionContext.IncompleteWorkflows.Add(new IncompleteWorkflowInfo
-                {
-                    ComponentId = sys.Id,
-                    HardwareLayer = HardwareLayer.System,
-                    State = sys.State,
-                    LastModifiedAt = sys.UpdatedAt,
-                    CompletedFields = CalculateCompletedFields(sys),
-                    TotalFields = 6
-                });
-            }
-        }
-
-        private int CalculateCompletedFields(EquipmentDto eq)
-        {
-            int count = 0;
-            if (!string.IsNullOrEmpty(eq.Name)) count++;
-            if (!string.IsNullOrEmpty(eq.EquipmentType)) count++;
-            if (!string.IsNullOrEmpty(eq.DisplayName)) count++;
-            if (!string.IsNullOrEmpty(eq.Subname)) count++;
-            if (!string.IsNullOrEmpty(eq.Description)) count++;
-            if (!string.IsNullOrEmpty(eq.Customer)) count++;
-            if (!string.IsNullOrEmpty(eq.Process)) count++;
-            if (eq.AttachedDocuments?.Any() == true) count++;
-            return count;
-        }
-
-        private int CalculateCompletedFields(SystemDto sys)
-        {
-            int count = 0;
-            if (!string.IsNullOrEmpty(sys.Name)) count++;
-            if (!string.IsNullOrEmpty(sys.DisplayName)) count++;
-            if (!string.IsNullOrEmpty(sys.Subname)) count++;
-            if (!string.IsNullOrEmpty(sys.Description)) count++;
-            if (sys.ImplementationInstructions?.Any() == true) count++;
-            if (sys.Commands?.Any() == true) count++;
-            return count;
         }
 
         #endregion

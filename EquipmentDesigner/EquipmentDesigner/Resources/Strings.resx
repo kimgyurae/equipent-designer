@@ -447,4 +447,10 @@
   <data name="Toast_WorkflowCompleted_Description" xml:space="preserve">
     <value>All hardware definitions have been saved successfully.</value>
   </data>
+  <data name="Toast_UploadComplete_Title" xml:space="preserve">
+    <value>Upload Complete</value>
+  </data>
+  <data name="Toast_UploadComplete_Description" xml:space="preserve">
+    <value>Data has been uploaded to the server.</value>
+  </data>
 </root>

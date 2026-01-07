@@ -12,19 +12,19 @@ namespace EquipmentDesigner.Tests.Services.Api
 {
     public class MockEquipmentApiServiceTests
     {
-        private readonly MemoryRepository _repository;
+        private readonly MemoryTypedRepository<UploadedHardwareDataStore> _repository;
         private readonly MockEquipmentApiService _service;
 
         public MockEquipmentApiServiceTests()
         {
-            _repository = new MemoryRepository();
+            _repository = new MemoryTypedRepository<UploadedHardwareDataStore>();
             _service = new MockEquipmentApiService(_repository);
         }
 
         #region Constructor Tests
 
         [Fact]
-        public void Constructor_AcceptsIDataRepository()
+        public void Constructor_AcceptsITypedDataRepository()
         {
             // Arrange & Act
             var service = new MockEquipmentApiService(_repository);
@@ -37,7 +37,7 @@ namespace EquipmentDesigner.Tests.Services.Api
         public async Task Constructor_InitializesSampleDataIfEmpty()
         {
             // Arrange
-            var emptyRepository = new MemoryRepository();
+            var emptyRepository = new MemoryTypedRepository<UploadedHardwareDataStore>();
             var service = new MockEquipmentApiService(emptyRepository);
 
             // Act

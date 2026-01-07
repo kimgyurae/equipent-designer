@@ -267,6 +267,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         {
             var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
 
+            // Equipment workflow has 4 steps: Equipment(1), System(2), Unit(3), Device(4)
             viewModel.WorkflowSteps[0].StepNumber.Should().Be(1);
             viewModel.WorkflowSteps[1].StepNumber.Should().Be(2);
             viewModel.WorkflowSteps[2].StepNumber.Should().Be(3);
@@ -591,7 +592,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         #region Workflow Completion Event Subscription
 
         [Fact]
-        public async Task CompleteWorkflowAsync_WhenEquipmentStartType_SavesAllFourHardwareLayers()
+        public async Task CompleteWorkflowAsync_WhenEquipmentStartType_SavesWorkflowWithTreeNodes()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -606,18 +607,18 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100); // Wait for async operation
 
-            // Assert
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            // Assert - CompleteWorkflowAsync saves to IncompleteWorkflowDataStore
+            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepository.LoadAsync();
 
-            dataStore.Equipments.Should().HaveCount(1);
-            dataStore.Systems.Should().HaveCount(1);
-            dataStore.Units.Should().HaveCount(1);
-            dataStore.Devices.Should().HaveCount(1);
+            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
+            savedWorkflow.Should().NotBeNull();
+            savedWorkflow.TreeNodes.Should().NotBeEmpty();
+            savedWorkflow.StartType.Should().Be(HardwareLayer.Equipment);
         }
 
         [Fact]
-        public async Task CompleteWorkflowAsync_WhenSystemStartType_SavesThreeHardwareLayers()
+        public async Task CompleteWorkflowAsync_WhenSystemStartType_SavesWorkflowWithCorrectStartType()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -631,18 +632,17 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            // Assert - CompleteWorkflowAsync saves to IncompleteWorkflowDataStore
+            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepository.LoadAsync();
 
-            dataStore.Equipments.Should().HaveCount(0);
-            dataStore.Systems.Should().HaveCount(1);
-            dataStore.Units.Should().HaveCount(1);
-            dataStore.Devices.Should().HaveCount(1);
+            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
+            savedWorkflow.Should().NotBeNull();
+            savedWorkflow.StartType.Should().Be(HardwareLayer.System);
         }
 
         [Fact]
-        public async Task CompleteWorkflowAsync_WhenDeviceStartType_SavesOnlyDevice()
+        public async Task CompleteWorkflowAsync_WhenDeviceStartType_SavesWorkflowWithDeviceStartType()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -654,14 +654,13 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            // Assert - CompleteWorkflowAsync saves to IncompleteWorkflowDataStore
+            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepository.LoadAsync();
 
-            dataStore.Equipments.Should().HaveCount(0);
-            dataStore.Systems.Should().HaveCount(0);
-            dataStore.Units.Should().HaveCount(0);
-            dataStore.Devices.Should().HaveCount(1);
+            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
+            savedWorkflow.Should().NotBeNull();
+            savedWorkflow.StartType.Should().Be(HardwareLayer.Device);
         }
 
         [Fact]
@@ -680,18 +679,17 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            // Assert - CompleteWorkflowAsync now saves to IncompleteWorkflowDataStore with Defined state
+            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepository.LoadAsync();
 
-            dataStore.Equipments.First().State.Should().Be(ComponentState.Defined);
-            dataStore.Systems.First().State.Should().Be(ComponentState.Defined);
-            dataStore.Units.First().State.Should().Be(ComponentState.Defined);
-            dataStore.Devices.First().State.Should().Be(ComponentState.Defined);
+            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
+            savedWorkflow.Should().NotBeNull();
+            savedWorkflow.State.Should().Be(ComponentState.Defined);
         }
 
         [Fact]
-        public async Task CompleteWorkflowAsync_SavedComponentsHaveUniqueIds()
+        public async Task CompleteWorkflowAsync_SavesWorkflowWithTreeNodes()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -706,18 +704,17 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            // Assert - Workflow should contain tree nodes
+            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepository.LoadAsync();
 
-            dataStore.Equipments.First().Id.Should().NotBeNullOrEmpty();
-            dataStore.Systems.First().Id.Should().NotBeNullOrEmpty();
-            dataStore.Units.First().Id.Should().NotBeNullOrEmpty();
-            dataStore.Devices.First().Id.Should().NotBeNullOrEmpty();
+            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
+            savedWorkflow.Should().NotBeNull();
+            savedWorkflow.TreeNodes.Should().NotBeEmpty();
         }
 
         [Fact]
-        public async Task CompleteWorkflowAsync_EstablishesParentChildRelationships()
+        public async Task CompleteWorkflowAsync_UpdatesExistingWorkflow()
         {
             // Arrange
             ServiceLocator.Reset();
@@ -728,54 +725,43 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.UnitViewModel.Name = "TestUnit";
             viewModel.DeviceViewModel.Name = "TestDevice";
 
-            // Act
+            // First save
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
-            // Assert
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
+            // Modify and save again
+            viewModel.EquipmentViewModel.Name = "UpdatedEquipment";
+            viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100);
 
-            var equipment = dataStore.Equipments.First();
-            var system = dataStore.Systems.First();
-            var unit = dataStore.Units.First();
-            var device = dataStore.Devices.First();
+            // Assert - Should update, not create duplicate
+            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepository.LoadAsync();
 
-            system.EquipmentId.Should().Be(equipment.Id);
-            unit.SystemId.Should().Be(system.Id);
-            device.UnitId.Should().Be(unit.Id);
+            workflowData.WorkflowSessions.Count(w => w.WorkflowId == viewModel.WorkflowId).Should().Be(1);
         }
 
         [Fact]
-        public async Task CompleteWorkflowAsync_RemovesWorkflowFromIncompleteWorkflows()
+        public async Task CompleteWorkflowAsync_SetsLastModifiedAt()
         {
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
             var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
-            
-            // First save the workflow as incomplete
-            var repository = ServiceLocator.GetService<IDataRepository>();
-            var dataStore = await repository.LoadAsync();
-            dataStore.SessionContext = new WorkSessionContext
-            {
-                IncompleteWorkflows = new System.Collections.Generic.List<IncompleteWorkflowInfo>
-                {
-                    new IncompleteWorkflowInfo { WorkflowId = viewModel.WorkflowId }
-                }
-            };
-            await repository.SaveAsync(dataStore);
+            var beforeComplete = DateTime.Now;
 
             // Act
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(100);
 
             // Assert
-            dataStore = await repository.LoadAsync();
-            dataStore.SessionContext.IncompleteWorkflows
-                .Any(w => w.WorkflowId == viewModel.WorkflowId)
-                .Should().BeFalse();
+            var workflowRepository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepository.LoadAsync();
+
+            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
+            savedWorkflow.Should().NotBeNull();
+            savedWorkflow.LastModifiedAt.Should().BeOnOrAfter(beforeComplete);
         }
 
         #endregion
@@ -873,7 +859,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Devices.Add(new DeviceDto
             {
@@ -898,7 +884,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Devices.Add(new DeviceDto
             {
@@ -926,7 +912,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Devices.Add(new DeviceDto
             {
@@ -954,7 +940,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Devices.Add(new DeviceDto
             {
@@ -971,6 +957,458 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert
             viewModel.LoadedComponentId.Should().Be("dev-abc");
             viewModel.LoadedHardwareLayer.Should().Be(HardwareLayer.Device);
+        }
+
+        #endregion
+
+        #region CompleteWorkflowCommand New Behavior Tests
+
+        [Fact]
+        public void CompleteWorkflowCommand_OnInitialization_IsNotNull()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.CompleteWorkflowCommand.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void CanCompleteWorkflow_WhenIsReadOnlyTrue_ReturnsFalse()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            viewModel.IsReadOnly = true;
+            
+            viewModel.CanCompleteWorkflow.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task CanCompleteWorkflow_WhenIsWorkflowCompletedTrue_ReturnsFalse()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Complete the workflow first
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100); // Wait for async operation
+            
+            viewModel.CanCompleteWorkflow.Should().BeFalse();
+        }
+
+        [Fact]
+        public void CanCompleteWorkflow_WhenRequiredFieldsNotFilled_ReturnsFalse()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            // Don't set Name - required field
+            
+            viewModel.CanCompleteWorkflow.Should().BeFalse();
+        }
+
+        [Fact]
+        public void CanCompleteWorkflow_WhenAllConditionsMet_ReturnsTrue()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            viewModel.IsReadOnly = false;
+            
+            viewModel.CanCompleteWorkflow.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task CompleteWorkflowCommand_WhenExecuted_SetsIsWorkflowCompletedToTrue()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Act
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100); // Wait for async operation
+            
+            // Assert
+            viewModel.IsWorkflowCompleted.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task CompleteWorkflowCommand_WhenExecuted_ShowUploadButtonBecomesTrue()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Act
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100); // Wait for async operation
+            
+            // Assert
+            viewModel.ShowUploadButton.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ShowUploadButton_AfterDataChangedPostCompletion_BecomesFalse()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100);
+            viewModel.ShowUploadButton.Should().BeTrue();
+            
+            // Act - Simulate data change
+            viewModel.DeviceViewModel.Name = "ModifiedName";
+            
+            // Assert
+            viewModel.ShowUploadButton.Should().BeFalse();
+        }
+
+        #endregion
+
+        #region UploadToServerCommand Tests
+
+        [Fact]
+        public void UploadToServerCommand_OnInitialization_IsNotNull()
+        {
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.UploadToServerCommand.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task UploadToServer_MapsTreeDataToFlatHardwareLists()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            viewModel.EquipmentViewModel.Name = "TestEquipment";
+            viewModel.SystemViewModel.Name = "TestSystem";
+            viewModel.UnitViewModel.Name = "TestUnit";
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Complete workflow first
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Act
+            viewModel.UploadToServerCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert - Check UploadedHardwareRepository
+            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            var uploadedData = await uploadedRepo.LoadAsync();
+            
+            uploadedData.Equipments.Should().HaveCount(1);
+            uploadedData.Systems.Should().HaveCount(1);
+            uploadedData.Units.Should().HaveCount(1);
+            uploadedData.Devices.Should().HaveCount(1);
+        }
+
+        [Fact]
+        public async Task UploadToServer_SetsComponentStateToUploaded()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Complete workflow first
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Act
+            viewModel.UploadToServerCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            var uploadedData = await uploadedRepo.LoadAsync();
+            
+            uploadedData.Devices.First().State.Should().Be(ComponentState.Uploaded);
+        }
+
+        [Fact]
+        public async Task UploadToServer_PreservesParentChildRelationshipsInUploadedData()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            viewModel.EquipmentViewModel.Name = "TestEquipment";
+            viewModel.SystemViewModel.Name = "TestSystem";
+            viewModel.UnitViewModel.Name = "TestUnit";
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Complete workflow first
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Act
+            viewModel.UploadToServerCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            var uploadedData = await uploadedRepo.LoadAsync();
+            
+            var equipment = uploadedData.Equipments.First();
+            var system = uploadedData.Systems.First();
+            var unit = uploadedData.Units.First();
+            var device = uploadedData.Devices.First();
+            
+            system.EquipmentId.Should().Be(equipment.Id);
+            unit.SystemId.Should().Be(system.Id);
+            device.UnitId.Should().Be(unit.Id);
+        }
+
+        [Fact]
+        public async Task UploadToServer_UpdatesBothWorkflowsAndUploadedHardwaresFiles()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Pre-populate workflow repository
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            workflowData.WorkflowSessions.Add(new WorkflowSessionDto2
+            {
+                WorkflowId = viewModel.WorkflowId,
+                StartType = HardwareLayer.Device,
+                State = ComponentState.Defined
+            });
+            await workflowRepo.SaveAsync(workflowData);
+            
+            // Complete workflow
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Act
+            viewModel.UploadToServerCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert - Both repositories updated
+            var uploadedRepo = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
+            var uploadedData = await uploadedRepo.LoadAsync();
+            uploadedData.Devices.Should().HaveCount(1);
+            
+            // Workflow should be removed from IncompleteWorkflowDataStore after successful upload
+            workflowData = await workflowRepo.LoadAsync();
+            workflowData.WorkflowSessions.Any(s => s.WorkflowId == viewModel.WorkflowId).Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UploadToServer_RemovesWorkflowFromIncompleteWorkflowDataStore()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Pre-populate workflow repository with a session
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            workflowData.WorkflowSessions.Add(new WorkflowSessionDto2
+            {
+                WorkflowId = viewModel.WorkflowId,
+                StartType = HardwareLayer.Device,
+                State = ComponentState.Defined
+            });
+            await workflowRepo.SaveAsync(workflowData);
+            
+            // Complete workflow
+            viewModel.CompleteWorkflowCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Act
+            viewModel.UploadToServerCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert - Workflow should be removed from IncompleteWorkflowDataStore
+            workflowData = await workflowRepo.LoadAsync();
+            workflowData.WorkflowSessions.Any(s => s.WorkflowId == viewModel.WorkflowId).Should().BeFalse();
+        }
+
+        #endregion
+
+        #region Autosave Integration with WorkflowRepository
+
+        [Fact]
+        public async Task SaveWorkflowStateAsync_UsesWorkflowRepositoryInsteadOfOldRepository()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Act - ExitToDashboard triggers SaveWorkflowStateAsync
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert - Check WorkflowRepository was used
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            
+            workflowData.WorkflowSessions.Should().HaveCount(1);
+            workflowData.WorkflowSessions.First().WorkflowId.Should().Be(viewModel.WorkflowId);
+        }
+
+        [Fact]
+        public async Task SaveWorkflowStateAsync_CreatesWorkflowSessionDto2InIncompleteWorkflowDataStore()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            viewModel.EquipmentViewModel.Name = "TestEquipment";
+            
+            // Act
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            session.Should().NotBeNull();
+            session.StartType.Should().Be(HardwareLayer.Equipment);
+            session.State.Should().Be(ComponentState.Undefined);
+        }
+
+        [Fact]
+        public async Task SaveWorkflowStateAsync_PreservesEntireTreeStructureInTreeNodesProperty()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            viewModel.EquipmentViewModel.Name = "TestEquipment";
+            viewModel.SystemViewModel.Name = "TestSystem";
+            viewModel.UnitViewModel.Name = "TestUnit";
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            
+            // Act
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            session.Should().NotBeNull();
+            session.TreeNodes.Should().NotBeEmpty();
+            
+            // Verify Equipment is at root
+            var equipmentNode = session.TreeNodes.FirstOrDefault();
+            equipmentNode.Should().NotBeNull();
+            equipmentNode.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            equipmentNode.EquipmentData.Should().NotBeNull();
+            equipmentNode.EquipmentData.Name.Should().Be("TestEquipment");
+        }
+
+        [Fact]
+        public async Task SaveWorkflowStateAsync_UpdatesExistingWorkflowSessionByWorkflowId()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "InitialName";
+            
+            // First save
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Modify and save again
+            viewModel.DeviceViewModel.Name = "UpdatedName";
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            
+            // Should still only have 1 session (updated, not duplicated)
+            workflowData.WorkflowSessions.Count(s => s.WorkflowId == viewModel.WorkflowId).Should().Be(1);
+            
+            var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
+            session.TreeNodes.First().DeviceData.Name.Should().Be("UpdatedName");
+        }
+
+        [Fact]
+        public async Task SaveWorkflowStateAsync_SetsStateToDefinedWhenAllRequiredFieldsFilled()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice"; // Required field filled
+            
+            // Act
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            
+            var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
+            session.State.Should().Be(ComponentState.Defined);
+        }
+
+        [Fact]
+        public async Task SaveWorkflowStateAsync_SetsStateToUndefinedWhenRequiredFieldsNotFilled()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            // Don't set Name - required field not filled
+            
+            // Act
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            
+            var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
+            session.State.Should().Be(ComponentState.Undefined);
+        }
+
+        [Fact]
+        public async Task SaveWorkflowStateAsync_UpdatesLastModifiedAtTimestamp()
+        {
+            // Arrange
+            ServiceLocator.Reset();
+            ServiceLocator.ConfigureForTesting();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            viewModel.DeviceViewModel.Name = "TestDevice";
+            var beforeSave = DateTime.Now;
+            
+            // Act
+            viewModel.ExitToDashboardCommand.Execute(null);
+            await Task.Delay(100);
+            
+            // Assert
+            var workflowRepo = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+            var workflowData = await workflowRepo.LoadAsync();
+            
+            var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
+            session.LastModifiedAt.Should().BeCloseTo(beforeSave, TimeSpan.FromSeconds(5));
         }
 
         #endregion

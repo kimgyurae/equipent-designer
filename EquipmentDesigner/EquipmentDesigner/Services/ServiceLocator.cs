@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 
@@ -124,26 +125,34 @@ namespace EquipmentDesigner.Services
         }
 
         /// <summary>
-        /// Configures services for production use with JsonFileRepository.
+        /// Configures services for production use with typed repositories.
         /// </summary>
         public static void ConfigureForProduction()
         {
-            var repository = new JsonFileRepository();
-            RegisterSingleton<IDataRepository>(repository);
+            // Register typed repositories for multi-file support
+            var workflowRepository = new WorkflowRepository();
+            RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(workflowRepository);
 
-            var apiService = new MockEquipmentApiService(repository);
+            var uploadedHardwareRepository = new UploadedHardwareRepository();
+            RegisterSingleton<ITypedDataRepository<UploadedHardwareDataStore>>(uploadedHardwareRepository);
+
+            var apiService = new MockEquipmentApiService(uploadedHardwareRepository);
             RegisterSingleton<IEquipmentApiService>(apiService);
         }
 
         /// <summary>
-        /// Configures services for testing with MemoryRepository.
+        /// Configures services for testing with MemoryTypedRepository.
         /// </summary>
         public static void ConfigureForTesting()
         {
-            var repository = new MemoryRepository();
-            RegisterSingleton<IDataRepository>(repository);
+            // Register typed memory repositories for multi-file support testing
+            var workflowRepository = new MemoryTypedRepository<IncompleteWorkflowDataStore>();
+            RegisterSingleton<ITypedDataRepository<IncompleteWorkflowDataStore>>(workflowRepository);
 
-            var apiService = new MockEquipmentApiService(repository);
+            var uploadedHardwareRepository = new MemoryTypedRepository<UploadedHardwareDataStore>();
+            RegisterSingleton<ITypedDataRepository<UploadedHardwareDataStore>>(uploadedHardwareRepository);
+
+            var apiService = new MockEquipmentApiService(uploadedHardwareRepository);
             RegisterSingleton<IEquipmentApiService>(apiService);
         }
     }

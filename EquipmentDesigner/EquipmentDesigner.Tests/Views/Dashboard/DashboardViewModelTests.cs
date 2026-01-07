@@ -143,7 +143,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Equipments.Add(new EquipmentDto { Id = "1", Name = "DefinedEquip", State = ComponentState.Defined });
             await repository.SaveAsync(dataStore);
@@ -163,7 +163,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Systems.Add(new SystemDto { Id = "1", Name = "DefinedSystem", State = ComponentState.Defined });
             await repository.SaveAsync(dataStore);
@@ -183,7 +183,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Units.Add(new UnitDto { Id = "1", Name = "DefinedUnit", State = ComponentState.Defined });
             await repository.SaveAsync(dataStore);
@@ -203,7 +203,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Devices.Add(new DeviceDto { Id = "1", Name = "DefinedDevice", State = ComponentState.Defined });
             await repository.SaveAsync(dataStore);
@@ -227,7 +227,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Equipments.Add(new EquipmentDto { Id = "1", Name = "UploadedEquip", State = ComponentState.Uploaded });
             await repository.SaveAsync(dataStore);
@@ -247,7 +247,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Equipments.Add(new EquipmentDto { Id = "1", Name = "ValidatedEquip", State = ComponentState.Validated });
             await repository.SaveAsync(dataStore);
@@ -267,7 +267,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Equipments.Add(new EquipmentDto { Id = "1", Name = "UndefinedEquip", State = ComponentState.Undefined });
             await repository.SaveAsync(dataStore);
@@ -286,7 +286,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Systems.Add(new SystemDto { Id = "1", Name = "UploadedSystem", State = ComponentState.Uploaded });
             dataStore.Systems.Add(new SystemDto { Id = "2", Name = "UndefinedSystem", State = ComponentState.Undefined });
@@ -307,7 +307,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Units.Add(new UnitDto { Id = "1", Name = "ValidatedUnit", State = ComponentState.Validated });
             dataStore.Units.Add(new UnitDto { Id = "2", Name = "UndefinedUnit", State = ComponentState.Undefined });
@@ -328,7 +328,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Devices.Add(new DeviceDto { Id = "1", Name = "UploadedDevice", State = ComponentState.Uploaded });
             dataStore.Devices.Add(new DeviceDto { Id = "2", Name = "UndefinedDevice", State = ComponentState.Undefined });
@@ -349,7 +349,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Equipments.Add(new EquipmentDto { Id = "1", Name = "Test", State = ComponentState.Uploaded });
             await repository.SaveAsync(dataStore);
@@ -389,7 +389,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Equipments.Add(new EquipmentDto { Id = "equip-123", Name = "TestEquip", State = ComponentState.Defined });
             await repository.SaveAsync(dataStore);
@@ -409,7 +409,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Equipments.Add(new EquipmentDto { Id = "equip-123", Name = "TestEquip", State = ComponentState.Defined });
             await repository.SaveAsync(dataStore);
@@ -428,7 +428,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Systems.Add(new SystemDto { Id = "sys-456", Name = "TestSystem", State = ComponentState.Uploaded });
             await repository.SaveAsync(dataStore);
@@ -449,7 +449,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Units.Add(new UnitDto { Id = "unit-789", Name = "TestUnit", State = ComponentState.Validated });
             await repository.SaveAsync(dataStore);
@@ -470,7 +470,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var repository = ServiceLocator.GetService<IDataRepository>();
+            var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedHardwareDataStore>>();
             var dataStore = await repository.LoadAsync();
             dataStore.Devices.Add(new DeviceDto { Id = "dev-101", Name = "TestDevice", State = ComponentState.Defined });
             await repository.SaveAsync(dataStore);

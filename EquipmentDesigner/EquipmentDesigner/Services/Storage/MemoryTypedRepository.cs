@@ -1,31 +1,31 @@
 using System;
 using System.Threading.Tasks;
-using EquipmentDesigner.Models.Storage;
 
 namespace EquipmentDesigner.Services.Storage
 {
     /// <summary>
-    /// 메모리 기반 저장소 (테스트용)
+    /// Memory-based typed repository for testing purposes.
+    /// Generic implementation that works with any data store type.
     /// </summary>
-    public class MemoryRepository : IDataRepository
+    /// <typeparam name="T">The data store type.</typeparam>
+    public class MemoryTypedRepository<T> : ITypedDataRepository<T> where T : class, new()
     {
-        private SharedMemoryDataStore _dataStore;
+        private T _dataStore;
 
         public bool IsDirty { get; private set; }
 
-        public Task<SharedMemoryDataStore> LoadAsync()
+        public Task<T> LoadAsync()
         {
             if (_dataStore == null)
             {
-                _dataStore = new SharedMemoryDataStore();
+                _dataStore = new T();
             }
             return Task.FromResult(_dataStore);
         }
 
-        public Task SaveAsync(SharedMemoryDataStore dataStore)
+        public Task SaveAsync(T dataStore)
         {
             _dataStore = dataStore;
-            _dataStore.LastSavedAt = DateTime.Now;
             IsDirty = false;
             return Task.CompletedTask;
         }

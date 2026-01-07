@@ -80,7 +80,7 @@ namespace EquipmentDesigner
 
             try
             {
-                var repository = ServiceLocator.GetService<IDataRepository>();
+                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
                 var dataStore = await repository.LoadAsync();
 
                 var sessionDto = dataStore?.WorkflowSessions?
@@ -88,7 +88,7 @@ namespace EquipmentDesigner
 
                 if (sessionDto != null)
                 {
-                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto(sessionDto);
+                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto2(sessionDto);
                     var workflowView = new HardwareDefineWorkflowView
                     {
                         DataContext = workflowViewModel
