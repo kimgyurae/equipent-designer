@@ -5,6 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow"
              xmlns:models="clr-namespace:EquipmentDesigner.Models"
+             xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
+             xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
              x:Name="TreeItemRoot"
              mc:Ignorable="d"
              d:DesignHeight="200" d:DesignWidth="280">
@@ -13,6 +15,8 @@
         <!-- Chevron Path Data -->
         <PathGeometry x:Key="ChevronDownPath" Figures="M6 9l6 6 6-6"/>
         <PathGeometry x:Key="ChevronRightPath" Figures="M9 18l6-6-6-6"/>
+        <converters:HardwareLayerToBackgroundConverter x:Key="HardwareLayerToBackgroundConverter"/>
+        <converters:HardwareLayerToForegroundConverter x:Key="HardwareLayerToForegroundConverter"/>
     </UserControl.Resources>
 
     <StackPanel>
@@ -88,37 +92,12 @@
                 </ToggleButton>
 
                 <!-- Hardware Layer Type Chip -->
-                <Border Grid.Column="1"
-                        Padding="8,4"
-                        CornerRadius="{StaticResource Radius.XL}"
-                        VerticalAlignment="Center"
-                        Margin="4,0,0,0">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background}"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding HardwareLayer}" Value="{x:Static models:HardwareLayer.Equipment}">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding HardwareLayer}" Value="{x:Static models:HardwareLayer.System}">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Button.Accent.Background}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding HardwareLayer}" Value="{x:Static models:HardwareLayer.Unit}">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Button.Info.Background}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding HardwareLayer}" Value="{x:Static models:HardwareLayer.Device}">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Button.Success.Background}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <TextBlock Text="{Binding HardwareLayer}"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="{StaticResource Font.Size.SM}"
-                               FontWeight="{StaticResource Font.Weight.Regular}"
-                               Foreground="{StaticResource Brush.Text.Inverse}"/>
-                </Border>
+                <reusable:StateChip Grid.Column="1"
+                                    Text="{Binding HardwareLayer}"
+                                    ChipBackground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToBackgroundConverter}}"
+                                    ChipForeground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToForegroundConverter}}"
+                                    VerticalAlignment="Center"
+                                    Margin="4,0,0,0"/>
 
                 <!-- Display Name -->
                 <TextBlock Grid.Column="2"

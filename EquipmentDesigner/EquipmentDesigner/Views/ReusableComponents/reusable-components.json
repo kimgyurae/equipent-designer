@@ -15,6 +15,10 @@
         {
             "path": "Toast/",
             "description": "Toast notification component."
+        },
+        {
+            "path": "StateChip.xaml",
+            "description": "Reusable chip control for displaying state/type information with customizable colors. Supports Text, ChipBackground, and ChipForeground dependency properties. Used with ComponentStateToBackgroundConverter, ComponentStateToForegroundConverter, HardwareLayerToBackgroundConverter, and HardwareLayerToForegroundConverter for enum-based styling."
         }
     ]
 }

@@ -16,13 +16,18 @@ namespace EquipmentDesigner.Models.Dtos
         Defined = 1,
 
         /// <summary>
+        /// 모든 필수 입력 항목이 채워짐
+        /// </summary>
+        Confirmed = 2,
+
+        /// <summary>
         /// 서버에 저장 완료됨
         /// </summary>
-        Uploaded = 2,
+        Uploaded = 3,
 
         /// <summary>
         /// 데이터 검증이 완료됨
         /// </summary>
-        Validated = 3
+        Validated = 4
     }
 }

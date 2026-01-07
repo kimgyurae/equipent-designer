@@ -1,0 +1,23 @@
+<UserControl x:Class="EquipmentDesigner.Views.ReusableComponents.StateChip"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
+             mc:Ignorable="d"
+             x:Name="ChipRoot"
+             d:DesignHeight="24" d:DesignWidth="80">
+
+    <Border x:Name="ChipBorder"
+            Padding="8,4"
+            CornerRadius="{StaticResource Radius.XL}"
+            VerticalAlignment="Center"
+            Background="{Binding ChipBackground, ElementName=ChipRoot}">
+        <TextBlock Text="{Binding Text, ElementName=ChipRoot}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="{StaticResource Font.Size.SM}"
+                   FontWeight="{StaticResource Font.Weight.Regular}"
+                   Foreground="{Binding ChipForeground, ElementName=ChipRoot}"/>
+    </Border>
+</UserControl>

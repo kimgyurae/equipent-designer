@@ -80,7 +80,7 @@ namespace EquipmentDesigner
 
             try
             {
-                var repository = ServiceLocator.GetService<ITypedDataRepository<IncompleteWorkflowDataStore>>();
+                var repository = ServiceLocator.GetService<IWorkflowRepository>();
                 var dataStore = await repository.LoadAsync();
 
                 var sessionDto = dataStore?.WorkflowSessions?
@@ -88,7 +88,7 @@ namespace EquipmentDesigner
 
                 if (sessionDto != null)
                 {
-                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto2(sessionDto);
+                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto(sessionDto);
                     var workflowView = new HardwareDefineWorkflowView
                     {
                         DataContext = workflowViewModel
@@ -110,7 +110,7 @@ namespace EquipmentDesigner
             try
             {
                 // Load from UploadedWorkflowDataStore (ComponentId is WorkflowId)
-                var repository = ServiceLocator.GetService<ITypedDataRepository<UploadedWorkflowDataStore>>();
+                var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
                 var dataStore = await repository.LoadAsync();
 
                 var sessionDto = dataStore?.WorkflowSessions?
@@ -118,8 +118,8 @@ namespace EquipmentDesigner
 
                 if (sessionDto != null)
                 {
-                    // Use FromWorkflowSessionDto2 to rebuild the workflow
-                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto2(sessionDto);
+                    // Use FromWorkflowSessionDto to rebuild the workflow
+                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto(sessionDto);
                     workflowViewModel.IsReadOnly = true;  // Set read-only mode
 
                     var workflowView = new HardwareDefineWorkflowView

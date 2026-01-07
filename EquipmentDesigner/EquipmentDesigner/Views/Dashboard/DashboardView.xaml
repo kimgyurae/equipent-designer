@@ -5,6 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:services="clr-namespace:EquipmentDesigner.Services"
+             xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
+             xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -14,6 +16,8 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:ComponentStateToBackgroundConverter x:Key="ComponentStateToBackgroundConverter"/>
+        <converters:ComponentStateToForegroundConverter x:Key="ComponentStateToForegroundConverter"/>
     </UserControl.Resources>
 
     <Grid>
@@ -223,10 +227,10 @@
                                                                    Style="{StaticResource Typography.Body.Large}"
                                                                    Foreground="{StaticResource Brush.Text.Primary}"/>
 
-                                                        <TextBlock Text="{Binding ComponentState}"
-                                                                   Style="{StaticResource Typography.Body.Large}"
-                                                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                                                           Margin="12,0,0,0"/>
+                                                        <reusable:StateChip Text="{Binding ComponentState}"
+                                                                            ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                            ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
+                                                                            Margin="12,0,0,0"/>
                                                     </StackPanel>
                                                     <TextBlock Grid.Column="1"
                                                                Text="{Binding Date}"
