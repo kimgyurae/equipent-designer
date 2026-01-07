@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
@@ -27,6 +28,12 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         private HardwareTreeNodeViewModel _selectedTreeNode;
         private bool _isWorkflowCompleted;
         private bool _hasDataChangedSinceCompletion;
+
+        // Autosave fields
+        private DispatcherTimer _autosaveTimer;
+        private bool _isDirty;
+        private bool _isAutosaveEnabled;
+        private static readonly TimeSpan DefaultAutosaveInterval = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// Creates a new workflow with a unique ID.
@@ -541,6 +548,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             if (CurrentStepIndex < WorkflowSteps.Count - 1)
             {
                 CurrentStepIndex++;
+                MarkDirty(); // Mark for autosave when navigating
             }
         }
 
@@ -554,6 +562,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             if (CurrentStepIndex > 0)
             {
                 CurrentStepIndex--;
+                MarkDirty(); // Mark for autosave when navigating
             }
         }
 
@@ -668,7 +677,81 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 workflowData.WorkflowSessions.Add(sessionDto);
 
             await workflowRepo.SaveAsync(workflowData);
+            _isDirty = false;
         }
+
+        #region Autosave
+
+        /// <summary>
+        /// Gets whether autosave is currently enabled.
+        /// </summary>
+        public bool IsAutosaveEnabled => _isAutosaveEnabled;
+
+        /// <summary>
+        /// Enables autosave with the default interval (30 seconds).
+        /// </summary>
+        public void EnableAutosave()
+        {
+            EnableAutosave(DefaultAutosaveInterval);
+        }
+
+        /// <summary>
+        /// Enables autosave with a custom interval.
+        /// </summary>
+        /// <param name="interval">The interval between autosave attempts.</param>
+        public void EnableAutosave(TimeSpan interval)
+        {
+            if (_isAutosaveEnabled)
+                return;
+
+            _autosaveTimer = new DispatcherTimer
+            {
+                Interval = interval
+            };
+            _autosaveTimer.Tick += OnAutosaveTimerTick;
+            _autosaveTimer.Start();
+            _isAutosaveEnabled = true;
+        }
+
+        /// <summary>
+        /// Disables autosave and stops the timer.
+        /// </summary>
+        public void DisableAutosave()
+        {
+            if (!_isAutosaveEnabled)
+                return;
+
+            if (_autosaveTimer != null)
+            {
+                _autosaveTimer.Stop();
+                _autosaveTimer.Tick -= OnAutosaveTimerTick;
+                _autosaveTimer = null;
+            }
+            _isAutosaveEnabled = false;
+        }
+
+        /// <summary>
+        /// Marks the workflow data as dirty (needing save).
+        /// Call this when any data changes.
+        /// </summary>
+        public void MarkDirty()
+        {
+            _isDirty = true;
+        }
+
+        /// <summary>
+        /// Handler for autosave timer tick.
+        /// Saves workflow state if data is dirty.
+        /// </summary>
+        private async void OnAutosaveTimerTick(object sender, EventArgs e)
+        {
+            if (_isDirty && !IsReadOnly)
+            {
+                await SaveWorkflowStateAsync();
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Converts this ViewModel to a WorkflowSessionDto2 for persistence.
@@ -1143,6 +1226,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             if (targetIndex == CurrentStepIndex) return;
 
             CurrentStepIndex = targetIndex;
+            MarkDirty(); // Mark for autosave when navigating
         }
 
         private bool CanExecuteNavigateToStep(WorkflowStepViewModel step)
@@ -1218,6 +1302,9 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
                 // Select the new node
                 ExecuteSelectTreeNode(newChild);
+
+                // Mark data as dirty for autosave
+                MarkDirty();
             }
         }
 
