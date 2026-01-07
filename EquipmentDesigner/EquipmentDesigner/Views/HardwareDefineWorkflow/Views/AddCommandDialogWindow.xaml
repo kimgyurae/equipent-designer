@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
+        xmlns:controls="clr-namespace:EquipmentDesigner.Controls"
+        xmlns:constants="clr-namespace:EquipmentDesigner.Constants"
         lex:LocalizeDictionary.DesignCulture="ko"
         lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
         lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -17,12 +19,99 @@
         Background="Transparent"
         Width="600" Height="580">
 
+    <Window.Resources>
+        <x:Array x:Key="ParameterDataTypes" Type="{x:Type system:String}" 
+                 xmlns:system="clr-namespace:System;assembly=mscorlib">
+            <!-- C# Primitive Types -->
+            <system:String>bool</system:String>
+            <system:String>byte</system:String>
+            <system:String>sbyte</system:String>
+            <system:String>char</system:String>
+            <system:String>short</system:String>
+            <system:String>ushort</system:String>
+            <system:String>int</system:String>
+            <system:String>uint</system:String>
+            <system:String>long</system:String>
+            <system:String>ulong</system:String>
+            <system:String>float</system:String>
+            <system:String>double</system:String>
+            <system:String>decimal</system:String>
+            <system:String>string</system:String>
+            <!-- Common .NET Types -->
+            <system:String>DateTime</system:String>
+            <system:String>TimeSpan</system:String>
+            <system:String>Guid</system:String>
+            <!-- Bit-level Types (Digital IO) -->
+            <system:String>bit</system:String>
+            <system:String>BOOL</system:String>
+            <system:String>BYTE</system:String>
+            <system:String>WORD</system:String>
+            <system:String>DWORD</system:String>
+            <system:String>LWORD</system:String>
+            <!-- Integer Types (PLC/Industrial) -->
+            <system:String>SINT</system:String>
+            <system:String>USINT</system:String>
+            <system:String>INT</system:String>
+            <system:String>UINT</system:String>
+            <system:String>DINT</system:String>
+            <system:String>UDINT</system:String>
+            <system:String>LINT</system:String>
+            <system:String>ULINT</system:String>
+            <!-- Floating Point Types (PLC/Industrial) -->
+            <system:String>REAL</system:String>
+            <system:String>LREAL</system:String>
+            <!-- String Types (PLC/Industrial) -->
+            <system:String>STRING</system:String>
+            <system:String>WSTRING</system:String>
+            <!-- Time Types (PLC/Industrial) -->
+            <system:String>TIME</system:String>
+            <system:String>DATE</system:String>
+            <system:String>TIME_OF_DAY</system:String>
+            <system:String>DATE_AND_TIME</system:String>
+            <system:String>TOD</system:String>
+            <system:String>DT</system:String>
+            <!-- Array Types -->
+            <system:String>byte[]</system:String>
+            <system:String>int[]</system:String>
+            <system:String>float[]</system:String>
+            <system:String>double[]</system:String>
+            <system:String>bool[]</system:String>
+            <system:String>string[]</system:String>
+            <!-- Analog IO Common Types -->
+            <system:String>Analog</system:String>
+            <system:String>AnalogInput</system:String>
+            <system:String>AnalogOutput</system:String>
+            <!-- Digital IO Common Types -->
+            <system:String>Digital</system:String>
+            <system:String>DigitalInput</system:String>
+            <system:String>DigitalOutput</system:String>
+            <!-- Communication Protocol Types -->
+            <system:String>ModbusRegister</system:String>
+            <system:String>ModbusCoil</system:String>
+            <system:String>OpcTag</system:String>
+            <system:String>EtherCATData</system:String>
+            <system:String>ProfinetData</system:String>
+            <!-- Position/Motion Types -->
+            <system:String>Position</system:String>
+            <system:String>Velocity</system:String>
+            <system:String>Acceleration</system:String>
+            <system:String>Torque</system:String>
+            <!-- Status Types -->
+            <system:String>Status</system:String>
+            <system:String>AlarmCode</system:String>
+            <system:String>ErrorCode</system:String>
+            <!-- Custom/Generic Types -->
+            <system:String>Object</system:String>
+            <system:String>Enum</system:String>
+            <system:String>Struct</system:String>
+        </x:Array>
+    </Window.Resources>
+
     <Border Background="{StaticResource Brush.Surface.Primary}"
             BorderBrush="{StaticResource Brush.Border.Primary}"
             BorderThickness="1"
             CornerRadius="{StaticResource Radius.XL}"
-            Padding="24"
-            Effect="{StaticResource Shadow.LG}">
+            Padding="24">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -213,18 +302,13 @@
                                                            Style="{StaticResource Typography.Caption}"
                                                            Foreground="{StaticResource Brush.Text.Secondary}"
                                                            Margin="0,0,0,4"/>
-                                                <TextBox Text="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                         Height="{StaticResource Size.Input.Height.SM}"
-                                                         Padding="8,4"
-                                                         Background="{StaticResource Brush.Background.Tertiary}"
-                                                         BorderThickness="0"
-                                                         VerticalContentAlignment="Center">
-                                                    <TextBox.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="{StaticResource Radius.MD}"/>
-                                                        </Style>
-                                                    </TextBox.Resources>
-                                                </TextBox>
+                                                <controls:AutoCompleteTextBox 
+                                                    Text="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    Suggestions="{StaticResource ParameterDataTypes}"
+                                                    InputHeight="{StaticResource Size.Input.Height.SM}"
+                                                    InputPadding="8,4"
+                                                    InputBackground="{StaticResource Brush.Background.Tertiary}"
+                                                    CornerRadius="{StaticResource Radius.MD}"/>
                                             </StackPanel>
 
                                             <!-- Parameter Description -->

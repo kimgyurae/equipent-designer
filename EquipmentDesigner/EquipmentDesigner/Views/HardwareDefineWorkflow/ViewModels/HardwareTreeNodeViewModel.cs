@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine;
@@ -318,5 +320,111 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             return Children.Remove(child);
         }
+
+        #region Copy and Delete Support Methods
+
+        /// <summary>
+        /// Gets all descendant nodes (children, grandchildren, etc.) in a flattened list.
+        /// </summary>
+        /// <returns>A flat list of all descendant nodes, not including the node itself.</returns>
+        public List<HardwareTreeNodeViewModel> GetAllDescendants()
+        {
+            var descendants = new List<HardwareTreeNodeViewModel>();
+            CollectDescendants(this, descendants);
+            return descendants;
+        }
+
+        private static void CollectDescendants(HardwareTreeNodeViewModel node, List<HardwareTreeNodeViewModel> list)
+        {
+            foreach (var child in node.Children)
+            {
+                list.Add(child);
+                CollectDescendants(child, list);
+            }
+        }
+
+        /// <summary>
+        /// Generates a unique copy name by appending "- copy" suffix.
+        /// If the name already has a copy suffix, increments the number.
+        /// </summary>
+        /// <param name="originalName">The original name to generate a copy name from.</param>
+        /// <returns>A new name with appropriate copy suffix.</returns>
+        public static string GenerateCopyName(string originalName)
+        {
+            if (string.IsNullOrWhiteSpace(originalName))
+                return "copy";
+
+            // Pattern to match " - copy" or " - copy N" at the end
+            var copyPattern = new Regex(@" - copy( (\d+))?$");
+            var match = copyPattern.Match(originalName);
+
+            if (match.Success)
+            {
+                // Already has copy suffix
+                if (match.Groups[2].Success)
+                {
+                    // Has a number, increment it
+                    int currentNum = int.Parse(match.Groups[2].Value);
+                    return copyPattern.Replace(originalName, $" - copy {currentNum + 1}");
+                }
+                else
+                {
+                    // Just " - copy", add " 2"
+                    return originalName + " 2";
+                }
+            }
+
+            // No copy suffix, add " - copy"
+            return originalName + " - copy";
+        }
+
+        /// <summary>
+        /// Creates a deep copy of this node and all its descendants.
+        /// </summary>
+        /// <param name="newParent">The parent for the copied node.</param>
+        /// <returns>A new node with copied data and recursively copied children.</returns>
+        public HardwareTreeNodeViewModel DeepCopy(HardwareTreeNodeViewModel newParent)
+        {
+            // Clone the DataViewModel
+            var clonedDataViewModel = CloneDataViewModel(this.DataViewModel);
+            
+            // Apply copy suffix to the name
+            if (clonedDataViewModel != null)
+            {
+                clonedDataViewModel.Name = GenerateCopyName(clonedDataViewModel.Name);
+            }
+
+            // Create new node with cloned data
+            var copiedNode = new HardwareTreeNodeViewModel(this.HardwareLayer, newParent, clonedDataViewModel);
+
+            // Recursively copy all children
+            foreach (var child in this.Children)
+            {
+                var copiedChild = child.DeepCopy(copiedNode);
+                copiedNode.Children.Add(copiedChild);
+            }
+
+            return copiedNode;
+        }
+
+        /// <summary>
+        /// Creates a clone of the data ViewModel using the ToDto/FromDto pattern.
+        /// </summary>
+        private static IHardwareDefineViewModel CloneDataViewModel(IHardwareDefineViewModel source)
+        {
+            if (source == null)
+                return null;
+
+            return source switch
+            {
+                EquipmentDefineViewModel vm => EquipmentDefineViewModel.FromDto(vm.ToDto()),
+                SystemDefineViewModel vm => SystemDefineViewModel.FromDto(vm.ToDto()),
+                UnitDefineViewModel vm => UnitDefineViewModel.FromDto(vm.ToDto()),
+                DeviceDefineViewModel vm => DeviceDefineViewModel.FromDto(vm.ToDto()),
+                _ => null
+            };
+        }
+
+        #endregion
     }
 }

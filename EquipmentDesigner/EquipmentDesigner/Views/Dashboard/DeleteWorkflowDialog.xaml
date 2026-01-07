@@ -22,8 +22,7 @@
             BorderBrush="{StaticResource Brush.Border.Primary}"
             BorderThickness="1"
             CornerRadius="{StaticResource Radius.XL}"
-            Padding="24"
-            Effect="{StaticResource Shadow.LG}">
+            Padding="24">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

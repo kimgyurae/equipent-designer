@@ -7,6 +7,10 @@
              xmlns:models="clr-namespace:EquipmentDesigner.Models"
              xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
              xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             lex:LocalizeDictionary.DesignCulture="ko"
+             lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
+             lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
              x:Name="TreeItemRoot"
              mc:Ignorable="d"
              d:DesignHeight="200" d:DesignWidth="280">
@@ -26,6 +30,33 @@
                 Padding="8,8"
                 CornerRadius="{StaticResource Radius.XL}"
                 Cursor="Hand">
+            <!-- Context Menu -->
+            <Border.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{lex:Loc Key=ContextMenu_Copy}"
+                              Command="{Binding PlacementTarget.DataContext.DataContext.CopyNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                        <MenuItem.Icon>
+                            <Path Data="M8 4v12a2 2 0 0 0 2 2h12V8a2 2 0 0 0-2-2H8zM4 8a2 2 0 0 1 2-2V4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 1-2-2V8z"
+                                  Fill="{StaticResource Brush.Text.Primary}"
+                                  Width="14" Height="14"
+                                  Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="{lex:Loc Key=ContextMenu_Delete}"
+                              Command="{Binding PlacementTarget.DataContext.DataContext.DeleteNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                              Foreground="{StaticResource Brush.Status.Danger}">
+                        <MenuItem.Icon>
+                            <Path Data="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14"
+                                  Fill="{StaticResource Brush.Status.Danger}"
+                                  Width="14" Height="14"
+                                  Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </Border.ContextMenu>
             <Border.InputBindings>
                 <MouseBinding MouseAction="LeftClick"
                               Command="{Binding DataContext.SelectTreeNodeCommand, RelativeSource={RelativeSource AncestorType=local:HardwareDefineWorkflowView}}"

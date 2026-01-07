@@ -53,7 +53,8 @@
                 BorderBrush="{StaticResource Brush.Border.Primary}"
                 BorderThickness="{StaticResource Border.Thin}"
                 CornerRadius="{StaticResource Radius.LG}"
-                Padding="{StaticResource Spacing.Padding.Card}">
+                Padding="{StaticResource Spacing.Padding.Card}"
+                Margin="0,0,0,24">
             <StackPanel>
 
                 <!-- Equipment Type -->
@@ -139,7 +140,7 @@
                 </StackPanel>
 
                 <!-- Process -->
-                <StackPanel Margin="0,0,0,16">
+                <StackPanel>
                     <TextBlock Text="{lex:Loc Key=Equipment_Process}"
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
@@ -154,95 +155,18 @@
                              IsHitTestVisible="{Binding IsEditable}"/>
                 </StackPanel>
 
-                <!-- Attached Documents -->
-                <StackPanel>
-                    <TextBlock Text="{lex:Loc Key=Equipment_AttachedDocuments}"
-                               Style="{StaticResource Typography.Label}"
-                               Foreground="{StaticResource Brush.Text.Primary}"
-                               Margin="0,0,0,6"/>
-                    <TextBlock Text="{lex:Loc Key=Equipment_AttachedDocuments_Description}"
-                               Style="{StaticResource Typography.Body.Small}"
-                               Foreground="{StaticResource Brush.Text.Tertiary}"
-                               Margin="0,0,0,8"/>
-
-                    <!-- Document List -->
-                    <ItemsControl ItemsSource="{Binding AttachedDocuments}"
-                                  Margin="0,0,0,8">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{StaticResource Brush.Background.Tertiary}"
-                                        CornerRadius="{StaticResource Radius.MD}"
-                                        Padding="12,8"
-                                        Margin="0,0,0,4">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Path Grid.Column="0"
-                                              Data="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                              Stroke="{StaticResource Brush.Text.Secondary}"
-                                              StrokeThickness="1.5"
-                                              Width="16" Height="16"
-                                              Stretch="Uniform"
-                                              VerticalAlignment="Center"/>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding}"
-                                                   Style="{StaticResource Typography.Body.Small}"
-                                                   Foreground="{StaticResource Brush.Text.Primary}"
-                                                   VerticalAlignment="Center"
-                                                   Margin="8,0,0,0"
-                                                   TextTrimming="CharacterEllipsis"/>
-                                        <Button Grid.Column="2"
-                                                Command="{Binding DataContext.RemoveDocumentCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Foreground="{StaticResource Brush.Text.Tertiary}"
-                                                FontSize="12"
-                                                Cursor="Hand"
-                                                Padding="4"
-                                                IsEnabled="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
-                                            <Path Data="M6 18L18 6M6 6l12 12"
-                                                  Stroke="{StaticResource Brush.Text.Tertiary}"
-                                                  StrokeThickness="1.5"
-                                                  Width="10" Height="10"
-                                                  Stretch="Uniform"/>
-                                        </Button>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <!-- Add Document Button -->
-                    <Button Command="{Binding AddDocumentCommand}"
-                            HorizontalAlignment="Left"
-                            Padding="{StaticResource Spacing.Padding.Button}"
-                            Height="{StaticResource Size.Button.Height.SM}"
-                            Background="{StaticResource Brush.Button.Ghost.Background}"
-                            BorderBrush="{StaticResource Brush.Border.Primary}"
-                            BorderThickness="{StaticResource Border.Thin}"
-                            Cursor="Hand"
-                            IsEnabled="{Binding IsEditable}">
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="M12 4v16m8-8H4"
-                                  Stroke="{StaticResource Brush.Text.Secondary}"
-                                  StrokeThickness="2"
-                                  Width="12" Height="12"
-                                  Stretch="Uniform"
-                                  VerticalAlignment="Center"/>
-                            <TextBlock Text="{lex:Loc Key=Equipment_AddDocument}"
-                                       Style="{StaticResource Typography.Body.Small}"
-                                       Foreground="{StaticResource Brush.Text.Secondary}"
-                                       Margin="6,0,0,0"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-
             </StackPanel>
+        </Border>
+
+        <!-- Design Documents Section -->
+        <Border Background="{StaticResource Brush.Surface.Primary}"
+                BorderBrush="{StaticResource Brush.Border.Primary}"
+                BorderThickness="{StaticResource Border.Thin}"
+                CornerRadius="{StaticResource Radius.LG}"
+                Padding="{StaticResource Spacing.Padding.Card}">
+            <reusable:FileDropZone LabelText="{lex:Loc Key=Equipment_AttachedDocuments}"
+                                   Documents="{Binding AttachedDocuments}"
+                                   IsEditable="{Binding IsEditable}"/>
         </Border>
     </StackPanel>
 </UserControl>

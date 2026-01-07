@@ -24,6 +24,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             Commands = new ObservableCollection<CommandViewModel>();
             Commands.CollectionChanged += OnCommandsCollectionChanged;
+            AttachedDocuments = new ObservableCollection<string>();
 
             LoadFromServerCommand = new RelayCommand(ExecuteLoadFromServer);
             AddCommandCommand = new RelayCommand(ExecuteAddCommand);
@@ -148,6 +149,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public ObservableCollection<CommandViewModel> Commands { get; }
 
         /// <summary>
+        /// Collection of attached design documents.
+        /// </summary>
+        public ObservableCollection<string> AttachedDocuments { get; }
+
+        /// <summary>
         /// Returns true if the commands collection is empty.
         /// </summary>
         public bool HasNoCommands => Commands.Count == 0;
@@ -243,6 +249,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             ImplementationGuidelines = string.Empty;
             Process = string.Empty;
             Commands.Clear();
+            AttachedDocuments.Clear();
         }
 
         private bool CanExecuteAddAnother()

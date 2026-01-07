@@ -152,6 +152,54 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+                            
+                            <!-- Reset All Data Button -->
+                            <Button Command="{Binding ResetAllDataCommand}"
+                                    Background="{StaticResource Brush.Status.Danger.Background}"
+                                    BorderBrush="{StaticResource Brush.Status.Danger.Border}"
+                                    BorderThickness="{StaticResource Border.Thin}"
+                                    Padding="12,8"
+                                    Margin="0,0,8,8"
+                                    Cursor="Hand">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="ButtonBorder"
+                                                            Background="{StaticResource Brush.Status.Danger.Background}"
+                                                            BorderBrush="{StaticResource Brush.Status.Danger.Border}"
+                                                            BorderThickness="{StaticResource Border.Thin}"
+                                                            CornerRadius="{StaticResource Radius.MD}"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource Brush.Status.Danger.Border}"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4h-3.5z"
+                                          Fill="{StaticResource Brush.Status.Danger}"
+                                          Width="14" Height="14"
+                                          Stretch="Uniform"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,6,0"/>
+                                    <TextBlock Text="Reset All Data"
+                                               Style="{StaticResource Typography.Body}"
+                                               Foreground="{StaticResource Brush.Status.Danger}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                             <!-- Add more admin buttons here in the future -->
                         </WrapPanel>
                     </Grid>
@@ -227,7 +275,7 @@
                                                                    Style="{StaticResource Typography.Body.Large}"
                                                                    Foreground="{StaticResource Brush.Text.Primary}"/>
 
-                                                        <reusable:StateChip Text="{Binding ComponentState}"
+                                                        <reusable:StateChip Text="{Binding ComponentStateDisplayText}"
                                                                             ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
                                                                             ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
                                                                             Margin="12,0,0,0"/>
@@ -489,6 +537,7 @@
                                 </TextBlock>
                             </StackPanel>
 
+                            <!-- Equipments Card ItemTemplate -->
                             <ItemsControl ItemsSource="{Binding Equipments}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -515,17 +564,11 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <Border Grid.Column="1"
-                                                        Background="{Binding StatusBackground}"
-                                                        BorderBrush="{Binding StatusBorder}"
-                                                        BorderThickness="{StaticResource Border.Thin}"
-                                                        CornerRadius="{StaticResource Radius.MD}"
-                                                        Padding="8,4"
-                                                        VerticalAlignment="Top">
-                                                    <TextBlock Text="{Binding Status}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
-                                                </Border>
+                                                <reusable:StateChip Grid.Column="1"
+                                                                    Text="{Binding Status}"
+                                                                    ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                    ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
+                                                                    VerticalAlignment="Top"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -563,6 +606,7 @@
                                 </TextBlock>
                             </StackPanel>
 
+                            <!-- Systems Card ItemTemplate -->
                             <ItemsControl ItemsSource="{Binding Systems}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -589,17 +633,11 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <Border Grid.Column="1"
-                                                        Background="{Binding StatusBackground}"
-                                                        BorderBrush="{Binding StatusBorder}"
-                                                        BorderThickness="{StaticResource Border.Thin}"
-                                                        CornerRadius="{StaticResource Radius.MD}"
-                                                        Padding="8,4"
-                                                        VerticalAlignment="Top">
-                                                    <TextBlock Text="{Binding Status}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
-                                                </Border>
+                                                <reusable:StateChip Grid.Column="1"
+                                                                    Text="{Binding Status}"
+                                                                    ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                    ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
+                                                                    VerticalAlignment="Top"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -636,6 +674,7 @@
                                 </TextBlock>
                             </StackPanel>
 
+                            <!-- Units Card ItemTemplate -->
                             <ItemsControl ItemsSource="{Binding Units}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -662,17 +701,11 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <Border Grid.Column="1"
-                                                        Background="{Binding StatusBackground}"
-                                                        BorderBrush="{Binding StatusBorder}"
-                                                        BorderThickness="{StaticResource Border.Thin}"
-                                                        CornerRadius="{StaticResource Radius.MD}"
-                                                        Padding="8,4"
-                                                        VerticalAlignment="Top">
-                                                    <TextBlock Text="{Binding Status}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
-                                                </Border>
+                                                <reusable:StateChip Grid.Column="1"
+                                                                    Text="{Binding Status}"
+                                                                    ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                    ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
+                                                                    VerticalAlignment="Top"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -709,6 +742,7 @@
                                 </TextBlock>
                             </StackPanel>
 
+                            <!-- Devices Card ItemTemplate -->
                             <ItemsControl ItemsSource="{Binding Devices}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -735,17 +769,11 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <Border Grid.Column="1"
-                                                        Background="{Binding StatusBackground}"
-                                                        BorderBrush="{Binding StatusBorder}"
-                                                        BorderThickness="{StaticResource Border.Thin}"
-                                                        CornerRadius="{StaticResource Radius.MD}"
-                                                        Padding="8,4"
-                                                        VerticalAlignment="Top">
-                                                    <TextBlock Text="{Binding Status}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{Binding StatusForeground, FallbackValue={StaticResource Brush.Text.Primary}, TargetNullValue={StaticResource Brush.Text.Primary}}"/>
-                                                </Border>
+                                                <reusable:StateChip Grid.Column="1"
+                                                                    Text="{Binding Status}"
+                                                                    ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                    ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
+                                                                    VerticalAlignment="Top"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

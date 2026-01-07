@@ -21,11 +21,11 @@ namespace EquipmentDesigner.Converters
 
             return state switch
             {
-                ComponentState.Draft => Application.Current.FindResource("Brush.Status.Warning.Background"),
-                ComponentState.Ready => Application.Current.FindResource("Brush.Button.Info.Background"),
-                ComponentState.Uploaded => Application.Current.FindResource("Brush.Button.Success.Background"),
-                ComponentState.Validated => Application.Current.FindResource("Brush.Button.Primary.Background"),
-                _ => Application.Current.FindResource("Brush.Button.Primary.Background")
+                ComponentState.Draft => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Background"),
+                ComponentState.Ready => Application.Current.FindResource("Brush.HardwareLayer.System.Chip.Background"),
+                ComponentState.Uploaded => Application.Current.FindResource("Brush.HardwareLayer.Unit.Chip.Background"),
+                ComponentState.Validated => Application.Current.FindResource("Brush.HardwareLayer.Device.Chip.Background"),
+                _ => Application.Current.FindResource("Brush.Status.Neutral.Background")
             };
         }
 
@@ -42,19 +42,19 @@ namespace EquipmentDesigner.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not ComponentState state)
+            if (value is not ComponentState layer)
             {
-                return Application.Current.FindResource("Brush.Text.Inverse");
+                return Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground");
             }
 
-            // Undefined uses warning background which may need dark text
-            if (state == ComponentState.Draft)
+            return layer switch
             {
-                return Application.Current.FindResource("Brush.Status.Warning");
-            }
-
-            // All other states use white/inverse text
-            return Application.Current.FindResource("Brush.Text.Inverse");
+                ComponentState.Draft => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground"),
+                ComponentState.Ready => Application.Current.FindResource("Brush.HardwareLayer.System.Chip.Foreground"),
+                ComponentState.Uploaded => Application.Current.FindResource("Brush.HardwareLayer.Unit.Chip.Foreground"),
+                ComponentState.Validated => Application.Current.FindResource("Brush.HardwareLayer.Device.Chip.Foreground"),
+                _ => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground")
+            };
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

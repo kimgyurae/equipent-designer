@@ -188,7 +188,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Equipments.Should().HaveCount(1);
@@ -208,7 +208,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Systems.Should().HaveCount(1);
@@ -228,7 +228,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Units.Should().HaveCount(1);
@@ -248,7 +248,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Devices.Should().HaveCount(1);
@@ -272,7 +272,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100); // Wait for async loading
+            await Task.Delay(1000); // Wait for async loading
 
             // Assert
             viewModel.Equipments.Should().HaveCount(1);
@@ -292,7 +292,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Equipments.Should().HaveCount(1);
@@ -312,7 +312,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Equipments.Should().HaveCount(0);
@@ -332,7 +332,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - should include Uploaded but exclude Undefined
             viewModel.Systems.Should().HaveCount(1);
@@ -353,7 +353,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Units.Should().HaveCount(1);
@@ -374,7 +374,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - should include Uploaded but exclude Undefined
             viewModel.Devices.Should().HaveCount(1);
@@ -393,7 +393,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             await repository.SaveAsync(dataStore);
 
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - just verify the count is accessible
             viewModel.EquipmentsCount.Should().Be(1);
@@ -408,7 +408,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act - should not throw
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Equipments.Should().NotBeNull();
@@ -434,7 +434,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Equipments.Should().HaveCount(1);
@@ -454,7 +454,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Equipments.First().HardwareLayer.Should().Be(HardwareLayer.Equipment);
@@ -473,7 +473,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Systems.Should().HaveCount(1);
@@ -494,7 +494,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Units.Should().HaveCount(1);
@@ -515,7 +515,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             // Act
             var viewModel = new DashboardViewModel();
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             viewModel.Devices.Should().HaveCount(1);

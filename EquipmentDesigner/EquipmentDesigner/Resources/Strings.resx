@@ -264,6 +264,12 @@
   <data name="Equipment_AddDocument" xml:space="preserve">
     <value>Add Document</value>
   </data>
+  <data name="Equipment_DropZone_Primary" xml:space="preserve">
+    <value>Click to upload or drag and drop</value>
+  </data>
+  <data name="Equipment_DropZone_Secondary" xml:space="preserve">
+    <value>PDF, PPT, MD, DrawIO files accepted</value>
+  </data>
   <data name="System_DefineSystem" xml:space="preserve">
     <value>Define System</value>
   </data>
@@ -476,5 +482,89 @@
   </data>
   <data name="EditModeSelection_Confirm" xml:space="preserve">
     <value>Confirm</value>
+  </data>
+  <data name="WorkflowComplete_Title" xml:space="preserve">
+    <value>Settings Confirmation</value>
+  </data>
+  <data name="WorkflowComplete_Subtitle" xml:space="preserve">
+    <value>Review the Equipment hierarchy and settings. (Click a card to view details)</value>
+  </data>
+  <data name="WorkflowComplete_ContinueEditing" xml:space="preserve">
+    <value>Continue Editing</value>
+  </data>
+  <data name="WorkflowComplete_UploadLater" xml:space="preserve">
+    <value>Upload Later</value>
+  </data>
+  <data name="WorkflowComplete_Upload" xml:space="preserve">
+    <value>Upload</value>
+  </data>
+  <data name="CardDetail_EquipmentType" xml:space="preserve">
+    <value>Equipment Type</value>
+  </data>
+  <data name="CardDetail_DisplayName" xml:space="preserve">
+    <value>Display Name</value>
+  </data>
+  <data name="CardDetail_Subname" xml:space="preserve">
+    <value>Subname</value>
+  </data>
+  <data name="CardDetail_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="CardDetail_Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="CardDetail_Process" xml:space="preserve">
+    <value>Process</value>
+  </data>
+  <data name="CardDetail_DeviceType" xml:space="preserve">
+    <value>Device Type</value>
+  </data>
+  <data name="CardDetail_DesignDocuments" xml:space="preserve">
+    <value>Design Documents</value>
+  </data>
+  <data name="CardDetail_Commands" xml:space="preserve">
+    <value>Commands</value>
+  </data>
+  <data name="CardDetail_IoInfo" xml:space="preserve">
+    <value>IO Information</value>
+  </data>
+  <data name="CardDetail_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="ContextMenu_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="ContextMenu_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="DeleteHardware_Title" xml:space="preserve">
+    <value>Delete Hardware</value>
+  </data>
+  <data name="DeleteHardware_Description" xml:space="preserve">
+    <value>Deleting this hardware will also delete all sub-hardware below.</value>
+  </data>
+  <data name="DeleteHardware_DescendantsLabel" xml:space="preserve">
+    <value>The following items will be deleted:</value>
+  </data>
+  <data name="DeleteHardware_TypeInstruction" xml:space="preserve">
+    <value>Type </value>
+  </data>
+  <data name="DeleteHardware_DeleteKeyword" xml:space="preserve">
+    <value>delete</value>
+  </data>
+  <data name="DeleteHardware_ToConfirm" xml:space="preserve">
+    <value> to confirm:</value>
+  </data>
+  <data name="DeleteHardware_Placeholder" xml:space="preserve">
+    <value>Type 'delete'</value>
+  </data>
+  <data name="DeleteHardware_DeleteButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="DeleteHardware_CannotDelete_Title" xml:space="preserve">
+    <value>Cannot Delete</value>
+  </data>
+  <data name="DeleteHardware_CannotDelete_MinChild" xml:space="preserve">
+    <value>Each hardware component must have at least one child component.</value>
   </data>
 </root>

@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -185,7 +186,8 @@
                     BorderBrush="{StaticResource Brush.Border.Primary}"
                     BorderThickness="{StaticResource Border.Thin}"
                     CornerRadius="{StaticResource Radius.LG}"
-                    Padding="{StaticResource Spacing.Padding.Card}">
+                    Padding="{StaticResource Spacing.Padding.Card}"
+                    Margin="0,0,0,24">
                 <StackPanel>
                     <!-- Commands Header -->
                     <Grid Margin="0,0,0,16">
@@ -301,6 +303,17 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
+            </Border>
+
+            <!-- Design Documents Section -->
+            <Border Background="{StaticResource Brush.Surface.Primary}"
+                    BorderBrush="{StaticResource Brush.Border.Primary}"
+                    BorderThickness="{StaticResource Border.Thin}"
+                    CornerRadius="{StaticResource Radius.LG}"
+                    Padding="{StaticResource Spacing.Padding.Card}">
+                <reusable:FileDropZone LabelText="{lex:Loc Key=Equipment_AttachedDocuments}"
+                                       Documents="{Binding AttachedDocuments}"
+                                       IsEditable="{Binding IsEditable}"/>
             </Border>
         </StackPanel>
     </Grid>

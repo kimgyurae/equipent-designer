@@ -215,3 +215,4 @@ CLAUDE.md
 # Auto Claude data directory
 .auto-claude/
 EquipmentDesigner/EquipmentDesigner.Tests/TestResults
+EquipmentDesigner/.test_results

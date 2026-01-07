@@ -26,6 +26,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             Commands.CollectionChanged += OnCommandsCollectionChanged;
             IoConfigurations = new ObservableCollection<IoConfigurationViewModel>();
             IoConfigurations.CollectionChanged += OnIoConfigurationsCollectionChanged;
+            AttachedDocuments = new ObservableCollection<string>();
 
             LoadFromServerCommand = new RelayCommand(ExecuteLoadFromServer);
             AddCommandCommand = new RelayCommand(ExecuteAddCommand);
@@ -158,6 +159,11 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// Collection of IO configurations for this device.
         /// </summary>
         public ObservableCollection<IoConfigurationViewModel> IoConfigurations { get; }
+
+        /// <summary>
+        /// Collection of attached design documents.
+        /// </summary>
+        public ObservableCollection<string> AttachedDocuments { get; }
 
         /// <summary>
         /// Returns true if there are no IO configurations in the collection.
@@ -336,6 +342,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             ImplementationGuidelines = string.Empty;
             Commands.Clear();
             IoConfigurations.Clear();
+            AttachedDocuments.Clear();
         }
 
         private bool CanExecuteAddAnother()

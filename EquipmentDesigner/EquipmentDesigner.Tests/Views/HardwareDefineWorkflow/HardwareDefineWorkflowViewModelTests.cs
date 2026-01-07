@@ -605,7 +605,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Act
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100); // Wait for async operation
+            await Task.Delay(1000); // Wait for async operation
 
             // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
@@ -630,7 +630,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Act
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
@@ -652,7 +652,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Act
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
@@ -677,7 +677,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Act
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - CompleteWorkflowAsync now saves to HardwareDefinitionDataStore with Defined state
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
@@ -702,7 +702,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Act
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - Workflow should contain tree nodes
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
@@ -727,12 +727,12 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // First save
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Modify and save again
             viewModel.EquipmentViewModel.Name = "UpdatedEquipment";
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert - Should update, not create duplicate
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
@@ -753,7 +753,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Act
             viewModel.DeviceViewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             // Assert
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
@@ -881,7 +881,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Complete the workflow first
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100); // Wait for async operation
+            await Task.Delay(1000); // Wait for async operation
             
             viewModel.CanCompleteWorkflow.Should().BeFalse();
         }
@@ -916,7 +916,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100); // Wait for async operation
+            await Task.Delay(1000); // Wait for async operation
             
             // Assert
             viewModel.IsWorkflowCompleted.Should().BeTrue();
@@ -933,7 +933,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100); // Wait for async operation
+            await Task.Delay(1000); // Wait for async operation
             
             // Assert
             viewModel.ShowUploadButton.Should().BeTrue();
@@ -948,7 +948,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             viewModel.ShowUploadButton.Should().BeTrue();
             
             // Act - Simulate data change
@@ -983,11 +983,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Complete workflow first
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Act
             viewModel.UploadToServerCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert - Check UploadedWorkflowDataStore (unified structure)
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
@@ -1009,11 +1009,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Complete workflow first
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Act
             viewModel.UploadToServerCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
@@ -1037,11 +1037,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Complete workflow first
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Act
             viewModel.UploadToServerCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert - Check that tree structure preserves hierarchy
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
@@ -1077,11 +1077,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Complete workflow
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Act
             viewModel.UploadToServerCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert - UploadedWorkflowDataStore updated with unified structure
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
@@ -1116,11 +1116,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Complete workflow
             viewModel.CompleteWorkflowCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Act
             viewModel.UploadToServerCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert - Workflow should be removed from IncompleteWorkflowDataStore
             workflowData = await workflowRepo.LoadAsync();
@@ -1142,7 +1142,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act - ExitToDashboard triggers SaveWorkflowStateAsync
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert - Check WorkflowRepository was used
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -1163,7 +1163,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -1189,7 +1189,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -1218,12 +1218,12 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // First save
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Modify and save again
             viewModel.DeviceViewModel.Name = "UpdatedName";
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -1247,7 +1247,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -1268,7 +1268,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -1290,7 +1290,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Act
             viewModel.ExitToDashboardCommand.Execute(null);
-            await Task.Delay(100);
+            await Task.Delay(1000);
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();

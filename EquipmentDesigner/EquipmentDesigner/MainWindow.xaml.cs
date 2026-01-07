@@ -4,9 +4,11 @@ using System.Windows;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
+using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 using EquipmentDesigner.Views.Dashboard;
 using EquipmentDesigner.Views.HardwareDefineWorkflow;
+using EquipmentDesigner.Views.WorkflowComplete;
 
 namespace EquipmentDesigner
 {
@@ -29,6 +31,7 @@ namespace EquipmentDesigner
             NavigationService.Instance.NavigateToDashboardRequested += OnNavigateToDashboard;
             NavigationService.Instance.ResumeWorkflowRequested += OnResumeWorkflowRequested;
             NavigationService.Instance.ViewComponentRequested += OnViewComponentRequested;
+            NavigationService.Instance.WorkflowCompleteRequested += OnWorkflowCompleteRequested;
             
             // Show dashboard by default
             MainContent.Content = _dashboardView;
@@ -109,17 +112,14 @@ namespace EquipmentDesigner
 
             try
             {
-                // Load from UploadedWorkflowDataStore (ComponentId is WorkflowId)
-                var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-                var dataStore = await repository.LoadAsync();
+                // Load from API service (ComponentId is WorkflowId)
+                var apiService = ServiceLocator.GetService<IHardwareApiService>();
+                var response = await apiService.GetSessionByIdAsync(target.ComponentId);
 
-                var sessionDto = dataStore?.WorkflowSessions?
-                    .FirstOrDefault(s => s.WorkflowId == target.ComponentId);
-
-                if (sessionDto != null)
+                if (response.Success && response.Data != null)
                 {
                     // Use FromWorkflowSessionDto to rebuild the workflow
-                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto(sessionDto);
+                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto(response.Data);
                     workflowViewModel.IsReadOnly = true;  // Set read-only mode
 
                     var workflowView = new HardwareDefineWorkflowView
@@ -135,6 +135,16 @@ namespace EquipmentDesigner
             }
         }
 
+        private void OnWorkflowCompleteRequested(NavigationTarget target)
+        {
+            var viewModel = new WorkflowCompleteViewModel(target.SessionDto);
+            var view = new WorkflowCompleteView
+            {
+                DataContext = viewModel
+            };
+            MainContent.Content = view;
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             // Unsubscribe from events to prevent memory leaks
@@ -142,6 +152,7 @@ namespace EquipmentDesigner
             NavigationService.Instance.NavigateToDashboardRequested -= OnNavigateToDashboard;
             NavigationService.Instance.ResumeWorkflowRequested -= OnResumeWorkflowRequested;
             NavigationService.Instance.ViewComponentRequested -= OnViewComponentRequested;
+            NavigationService.Instance.WorkflowCompleteRequested -= OnWorkflowCompleteRequested;
             base.OnClosed(e);
         }
     }

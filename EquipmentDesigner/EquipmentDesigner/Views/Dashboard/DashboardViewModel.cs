@@ -5,11 +5,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
+using System.IO;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
+using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 using EquipmentDesigner.Views.HardwareDefineWorkflow;
 
@@ -59,6 +60,7 @@ namespace EquipmentDesigner.Views.Dashboard
 
             // Admin mode commands
             DeleteAllIncompleteWorkflowsCommand = new RelayCommand(_ => ExecuteDeleteAllIncompleteWorkflows(), _ => HasIncompleteWorkflows);
+            ResetAllDataCommand = new RelayCommand(_ => ExecuteResetAllData());
 
             // Load data from repository
             LoadIncompleteWorkflowsAsync();
@@ -91,6 +93,11 @@ namespace EquipmentDesigner.Views.Dashboard
         /// Command to delete all incomplete workflows (Admin mode).
         /// </summary>
         public ICommand DeleteAllIncompleteWorkflowsCommand { get; }
+
+        /// <summary>
+        /// Command to reset all data including workflows and uploaded hardwares (Admin mode).
+        /// </summary>
+        public ICommand ResetAllDataCommand { get; }
 
         #endregion
 
@@ -166,7 +173,7 @@ namespace EquipmentDesigner.Views.Dashboard
                         {
                             WorkflowId = session.WorkflowId,
                             StartedFrom = session.StartType.ToString(),
-                            ComponentState = session.State.ToString(),
+                            ComponentState = session.State,
                             Date = session.LastModifiedAt.ToString("yyyy. M. d.")
                         });
                     }
@@ -190,8 +197,9 @@ namespace EquipmentDesigner.Views.Dashboard
         {
             try
             {
-                var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-                var dataStore = await repository.LoadAsync();
+                var apiService = ServiceLocator.GetService<IHardwareApiService>();
+                var response = await apiService.GetSessionsByStateAsync(
+                    ComponentState.Ready, ComponentState.Uploaded, ComponentState.Validated);
 
                 // Clear existing collections
                 Equipments.Clear();
@@ -199,12 +207,10 @@ namespace EquipmentDesigner.Views.Dashboard
                 Units.Clear();
                 Devices.Clear();
 
-                if (dataStore?.WorkflowSessions == null) return;
+                if (!response.Success || response.Data == null) return;
 
                 // Filter and load from WorkflowSessions based on StartType
-                foreach (var session in dataStore.WorkflowSessions.Where(s =>
-                    s.State == ComponentState.Uploaded ||
-                    s.State == ComponentState.Validated))
+                foreach (var session in response.Data)
                 {
                     // Extract component info from root tree node
                     var rootNode = session.TreeNodes?.FirstOrDefault();
@@ -268,42 +274,18 @@ namespace EquipmentDesigner.Views.Dashboard
         }
 
         /// <summary>
-        /// Creates a ComponentItem with appropriate styling based on state.
+        /// Creates a ComponentItem with the given state.
         /// </summary>
         private ComponentItem CreateComponentItem(string id, string name, string description, ComponentState state, HardwareLayer hardwareLayer)
         {
-            Brush statusBackground;
-            Brush statusBorder;
-            Brush statusForeground;
-            string statusText;
-
-            if (state == ComponentState.Validated)
-            {
-                // Green theme for Validated
-                statusText = "Validated";
-                statusBackground = new SolidColorBrush(Color.FromRgb(220, 252, 231)); // Light green
-                statusBorder = new SolidColorBrush(Color.FromRgb(34, 197, 94));       // Green
-                statusForeground = new SolidColorBrush(Color.FromRgb(22, 101, 52));   // Dark green
-            }
-            else
-            {
-                // Blue theme for Uploaded
-                statusText = "Uploaded";
-                statusBackground = new SolidColorBrush(Color.FromRgb(219, 234, 254)); // Light blue
-                statusBorder = new SolidColorBrush(Color.FromRgb(59, 130, 246));      // Blue
-                statusForeground = new SolidColorBrush(Color.FromRgb(30, 64, 175));   // Dark blue
-            }
-
             return new ComponentItem
             {
                 Id = id,
                 HardwareLayer = hardwareLayer,
                 Name = name,
                 Description = description,
-                Status = statusText,
-                StatusBackground = statusBackground,
-                StatusBorder = statusBorder,
-                StatusForeground = statusForeground
+                Status = state.ToString(),
+                ComponentState = state
             };
         }
 
@@ -423,6 +405,74 @@ namespace EquipmentDesigner.Views.Dashboard
         }
 
         /// <summary>
+        /// Executes the reset all data command.
+        /// Shows confirmation dialog and deletes all stored data if confirmed.
+        /// </summary>
+        private void ExecuteResetAllData()
+        {
+            // Get MainWindow for backdrop control
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+
+            // Show backdrop
+            mainWindow?.ShowBackdrop();
+
+            try
+            {
+                // Show delete confirmation dialog
+                var dialog = new DeleteWorkflowDialog
+                {
+                    Owner = mainWindow
+                };
+
+                var result = dialog.ShowDialog();
+
+                if (result == true && dialog.IsConfirmed)
+                {
+                    // Delete all data files
+                    DeleteAllDataFiles();
+                }
+            }
+            finally
+            {
+                // Hide backdrop
+                mainWindow?.HideBackdrop();
+            }
+        }
+
+        /// <summary>
+        /// Deletes all data files (workflows.json and uploaded-hardwares.json).
+        /// </summary>
+        private void DeleteAllDataFiles()
+        {
+            try
+            {
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var appFolder = Path.Combine(appData, "EquipmentDesigner");
+
+                // Delete workflows.json
+                var workflowsPath = Path.Combine(appFolder, "local", "workflows.json");
+                if (File.Exists(workflowsPath))
+                {
+                    File.Delete(workflowsPath);
+                }
+
+                // Delete uploaded-hardwares.json
+                var uploadedHardwaresPath = Path.Combine(appFolder, "remote", "uploaded-hardwares.json");
+                if (File.Exists(uploadedHardwaresPath))
+                {
+                    File.Delete(uploadedHardwaresPath);
+                }
+
+                // Refresh the dashboard to reflect changes
+                RefreshAsync();
+            }
+            catch
+            {
+                // Silently fail
+            }
+        }
+
+        /// <summary>
         /// Executes the view component command.
         /// Opens the component in read-only mode.
         /// </summary>
@@ -493,7 +543,16 @@ namespace EquipmentDesigner.Views.Dashboard
 
         public string StartedFrom { get; set; }
 
-        public string ComponentState { get; set; }
+        /// <summary>
+        /// The component state as enum for proper converter binding.
+        /// </summary>
+        public ComponentState ComponentState { get; set; }
+
+        /// <summary>
+        /// Display text for the component state (for XAML Text binding).
+        /// </summary>
+        public string ComponentStateDisplayText => ComponentState.ToString();
+
         public string Date { get; set; }
     }
 
@@ -507,8 +566,6 @@ namespace EquipmentDesigner.Views.Dashboard
         public string Name { get; set; }
         public string Description { get; set; }
         public string Status { get; set; }
-        public Brush StatusBackground { get; set; }
-        public Brush StatusBorder { get; set; }
-        public Brush StatusForeground { get; set; }
+        public ComponentState ComponentState { get; set; }
     }
 }

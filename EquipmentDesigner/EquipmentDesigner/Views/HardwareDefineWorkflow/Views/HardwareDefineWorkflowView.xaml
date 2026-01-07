@@ -100,6 +100,71 @@
                     BorderThickness="0,0,0,1"
                     Padding="24,16">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <!-- Autosave Indicator -->
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                Margin="0,0,16,0"
+                                Opacity="0">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsAutosaveIndicatorVisible}" Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     To="1" Duration="0:0:0.2"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     To="0" Duration="0:0:0.3"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <!-- Save Icon -->
+                        <Viewbox Width="16" Height="16" VerticalAlignment="Center">
+                            <Canvas Width="16" Height="16">
+                                <!-- Outer save icon shape -->
+                                <Path Data="M10.1333 2C10.485 2.00501 10.8205 2.14878 11.0667 2.4L13.6 4.93333C13.8512 5.17951 13.995 5.51497 14 5.86667V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H10.1333Z"
+                                      Stroke="#64748B"
+                                      StrokeThickness="1.33333"
+                                      StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Fill="Transparent"/>
+                                <!-- Bottom content area -->
+                                <Path Data="M11.3334 14.0001V9.33341C11.3334 9.1566 11.2632 8.98703 11.1382 8.86201C11.0131 8.73699 10.8436 8.66675 10.6667 8.66675H5.33341C5.1566 8.66675 4.98703 8.73699 4.86201 8.86201C4.73699 8.98703 4.66675 9.1566 4.66675 9.33341V14.0001"
+                                      Stroke="#64748B"
+                                      StrokeThickness="1.33333"
+                                      StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Fill="Transparent"/>
+                                <!-- Top fold area -->
+                                <Path Data="M4.66675 2V4.66667C4.66675 4.84348 4.73699 5.01305 4.86201 5.13807C4.98703 5.2631 5.1566 5.33333 5.33341 5.33333H10.0001"
+                                      Stroke="#64748B"
+                                      StrokeThickness="1.33333"
+                                      StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      Fill="Transparent"/>
+                            </Canvas>
+                        </Viewbox>
+                        <!-- Autosaved Text -->
+                        <TextBlock Text="Autosaved"
+                                   Style="{StaticResource Typography.Body.Small}"
+                                   Foreground="#64748B"
+                                   VerticalAlignment="Center"
+                                   Margin="6,0,0,0"/>
+                    </StackPanel>
                     <!-- Complete Workflow Button -->
                     <Button Command="{Binding CompleteWorkflowCommand}"
                             Padding="{StaticResource Spacing.Padding.Button}"
@@ -155,62 +220,7 @@
                             </TextBlock>
                         </StackPanel>
                     </Button>
-
-                    <!-- Upload to Server Button -->
-                    <Button Command="{Binding UploadToServerCommand}"
-                            Padding="{StaticResource Spacing.Padding.Button}"
-                            Height="{StaticResource Size.Button.Height.MD}"
-                            BorderThickness="0"
-                            Cursor="Hand"
-                            Visibility="{Binding ShowUploadButton, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="{StaticResource Radius.LG}"/>
-                            </Style>
-                        </Button.Resources>
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background}"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Background" Value="{StaticResource Brush.Button.Disabled.Background}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                                  StrokeThickness="2"
-                                  Width="16" Height="16"
-                                  Stretch="Uniform"
-                                  VerticalAlignment="Center">
-                                <Path.Style>
-                                    <Style TargetType="Path">
-                                        <Setter Property="Stroke" Value="{StaticResource Brush.Text.Inverse}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
-                                                <Setter Property="Stroke" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                            <TextBlock Text="{lex:Loc Key=Workflow_UploadToServer}"
-                                       Margin="8,0,0,0"
-                                       VerticalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Button}">
-                                        <Setter Property="Foreground" Value="{StaticResource Brush.Text.Inverse}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
-                                                <Setter Property="Foreground" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </StackPanel>
-                    </Button>
+                  
                 </StackPanel>
             </Border>
 

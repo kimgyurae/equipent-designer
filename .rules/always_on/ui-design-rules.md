@@ -7,6 +7,7 @@
 - 매우 중요: 반드시 `EquipmentDesigner\EquipmentDesigner\Themes\DesignTokens.xaml`에 정의된 Design Token만 사용할 것.
 
 ## Figma MCP 
-Always use Figma MCP to design UI.
-- filekey: BWmKqBOfrI3vj1uyI6gqt2
+사용자가가 명시적으로 Figma MCP를 사용해 design을 하라고 지시하는 경우:
+- Figma MCP 도구 사용실패 시 모든 작업을 중지하고 사용자에게 보고한다.
+- Figma MCP 도구를 사용해서 확인한 UI가 `DesignTokens.xaml`에 정의되지 않은 Design 요소를 사용하더라도 DesignToken을 추가하지 않고 존재하는 Design Token을 활용해 최대한 유사하게 구현한다.
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -9,9 +10,12 @@ using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
+using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 using EquipmentDesigner.Views.ReusableComponents.Toast;
 using EquipmentDesigner.Resources;
+
+using MainWindow = EquipmentDesigner.MainWindow;
 
 namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 {
@@ -31,9 +35,15 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         // Autosave fields
         private DispatcherTimer _autosaveTimer;
+        private CancellationTokenSource _debounceCts;
         private bool _isDirty;
         private bool _isAutosaveEnabled;
-        private static readonly TimeSpan DefaultAutosaveInterval = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan DefaultAutosaveInterval = TimeSpan.FromSeconds(15);
+        private static readonly TimeSpan DefaultDebounceDelay = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan MaxWaitTime = TimeSpan.FromSeconds(10);
+        private bool _isAutosaveIndicatorVisible;
+        private DispatcherTimer _autosaveIndicatorTimer;
+        private DateTime? _firstDirtyTime;
 
         /// <summary>
         /// Creates a new workflow with a unique ID.
@@ -204,6 +214,16 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public ICommand UploadToServerCommand { get; private set; }
 
         /// <summary>
+        /// Command to delete a tree node.
+        /// </summary>
+        public ICommand DeleteNodeCommand { get; private set; }
+
+        /// <summary>
+        /// Command to copy a tree node.
+        /// </summary>
+        public ICommand CopyNodeCommand { get; private set; }
+
+        /// <summary>
         /// Gets whether the workflow has been completed.
         /// </summary>
         public bool IsWorkflowCompleted
@@ -247,6 +267,15 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// Returns true if the upload button should be shown.
         /// </summary>
         public bool ShowUploadButton => IsWorkflowCompleted && !HasDataChangedSinceCompletion;
+
+        /// <summary>
+        /// Gets or sets whether the autosave indicator is visible.
+        /// </summary>
+        public bool IsAutosaveIndicatorVisible
+        {
+            get => _isAutosaveIndicatorVisible;
+            private set => SetProperty(ref _isAutosaveIndicatorVisible, value);
+        }
 
         /// <summary>
         /// Root nodes for the hardware tree structure.
@@ -416,9 +445,66 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             SelectTreeNodeCommand = new RelayCommand<HardwareTreeNodeViewModel>(ExecuteSelectTreeNode);
             CompleteWorkflowCommand = new RelayCommand(ExecuteCompleteWorkflowCommand, CanExecuteCompleteWorkflowCommand);
             UploadToServerCommand = new RelayCommand(ExecuteUploadToServer);
+            DeleteNodeCommand = new RelayCommand<HardwareTreeNodeViewModel>(ExecuteDeleteNode, CanDeleteNode);
+            CopyNodeCommand = new RelayCommand<HardwareTreeNodeViewModel>(ExecuteCopyNode, CanCopyNode);
         }
 
         private void ExecuteEnableEdit()
+        {
+            // Get MainWindow for backdrop control (null-safe for test environment)
+            var mainWindow = System.Windows.Application.Current?.MainWindow as MainWindow;
+
+            // If no MainWindow (test environment), directly enable edit mode
+            if (mainWindow == null)
+            {
+                EnableEditModeDirectly();
+                return;
+            }
+
+            // Show backdrop
+            mainWindow.ShowBackdrop();
+
+            try
+            {
+                // Show edit mode selection dialog
+                var dialog = new EditModeSelectionDialog
+                {
+                    Owner = mainWindow
+                };
+
+                if (dialog.ShowDialog() == true && dialog.IsConfirmed)
+                {
+                    // Store the selected mode for future use
+                    var selectedMode = dialog.SelectedMode;
+
+                    // Execute edit mode based on selection
+                    // Currently both options perform the same action (direct edit)
+                    // In the future, CreateCopy mode will create a copy of the data
+                    switch (selectedMode)
+                    {
+                        case EditModeSelection.DirectEdit:
+                            EnableEditModeDirectly();
+                            break;
+
+                        case EditModeSelection.CreateCopy:
+                            // TODO: Implement copy creation logic
+                            // For now, behave the same as DirectEdit
+                            EnableEditModeDirectly();
+                            break;
+                    }
+                }
+            }
+            finally
+            {
+                // Hide backdrop
+                mainWindow?.HideBackdrop();
+            }
+        }
+
+        /// <summary>
+        /// Enables edit mode directly on the current data.
+        /// </summary>
+        private void EnableEditModeDirectly()
         {
             IsReadOnly = false;
             
@@ -436,16 +522,12 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         {
             try
             {
-                var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-                var dataStore = await repository.LoadAsync();
+                var apiService = ServiceLocator.GetService<IHardwareApiService>();
+                var response = await apiService.UpdateSessionStateAsync(LoadedComponentId, ComponentState.Draft);
 
-                // Find the workflow session by WorkflowId (LoadedComponentId is the WorkflowId)
-                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.WorkflowId == LoadedComponentId);
-                if (session != null && (session.State == ComponentState.Uploaded || session.State == ComponentState.Validated))
+                if (!response.Success)
                 {
-                    session.State = ComponentState.Defined;
-                    session.LastModifiedAt = DateTime.Now;
-                    await repository.SaveAsync(dataStore);
+                    // Silently fail - non-critical operation
                 }
             }
             catch
@@ -490,14 +572,14 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
         private async void ExecuteCompleteWorkflowCommand()
         {
-            await CompleteWorkflowAsync();
-            IsWorkflowCompleted = true;
-            HasDataChangedSinceCompletion = false;
+            // Save workflow state before navigating (explicit save, no indicator)
+            await SaveWorkflowStateAsync(showAutosaveIndicator: false);
             
-            // Show success toast
-            ToastService.Instance.ShowSuccess(
-                Strings.Toast_WorkflowCompleted_Title,
-                Strings.Toast_WorkflowCompleted_Description);
+            // Create session DTO with Ready state for the complete view
+            var sessionDto = ToWorkflowSessionDto();
+            sessionDto.State = ComponentState.Ready;
+            
+            NavigationService.Instance.NavigateToWorkflowComplete(sessionDto);
         }
 
         private bool CanExecuteCompleteWorkflowCommand()
@@ -522,18 +604,17 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             var sessionDto = ToWorkflowSessionDto();
             sessionDto.State = ComponentState.Uploaded;
 
-            // Save to UploadedWorkflowRepository (unified structure)
-            var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-            var uploadedData = await uploadedRepo.LoadAsync();
+            // Save to server via API service
+            var apiService = ServiceLocator.GetService<IHardwareApiService>();
+            var response = await apiService.SaveSessionAsync(sessionDto);
 
-            // Update existing or add new session
-            var existingIndex = uploadedData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
-            if (existingIndex >= 0)
-                uploadedData.WorkflowSessions[existingIndex] = sessionDto;
-            else
-                uploadedData.WorkflowSessions.Add(sessionDto);
-
-            await uploadedRepo.SaveAsync(uploadedData);
+            if (!response.Success)
+            {
+                ToastService.Instance.ShowError(
+                    "Upload Failed",
+                    response.ErrorMessage ?? "Failed to upload data to the server.");
+                return;
+            }
 
             // Remove workflow from WorkflowRepository after successful upload
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -555,6 +636,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// <summary>
         /// Called when any data in any tree node changes.
         /// Resets the workflow completion state if data is modified after completion.
+        /// Marks data as dirty and starts debounce timer for autosave.
         /// </summary>
         public void OnDataChanged()
         {
@@ -564,6 +646,10 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             }
             OnPropertyChanged(nameof(CanCompleteWorkflow));
             OnPropertyChanged(nameof(AllStepsRequiredFieldsFilled));
+
+            // Mark dirty and start debounce for autosave
+            MarkDirty();
+            RestartDebounceTimer();
         }
 
         /// <summary>
@@ -571,7 +657,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// Uses the new WorkflowRepository (IWorkflowRepository)
         /// structure to persist in-progress workflow sessions.
         /// </summary>
-        private async Task SaveWorkflowStateAsync()
+        /// <param name="showAutosaveIndicator">Whether to show the autosave indicator after saving. Default is true for autosave, false for explicit saves.</param>
+        private async Task SaveWorkflowStateAsync(bool showAutosaveIndicator = true)
         {
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
@@ -587,6 +674,64 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             await workflowRepo.SaveAsync(workflowData);
             _isDirty = false;
+            _firstDirtyTime = null; // Reset first dirty time after successful save
+
+            // Show autosave indicator only for autosave
+            if (showAutosaveIndicator)
+            {
+                ShowAutosaveIndicator();
+            }
+        }
+
+        /// <summary>
+        /// Shows the autosave indicator for 2 seconds.
+        /// </summary>
+        private void ShowAutosaveIndicator()
+        {
+            // Ensure we're on the UI thread
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null)
+                return;
+
+            if (!dispatcher.CheckAccess())
+            {
+                dispatcher.BeginInvoke(new Action(ShowAutosaveIndicator));
+                return;
+            }
+
+            // Stop existing timer if running
+            if (_autosaveIndicatorTimer != null)
+            {
+                _autosaveIndicatorTimer.Stop();
+                _autosaveIndicatorTimer.Tick -= OnAutosaveIndicatorTimerTick;
+                _autosaveIndicatorTimer = null;
+            }
+
+            IsAutosaveIndicatorVisible = true;
+
+            // Start 2-second timer to hide indicator
+            _autosaveIndicatorTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            _autosaveIndicatorTimer.Tick += OnAutosaveIndicatorTimerTick;
+            _autosaveIndicatorTimer.Start();
+        }
+
+        /// <summary>
+        /// Handler for autosave indicator timer tick.
+        /// Hides the indicator after 2 seconds.
+        /// </summary>
+        private void OnAutosaveIndicatorTimerTick(object sender, EventArgs e)
+        {
+            if (_autosaveIndicatorTimer != null)
+            {
+                _autosaveIndicatorTimer.Stop();
+                _autosaveIndicatorTimer.Tick -= OnAutosaveIndicatorTimerTick;
+                _autosaveIndicatorTimer = null;
+            }
+
+            IsAutosaveIndicatorVisible = false;
         }
 
         #region Autosave
@@ -623,7 +768,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         }
 
         /// <summary>
-        /// Disables autosave and stops the timer.
+        /// Disables autosave and stops both autosave and debounce timers.
         /// </summary>
         public void DisableAutosave()
         {
@@ -636,6 +781,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 _autosaveTimer.Tick -= OnAutosaveTimerTick;
                 _autosaveTimer = null;
             }
+
+            if (_debounceCts != null)
+            {
+                _debounceCts.Cancel();
+                _debounceCts = null;
+            }
+
             _isAutosaveEnabled = false;
         }
 
@@ -646,6 +798,65 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public void MarkDirty()
         {
             _isDirty = true;
+            
+            // Track when the first dirty change occurred
+            if (_firstDirtyTime == null)
+            {
+                _firstDirtyTime = DateTime.Now;
+            }
+        }
+
+        /// <summary>
+        /// Restarts the debounce timer. Saves data 2 seconds after the last change.
+        /// If max wait time has been exceeded since first change, saves immediately.
+        /// </summary>
+        private void RestartDebounceTimer()
+        {
+            if (IsReadOnly || !_isAutosaveEnabled)
+                return;
+
+            // Check if max wait time has been exceeded since first dirty change
+            if (_firstDirtyTime.HasValue && 
+                DateTime.Now - _firstDirtyTime.Value >= MaxWaitTime)
+            {
+                // Cancel any pending debounce and save immediately
+                if (_debounceCts != null)
+                {
+                    _debounceCts.Cancel();
+                    _debounceCts = null;
+                }
+
+                // Save immediately on a background thread
+                Task.Run(async () =>
+                {
+                    if (_isDirty && !IsReadOnly)
+                    {
+                        await SaveWorkflowStateAsync();
+                    }
+                });
+                return;
+            }
+
+            // Normal debounce behavior
+            if (_debounceCts != null)
+            {
+                _debounceCts.Cancel();
+                _debounceCts = null;
+            }
+
+            _debounceCts = new CancellationTokenSource();
+            var token = _debounceCts.Token;
+
+            Task.Delay(DefaultDebounceDelay, token).ContinueWith(async t =>
+            {
+                if (t.IsCanceled)
+                    return;
+
+                if (_isDirty && !IsReadOnly)
+                {
+                    await SaveWorkflowStateAsync();
+                }
+            }, token);
         }
 
         /// <summary>
@@ -672,7 +883,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             {
                 WorkflowId = WorkflowId,
                 StartType = StartType,
-                State = AllStepsRequiredFieldsFilled ? ComponentState.Defined : ComponentState.Undefined,
+                State = ComponentState.Draft,
                 HardwareLayer = StartType,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
@@ -873,7 +1084,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             // Create or update WorkflowSessionDto with Defined state
             var sessionDto = ToWorkflowSessionDto();
-            sessionDto.State = ComponentState.Defined;
+            sessionDto.State = ComponentState.Ready;
             
             var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
 
@@ -1118,5 +1329,204 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             node.IsSelected = true;
             SelectedTreeNode = node;
         }
+
+        #region Delete and Copy Commands
+
+        /// <summary>
+        /// Determines if a node can be deleted.
+        /// Returns true if node is valid and not in read-only mode.
+        /// Actual constraint validation happens in ExecuteDeleteNode.
+        /// </summary>
+        private bool CanDeleteNode(HardwareTreeNodeViewModel node)
+        {
+            if (node == null) return false;
+            if (IsReadOnly) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Executes node deletion with minimum child constraint validation.
+        /// Shows Toast warning if deletion would violate the constraint.
+        /// Shows ConfirmDeleteDialog if deletion is allowed.
+        /// </summary>
+        private void ExecuteDeleteNode(HardwareTreeNodeViewModel node)
+        {
+            if (node == null) return;
+
+            // Check minimum child constraint
+            bool isRootNode = node.Parent == null;
+            
+            if (isRootNode)
+            {
+                // Root node: check if it's the only root
+                if (TreeRootNodes.Count <= 1)
+                {
+                    ToastService.Instance.ShowWarning(
+                        Strings.DeleteHardware_CannotDelete_Title,
+                        Strings.DeleteHardware_CannotDelete_MinChild);
+                    return;
+                }
+            }
+            else
+            {
+                // Non-root node: check if parent has only one child
+                if (node.Parent.Children.Count <= 1)
+                {
+                    ToastService.Instance.ShowWarning(
+                        Strings.DeleteHardware_CannotDelete_Title,
+                        Strings.DeleteHardware_CannotDelete_MinChild);
+                    return;
+                }
+            }
+
+            // Get all descendants for the dialog
+            var descendants = node.GetAllDescendants();
+            var descendantNames = descendants.Select(d => $"{d.HardwareLayer}: {d.DisplayName}").ToList();
+
+            // Get MainWindow for backdrop control
+            var mainWindow = System.Windows.Application.Current?.MainWindow as MainWindow;
+
+            // If no MainWindow (test environment), perform deletion directly
+            if (mainWindow == null)
+            {
+                PerformNodeDeletion(node, isRootNode);
+                return;
+            }
+
+            // Show backdrop
+            mainWindow.ShowBackdrop();
+
+            try
+            {
+                // Show confirmation dialog
+                var dialog = new ConfirmDeleteDialog(
+                    $"{node.HardwareLayer}: {node.DisplayName}",
+                    descendantNames)
+                {
+                    Owner = mainWindow
+                };
+
+                if (dialog.ShowDialog() == true && dialog.IsConfirmed)
+                {
+                    PerformNodeDeletion(node, isRootNode);
+                }
+            }
+            finally
+            {
+                mainWindow?.HideBackdrop();
+            }
+        }
+
+        /// <summary>
+        /// Performs the actual node deletion from the tree.
+        /// </summary>
+        private void PerformNodeDeletion(HardwareTreeNodeViewModel node, bool isRootNode)
+        {
+            // Remove from parent or root
+            if (isRootNode)
+            {
+                TreeRootNodes.Remove(node);
+            }
+            else
+            {
+                node.Parent.Children.Remove(node);
+            }
+
+            // If deleted node was selected, select another node
+            if (SelectedTreeNode == node)
+            {
+                // Try to select sibling or parent
+                HardwareTreeNodeViewModel newSelection = null;
+                
+                if (isRootNode && TreeRootNodes.Count > 0)
+                {
+                    newSelection = TreeRootNodes[0];
+                }
+                else if (!isRootNode && node.Parent != null)
+                {
+                    newSelection = node.Parent.Children.FirstOrDefault() ?? node.Parent;
+                }
+
+                if (newSelection != null)
+                {
+                    ExecuteSelectTreeNode(newSelection);
+                }
+                else
+                {
+                    SelectedTreeNode = null;
+                }
+            }
+
+            // Mark dirty for autosave
+            MarkDirty();
+        }
+
+        /// <summary>
+        /// Determines if a node can be copied.
+        /// </summary>
+        private bool CanCopyNode(HardwareTreeNodeViewModel node)
+        {
+            if (node == null) return false;
+            if (IsReadOnly) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Executes node copy operation.
+        /// Creates a deep copy of the node and adds it to the parent's children.
+        /// </summary>
+        private void ExecuteCopyNode(HardwareTreeNodeViewModel node)
+        {
+            if (node == null) return;
+
+            bool isRootNode = node.Parent == null;
+
+            // Create deep copy with the same parent
+            var copiedNode = node.DeepCopy(node.Parent);
+
+            // Add to parent's children or root nodes
+            if (isRootNode)
+            {
+                TreeRootNodes.Add(copiedNode);
+            }
+            else
+            {
+                node.Parent.Children.Add(copiedNode);
+            }
+
+            // Setup callbacks for the copied node hierarchy
+            SetupDeviceCallbacksForNode(copiedNode);
+
+            // Set editability for the copied node hierarchy
+            SetEditabilityForNode(copiedNode, !IsReadOnly);
+
+            // Subscribe to property changes for autosave
+            SubscribeToNodePropertyChanges(copiedNode);
+
+            // Select the copied node
+            ExecuteSelectTreeNode(copiedNode);
+
+            // Mark dirty for autosave
+            MarkDirty();
+        }
+
+        /// <summary>
+        /// Subscribes to PropertyChanged events for a node and its descendants.
+        /// </summary>
+        private void SubscribeToNodePropertyChanges(HardwareTreeNodeViewModel node)
+        {
+            if (node.DataViewModel != null)
+            {
+                node.DataViewModel.PropertyChanged -= OnNodeDataPropertyChanged;
+                node.DataViewModel.PropertyChanged += OnNodeDataPropertyChanged;
+            }
+
+            foreach (var child in node.Children)
+            {
+                SubscribeToNodePropertyChanges(child);
+            }
+        }
+
+        #endregion
     }
 }
