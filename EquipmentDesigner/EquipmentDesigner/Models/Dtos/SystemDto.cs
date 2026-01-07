@@ -57,7 +57,7 @@ namespace EquipmentDesigner.Models.Dtos
         /// <summary>
         /// 컴포넌트 상태
         /// </summary>
-        public ComponentState State { get; set; } = ComponentState.Undefined;
+        public ComponentState State { get; set; } = ComponentState.Draft;
 
         /// <summary>
         /// 하위 Unit 목록

@@ -190,14 +190,14 @@ namespace EquipmentDesigner.Tests.Services.Storage
             {
                 WorkflowId = "wf-001",
                 StartType = HardwareLayer.Equipment,
-                State = ComponentState.Undefined,
+                State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now
             });
             originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-002",
                 StartType = HardwareLayer.System,
-                State = ComponentState.Defined,
+                State = ComponentState.Ready,
                 LastModifiedAt = DateTime.Now
             });
             await _repository.SaveAsync(originalDataStore);
@@ -210,7 +210,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             loaded.WorkflowSessions[0].WorkflowId.Should().Be("wf-001");
             loaded.WorkflowSessions[0].StartType.Should().Be(HardwareLayer.Equipment);
             loaded.WorkflowSessions[1].WorkflowId.Should().Be("wf-002");
-            loaded.WorkflowSessions[1].State.Should().Be(ComponentState.Defined);
+            loaded.WorkflowSessions[1].State.Should().Be(ComponentState.Ready);
         }
 
         [Fact]
@@ -302,27 +302,27 @@ namespace EquipmentDesigner.Tests.Services.Storage
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-update",
-                State = ComponentState.Undefined
+                State = ComponentState.Draft
             });
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-unchanged",
-                State = ComponentState.Undefined
+                State = ComponentState.Draft
             });
             await _repository.SaveAsync(dataStore);
 
             // Act - load, update, save
             var loaded = await _repository.LoadAsync();
             var toUpdate = loaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-update");
-            toUpdate.State = ComponentState.Defined;
+            toUpdate.State = ComponentState.Ready;
             await _repository.SaveAsync(loaded);
 
             // Assert
             var reloaded = await _repository.LoadAsync();
             reloaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-update").State
-                .Should().Be(ComponentState.Defined);
+                .Should().Be(ComponentState.Ready);
             reloaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-unchanged").State
-                .Should().Be(ComponentState.Undefined);
+                .Should().Be(ComponentState.Draft);
         }
 
         [Fact]

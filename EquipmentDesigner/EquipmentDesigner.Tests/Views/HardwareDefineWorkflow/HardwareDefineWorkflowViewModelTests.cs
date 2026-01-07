@@ -685,7 +685,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
-            savedWorkflow.State.Should().Be(ComponentState.Defined);
+            savedWorkflow.State.Should().Be(ComponentState.Ready);
         }
 
         [Fact]
@@ -1071,7 +1071,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             {
                 WorkflowId = viewModel.WorkflowId,
                 StartType = HardwareLayer.Device,
-                State = ComponentState.Defined
+                State = ComponentState.Ready
             });
             await workflowRepo.SaveAsync(workflowData);
             
@@ -1110,7 +1110,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             {
                 WorkflowId = viewModel.WorkflowId,
                 StartType = HardwareLayer.Device,
-                State = ComponentState.Defined
+                State = ComponentState.Ready
             });
             await workflowRepo.SaveAsync(workflowData);
             
@@ -1172,7 +1172,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
             session.Should().NotBeNull();
             session.StartType.Should().Be(HardwareLayer.Equipment);
-            session.State.Should().Be(ComponentState.Undefined);
+            session.State.Should().Be(ComponentState.Draft);
         }
 
         [Fact]
@@ -1254,7 +1254,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var workflowData = await workflowRepo.LoadAsync();
             
             var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
-            session.State.Should().Be(ComponentState.Defined);
+            session.State.Should().Be(ComponentState.Ready);
         }
 
         [Fact]
@@ -1275,7 +1275,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var workflowData = await workflowRepo.LoadAsync();
             
             var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
-            session.State.Should().Be(ComponentState.Undefined);
+            session.State.Should().Be(ComponentState.Draft);
         }
 
         [Fact]

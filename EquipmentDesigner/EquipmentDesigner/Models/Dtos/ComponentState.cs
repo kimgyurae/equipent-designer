@@ -6,28 +6,25 @@ namespace EquipmentDesigner.Models.Dtos
     public enum ComponentState
     {
         /// <summary>
-        /// 데이터가 생성되었으나 필수 값이 부족함
+        /// 데이터가 생성되었음.
+        /// Ready에서 다시 편집 창으로 돌아오면 Draft로 복귀
         /// </summary>
-        Undefined = 0,
+        Draft = 0,
 
         /// <summary>
-        /// 모든 필수 입력 항목이 채워짐
+        /// 모든 필수 항목이 채워지고 Confirmation Page로 이동 시 자동 변경
         /// </summary>
-        Defined = 1,
-
-        /// <summary>
-        /// 모든 필수 입력 항목이 채워짐
-        /// </summary>
-        Confirmed = 2,
+        Ready = 1,
 
         /// <summary>
         /// 서버에 저장 완료됨
         /// </summary>
-        Uploaded = 3,
+        Uploaded = 2,
 
         /// <summary>
+        /// 서버에서 운영자에 의해 
         /// 데이터 검증이 완료됨
         /// </summary>
-        Validated = 4
+        Validated = 3
     }
 }

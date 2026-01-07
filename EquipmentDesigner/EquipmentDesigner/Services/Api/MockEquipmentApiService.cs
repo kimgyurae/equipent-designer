@@ -61,7 +61,7 @@ namespace EquipmentDesigner.Services.Api
                 Description = "Laser burr removal equipment for gasket processing",
                 Customer = "Samsung SDI",
                 Process = "Deburring",
-                State = ComponentState.Defined,
+                State = ComponentState.Ready,
                 ProgramRoot = "D:/LaserBurrMachine",
                 CreatedAt = DateTime.Now.AddDays(-30),
                 UpdatedAt = DateTime.Now
@@ -75,7 +75,7 @@ namespace EquipmentDesigner.Services.Api
                 Name = "Loading",
                 DisplayName = "Loading System",
                 Description = "Material loading system",
-                State = ComponentState.Defined,
+                State = ComponentState.Ready,
                 CreatedAt = DateTime.Now.AddDays(-25),
                 UpdatedAt = DateTime.Now
             };
@@ -87,7 +87,7 @@ namespace EquipmentDesigner.Services.Api
                 SystemId = "sys-001",
                 Name = "OPShutter",
                 DisplayName = "OP Side Shutter Unit",
-                State = ComponentState.Defined,
+                State = ComponentState.Ready,
                 CreatedAt = DateTime.Now.AddDays(-20),
                 UpdatedAt = DateTime.Now
             };
@@ -100,7 +100,7 @@ namespace EquipmentDesigner.Services.Api
                 Name = "OPShutterCylinder",
                 DisplayName = "OP Shutter Cylinder",
                 DeviceType = "Generic",
-                State = ComponentState.Defined,
+                State = ComponentState.Ready,
                 CreatedAt = DateTime.Now.AddDays(-15),
                 UpdatedAt = DateTime.Now
             };
@@ -137,7 +137,7 @@ namespace EquipmentDesigner.Services.Api
             equipment.Id = $"eq-{Guid.NewGuid():N}".Substring(0, 10);
             equipment.CreatedAt = DateTime.Now;
             equipment.UpdatedAt = DateTime.Now;
-            equipment.State = ComponentState.Undefined;
+            equipment.State = ComponentState.Draft;
             _dataStore.Equipments.Add(equipment);
             _repository.MarkDirty();
             return ApiResponse<EquipmentDto>.Ok(equipment);
@@ -254,7 +254,7 @@ namespace EquipmentDesigner.Services.Api
             system.Id = $"sys-{Guid.NewGuid():N}".Substring(0, 10);
             system.CreatedAt = DateTime.Now;
             system.UpdatedAt = DateTime.Now;
-            system.State = ComponentState.Undefined;
+            system.State = ComponentState.Draft;
             _dataStore.Systems.Add(system);
             _repository.MarkDirty();
             return ApiResponse<SystemDto>.Ok(system);
@@ -355,7 +355,7 @@ namespace EquipmentDesigner.Services.Api
             unit.Id = $"unit-{Guid.NewGuid():N}".Substring(0, 12);
             unit.CreatedAt = DateTime.Now;
             unit.UpdatedAt = DateTime.Now;
-            unit.State = ComponentState.Undefined;
+            unit.State = ComponentState.Draft;
             _dataStore.Units.Add(unit);
             _repository.MarkDirty();
             return ApiResponse<UnitDto>.Ok(unit);
@@ -456,7 +456,7 @@ namespace EquipmentDesigner.Services.Api
             device.Id = $"dev-{Guid.NewGuid():N}".Substring(0, 11);
             device.CreatedAt = DateTime.Now;
             device.UpdatedAt = DateTime.Now;
-            device.State = ComponentState.Undefined;
+            device.State = ComponentState.Draft;
             _dataStore.Devices.Add(device);
             _repository.MarkDirty();
             return ApiResponse<DeviceDto>.Ok(device);

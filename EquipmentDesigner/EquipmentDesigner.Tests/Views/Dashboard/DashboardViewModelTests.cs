@@ -183,7 +183,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Equipment, ComponentState.Defined, "DefinedEquip"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Equipment, ComponentState.Ready, "DefinedEquip"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -203,7 +203,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.System, ComponentState.Defined, "DefinedSystem"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.System, ComponentState.Ready, "DefinedSystem"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -223,7 +223,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Unit, ComponentState.Defined, "DefinedUnit"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Unit, ComponentState.Ready, "DefinedUnit"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -243,7 +243,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Device, ComponentState.Defined, "DefinedDevice"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Device, ComponentState.Ready, "DefinedDevice"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -307,7 +307,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Equipment, ComponentState.Undefined, "UndefinedEquip"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Equipment, ComponentState.Draft, "UndefinedEquip"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -327,7 +327,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.System, ComponentState.Uploaded, "UploadedSystem"));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("2", HardwareLayer.System, ComponentState.Undefined, "UndefinedSystem"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("2", HardwareLayer.System, ComponentState.Draft, "UndefinedSystem"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -348,7 +348,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Unit, ComponentState.Validated, "ValidatedUnit"));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("2", HardwareLayer.Unit, ComponentState.Undefined, "UndefinedUnit"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("2", HardwareLayer.Unit, ComponentState.Draft, "UndefinedUnit"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -369,7 +369,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession("1", HardwareLayer.Device, ComponentState.Uploaded, "UploadedDevice"));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("2", HardwareLayer.Device, ComponentState.Undefined, "UndefinedDevice"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("2", HardwareLayer.Device, ComponentState.Draft, "UndefinedDevice"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -429,7 +429,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("equip-123", HardwareLayer.Equipment, ComponentState.Defined, "TestEquip"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("equip-123", HardwareLayer.Equipment, ComponentState.Ready, "TestEquip"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -449,7 +449,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("equip-123", HardwareLayer.Equipment, ComponentState.Defined, "TestEquip"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("equip-123", HardwareLayer.Equipment, ComponentState.Ready, "TestEquip"));
             await repository.SaveAsync(dataStore);
 
             // Act
@@ -510,7 +510,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             ServiceLocator.ConfigureForTesting();
             var repository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             var dataStore = await repository.LoadAsync();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession("dev-101", HardwareLayer.Device, ComponentState.Defined, "TestDevice"));
+            dataStore.WorkflowSessions.Add(CreateWorkflowSession("dev-101", HardwareLayer.Device, ComponentState.Ready, "TestDevice"));
             await repository.SaveAsync(dataStore);
 
             // Act

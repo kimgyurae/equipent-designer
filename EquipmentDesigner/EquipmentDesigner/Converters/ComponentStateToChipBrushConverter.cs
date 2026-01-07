@@ -21,9 +21,8 @@ namespace EquipmentDesigner.Converters
 
             return state switch
             {
-                ComponentState.Undefined => Application.Current.FindResource("Brush.Status.Warning.Background"),
-                ComponentState.Defined => Application.Current.FindResource("Brush.Button.Info.Background"),
-                ComponentState.Confirmed => Application.Current.FindResource("Brush.Button.Accent.Background"),
+                ComponentState.Draft => Application.Current.FindResource("Brush.Status.Warning.Background"),
+                ComponentState.Ready => Application.Current.FindResource("Brush.Button.Info.Background"),
                 ComponentState.Uploaded => Application.Current.FindResource("Brush.Button.Success.Background"),
                 ComponentState.Validated => Application.Current.FindResource("Brush.Button.Primary.Background"),
                 _ => Application.Current.FindResource("Brush.Button.Primary.Background")
@@ -49,7 +48,7 @@ namespace EquipmentDesigner.Converters
             }
 
             // Undefined uses warning background which may need dark text
-            if (state == ComponentState.Undefined)
+            if (state == ComponentState.Draft)
             {
                 return Application.Current.FindResource("Brush.Status.Warning");
             }
