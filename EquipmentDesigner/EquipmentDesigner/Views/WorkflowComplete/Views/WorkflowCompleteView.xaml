@@ -1,0 +1,286 @@
+<UserControl x:Class="EquipmentDesigner.Views.WorkflowComplete.WorkflowCompleteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:EquipmentDesigner.Views.WorkflowComplete"
+             xmlns:models="clr-namespace:EquipmentDesigner.Models"
+             xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
+             xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             lex:LocalizeDictionary.DesignCulture="ko"
+             lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
+             lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
+             mc:Ignorable="d"
+             Background="{StaticResource Brush.Background.Primary}"
+             d:DesignHeight="800" d:DesignWidth="1200">
+
+    <UserControl.Resources>
+        <converters:HardwareLayerToBackgroundConverter x:Key="HardwareLayerToBackgroundConverter"/>
+        <converters:HardwareLayerToForegroundConverter x:Key="HardwareLayerToForegroundConverter"/>
+        <converters:HardwareLayerToCardBackgroundConverter x:Key="HardwareLayerToCardBackgroundConverter"/>
+        <converters:HardwareLayerToCardBorderConverter x:Key="HardwareLayerToCardBorderConverter"/>
+
+        <!-- Hierarchical Card Template -->
+        <DataTemplate x:Key="HierarchicalCardTemplate" DataType="{x:Type local:HardwareNodeDisplayModel}">
+            <Border Margin="0,8,0,0"
+                    Padding="16"
+                    CornerRadius="{StaticResource Radius.LG}"
+                    BorderThickness="2"
+                    Cursor="Hand"
+                    Background="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToCardBackgroundConverter}}"
+                    BorderBrush="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToCardBorderConverter}}">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick"
+                                  Command="{Binding DataContext.CardClickCommand, RelativeSource={RelativeSource AncestorType=local:WorkflowCompleteView}}"
+                                  CommandParameter="{Binding}"/>
+                </Border.InputBindings>
+
+                <StackPanel>
+                    <!-- Card Header -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Hardware Layer Chip -->
+                        <reusable:StateChip Grid.Column="0"
+                                            Text="{Binding HardwareLayer}"
+                                            ChipBackground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToBackgroundConverter}}"
+                                            ChipForeground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToForegroundConverter}}"
+                                            VerticalAlignment="Center"/>
+
+                        <!-- Name -->
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Name}"
+                                   Style="{StaticResource Typography.H4}"
+                                   Foreground="{StaticResource Brush.Text.Primary}"
+                                   VerticalAlignment="Center"
+                                   Margin="12,0,0,0"/>
+                    </Grid>
+
+                    <!-- Description (if any) -->
+                    <TextBlock Text="{Binding Description}"
+                               Style="{StaticResource Typography.Body.Small}"
+                               Foreground="{StaticResource Brush.Text.Secondary}"
+                               Margin="0,8,0,0"
+                               TextWrapping="Wrap"
+                               MaxHeight="40">
+                        <TextBlock.Visibility>
+                            <Binding Path="Description">
+                                <Binding.Converter>
+                                    <converters:StringToVisibilityConverter/>
+                                </Binding.Converter>
+                            </Binding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <!-- Children (nested cards) -->
+                    <ItemsControl ItemsSource="{Binding Children}"
+                                  Margin="16,8,0,0">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <!-- Default panel: StackPanel (vertical) -->
+                                <Setter Property="ItemsPanel">
+                                    <Setter.Value>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel/>
+                                        </ItemsPanelTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Children.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <!-- When parent is Unit, use 2-column grid for Device children -->
+                                    <DataTrigger Binding="{Binding HardwareLayer}" Value="{x:Static models:HardwareLayer.Unit}">
+                                        <Setter Property="ItemsPanel">
+                                            <Setter.Value>
+                                                <ItemsPanelTemplate>
+                                                    <UniformGrid Columns="2"/>
+                                                </ItemsPanelTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="Margin" Value="0,8,0,0"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentPresenter ContentTemplate="{DynamicResource HierarchicalCardTemplate}"
+                                                  Content="{Binding}"
+                                                  Margin="0,0,8,0"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0"
+                    Margin="32,32,32,16">
+            <TextBlock Text="{Binding Title}"
+                       Style="{StaticResource Typography.H2}"
+                       Foreground="{StaticResource Brush.Text.Primary}"/>
+            <TextBlock Text="{Binding Subtitle}"
+                       Style="{StaticResource Typography.Body}"
+                       Foreground="{StaticResource Brush.Text.Secondary}"
+                       Margin="0,8,0,0"/>
+        </StackPanel>
+
+        <!-- Scrollable Card Area -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="32,0">
+            <ItemsControl ItemsSource="{Binding TreeNodes}"
+                          Margin="0,0,0,16">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ContentPresenter ContentTemplate="{StaticResource HierarchicalCardTemplate}"
+                                          Content="{Binding}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Bottom Action Buttons -->
+        <Border Grid.Row="2"
+                Background="{StaticResource Brush.Surface.Primary}"
+                BorderBrush="{StaticResource Brush.Border.Primary}"
+                BorderThickness="0,1,0,0"
+                Padding="32,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Continue Editing Button (Left) -->
+                <Button Grid.Column="0"
+                        Content="{lex:Loc Key=WorkflowComplete_ContinueEditing}"
+                        Command="{Binding ContinueEditingCommand}"
+                        HorizontalAlignment="Left"
+                        Padding="16,10"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="{StaticResource Brush.Button.Ghost.Background}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Brush.Text.Link}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                Padding="{TemplateBinding Padding}"
+                                                CornerRadius="{StaticResource Radius.MD}">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Hover}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Pressed}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Upload Later Button -->
+                <Button Grid.Column="2"
+                        Content="{lex:Loc Key=WorkflowComplete_UploadLater}"
+                        Command="{Binding UploadLaterCommand}"
+                        Padding="20,10"
+                        Margin="0,0,12,0"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="{StaticResource Brush.Button.Secondary.Background}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Brush.Button.Secondary.Foreground}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                Padding="{TemplateBinding Padding}"
+                                                CornerRadius="{StaticResource Radius.MD}">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource Brush.Button.Secondary.Background.Hover}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource Brush.Button.Secondary.Background.Pressed}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <!-- Upload Button (Primary) -->
+                <Button Grid.Column="3"
+                        Content="{lex:Loc Key=WorkflowComplete_Upload}"
+                        Command="{Binding UploadCommand}"
+                        Padding="24,10"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Brush.Button.Primary.Foreground}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="FontWeight" Value="{StaticResource Font.Weight.Medium}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                Padding="{TemplateBinding Padding}"
+                                                CornerRadius="{StaticResource Radius.MD}">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background.Hover}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter Property="Background" Value="{StaticResource Brush.Button.Primary.Background.Pressed}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Background" Value="{StaticResource Brush.Button.Disabled.Background}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
