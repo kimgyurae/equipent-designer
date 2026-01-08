@@ -8,14 +8,13 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
 {
     /// <summary>
     /// A reusable custom context menu with support for nested sub-menus (max depth 4),
-    /// animated chevrons, section dividers, and intelligent positioning.
+    /// section dividers, and intelligent positioning.
     /// </summary>
     public partial class CustomContextMenu : UserControl
     {
@@ -25,11 +24,6 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
         /// Maximum depth of nested sub-menus.
         /// </summary>
         public const int MaxDepth = 4;
-
-        /// <summary>
-        /// Delay before opening sub-menu on hover (milliseconds).
-        /// </summary>
-        private const int SubMenuOpenDelay = 200;
 
         /// <summary>
         /// Delay before closing sub-menu when mouse leaves (milliseconds).
@@ -123,11 +117,12 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
         private double _rootMenuHeight;
         private readonly List<Popup> _subMenuPopups = new List<Popup>();
         private readonly Dictionary<CustomContextMenuItem, Border> _itemContainers = new Dictionary<CustomContextMenuItem, Border>();
-        private readonly Dictionary<CustomContextMenuItem, Path> _chevronPaths = new Dictionary<CustomContextMenuItem, Path>();
-        private System.Windows.Threading.DispatcherTimer _subMenuOpenTimer;
+        private readonly Dictionary<int, CustomContextMenuItem> _openSubMenuByDepth = new Dictionary<int, CustomContextMenuItem>();
         private System.Windows.Threading.DispatcherTimer _subMenuCloseTimer;
-        private CustomContextMenuItem _pendingOpenItem;
+        private CustomContextMenuItem _pendingCloseItem;
         private CustomContextMenuItem _currentOpenSubMenuItem;
+        private bool _isApplicationExitRegistered;
+        private bool _isGlobalMouseHandlerRegistered;
 
         #endregion
 
@@ -138,17 +133,81 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
             InitializeComponent();
             Items = new ObservableCollection<CustomContextMenuItem>();
 
-            _subMenuOpenTimer = new System.Windows.Threading.DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(SubMenuOpenDelay)
-            };
-            _subMenuOpenTimer.Tick += OnSubMenuOpenTimerTick;
-
             _subMenuCloseTimer = new System.Windows.Threading.DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(SubMenuCloseDelay)
             };
             _subMenuCloseTimer.Tick += OnSubMenuCloseTimerTick;
+
+            // Register for application exit to cleanup
+            RegisterApplicationExitHandler();
+        }
+
+        #endregion
+
+        #region Application Lifecycle
+
+        private void RegisterApplicationExitHandler()
+        {
+            if (_isApplicationExitRegistered) return;
+
+            if (Application.Current != null)
+            {
+                Application.Current.Exit += OnApplicationExit;
+                Application.Current.Dispatcher.ShutdownStarted += OnDispatcherShutdown;
+                _isApplicationExitRegistered = true;
+            }
+        }
+
+        private void UnregisterApplicationExitHandler()
+        {
+            if (!_isApplicationExitRegistered) return;
+
+            if (Application.Current != null)
+            {
+                Application.Current.Exit -= OnApplicationExit;
+                Application.Current.Dispatcher.ShutdownStarted -= OnDispatcherShutdown;
+                _isApplicationExitRegistered = false;
+            }
+        }
+
+        private void OnApplicationExit(object sender, ExitEventArgs e)
+        {
+            ForceCloseAllMenus();
+        }
+
+        private void OnDispatcherShutdown(object sender, EventArgs e)
+        {
+            ForceCloseAllMenus();
+        }
+
+        /// <summary>
+        /// Forcefully closes all menus without animations.
+        /// Used during application shutdown.
+        /// </summary>
+        private void ForceCloseAllMenus()
+        {
+            // Unregister global mouse handler
+            UnregisterGlobalMouseHandler();
+
+            _subMenuCloseTimer?.Stop();
+
+            // Close all sub-menu popups
+            foreach (var popup in _subMenuPopups)
+            {
+                if (popup != null)
+                {
+                    popup.IsOpen = false;
+                }
+            }
+            _subMenuPopups.Clear();
+            _openSubMenuByDepth.Clear();
+
+            // Close root popup
+            if (_rootPopup != null)
+            {
+                _rootPopup.IsOpen = false;
+            }
         }
 
         #endregion
@@ -235,12 +294,15 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
             _rootPopup.IsOpen = true;
             _rootMenuHeight = menuSize.Height;
 
-            // Capture mouse to detect clicks outside
-            Mouse.Capture(this, CaptureMode.SubTree);
+            // Register global mouse handler for outside click detection
+            RegisterGlobalMouseHandler();
         }
 
         private void HideMenu()
         {
+            // Unregister global mouse handler
+            UnregisterGlobalMouseHandler();
+
             CloseAllSubMenus();
 
             if (_rootPopup != null)
@@ -248,9 +310,8 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
                 _rootPopup.IsOpen = false;
             }
 
-            Mouse.Capture(null);
             _itemContainers.Clear();
-            _chevronPaths.Clear();
+            _openSubMenuByDepth.Clear();
 
             Closed?.Invoke(this, EventArgs.Empty);
         }
@@ -281,9 +342,9 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
             _rootPopup = new Popup
             {
                 AllowsTransparency = true,
-                PopupAnimation = PopupAnimation.Fade,
+                PopupAnimation = PopupAnimation.None,
                 Placement = PlacementMode.Absolute,
-                StaysOpen = false,
+                StaysOpen = true, // Changed to true to allow sub-menu focus transitions
                 Child = _menuContainer
             };
 
@@ -384,8 +445,6 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
                 chevronContainer.Child = chevron;
                 Grid.SetColumn(chevronContainer, 1);
                 grid.Children.Add(chevronContainer);
-
-                _chevronPaths[item] = chevron;
             }
 
             container.Child = grid;
@@ -405,38 +464,40 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
         private void OnItemMouseEnter(CustomContextMenuItem item, Border container, int depth)
         {
             _subMenuCloseTimer.Stop();
+            _pendingCloseItem = null; // Clear pending close when entering a new item
+
+            // Check if there's an open sub-menu at this depth from a different item
+            // If so, close that sub-menu (at index 'depth' in _subMenuPopups) and all deeper ones
+            if (_openSubMenuByDepth.TryGetValue(depth, out var openItem) && openItem != item)
+            {
+                // Close the existing sub-menu at this depth and all its children
+                // _subMenuPopups[depth] contains the sub-menu opened by the item at this depth
+                CloseSubMenusFromDepth(depth);
+            }
 
             if (item.HasChildren && depth < MaxDepth - 1)
             {
-                _pendingOpenItem = item;
-                _subMenuOpenTimer.Start();
+                // Open sub-menu immediately on hover
+                OpenSubMenu(item);
             }
-            else if (_currentOpenSubMenuItem != null && _currentOpenSubMenuItem != item)
+            else
             {
-                // Close current sub-menu if hovering over a different item
-                CloseSubMenusFromDepth(depth + 1);
-                _currentOpenSubMenuItem = null;
+                // Item has no children, so close any sub-menus from this depth
+                if (_openSubMenuByDepth.ContainsKey(depth))
+                {
+                    CloseSubMenusFromDepth(depth);
+                    _currentOpenSubMenuItem = null;
+                }
             }
         }
 
         private void OnItemMouseLeave(CustomContextMenuItem item)
         {
-            _subMenuOpenTimer.Stop();
-            _pendingOpenItem = null;
-
-            if (item.HasChildren)
+            // When mouse leaves an item with an open sub-menu, track it for explicit closing
+            if (item.HasChildren && item.IsSubMenuOpen)
             {
+                _pendingCloseItem = item;
                 _subMenuCloseTimer.Start();
-            }
-        }
-
-        private void OnSubMenuOpenTimerTick(object sender, EventArgs e)
-        {
-            _subMenuOpenTimer.Stop();
-
-            if (_pendingOpenItem != null && _pendingOpenItem.HasChildren)
-            {
-                OpenSubMenu(_pendingOpenItem);
             }
         }
 
@@ -444,12 +505,62 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
         {
             _subMenuCloseTimer.Stop();
 
-            // Only close if mouse is not over any sub-menu
-            if (!IsMouseOverAnySubMenu())
+            // If we have a specific item whose sub-menu should be closed
+            if (_pendingCloseItem != null)
             {
-                CloseAllSubMenus();
+                var item = _pendingCloseItem;
+                _pendingCloseItem = null;
+
+                // Check if mouse is over the item or its sub-menu hierarchy
+                if (IsMouseOverItemOrSubMenu(item))
+                {
+                    return;
+                }
+
+                // Close this item's sub-menu and all deeper ones
+                int depth = GetItemDepth(item);
+                if (depth >= 0)
+                {
+                    CloseSubMenusFromDepth(depth);
+                }
                 _currentOpenSubMenuItem = null;
             }
+            else
+            {
+                // Fallback: close all if mouse is not over any sub-menu
+                if (!IsMouseOverAnySubMenu())
+                {
+                    CloseAllSubMenus();
+                    _currentOpenSubMenuItem = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks if the mouse is over the specified item or any of its open sub-menus.
+        /// </summary>
+        private bool IsMouseOverItemOrSubMenu(CustomContextMenuItem item)
+        {
+            // Check if mouse is over the item itself
+            if (_itemContainers.TryGetValue(item, out var container) && container.IsMouseOver)
+            {
+                return true;
+            }
+
+            // Check if mouse is over this item's sub-menu or any deeper sub-menus
+            int depth = GetItemDepth(item);
+            if (depth >= 0)
+            {
+                for (int i = depth; i < _subMenuPopups.Count; i++)
+                {
+                    if (_subMenuPopups[i]?.Child is FrameworkElement element && element.IsMouseOver)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void OpenSubMenu(CustomContextMenuItem parentItem)
@@ -461,11 +572,10 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
             int depth = GetItemDepth(parentItem);
             if (depth >= MaxDepth - 1) return;
 
-            // Close sub-menus at this depth and below
-            CloseSubMenusFromDepth(depth + 1);
-
-            // Animate chevron
-            AnimateChevron(parentItem, true);
+            // ROBUSTNESS: Always close all sub-menus at this depth and deeper before opening
+            // This handles edge cases where multiple menus might be open at the same depth
+            // even though it shouldn't happen under normal circumstances
+            CloseSubMenusFromDepth(depth);
 
             // Create sub-menu popup
             var subMenuScrollViewer = new ScrollViewer
@@ -488,7 +598,7 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
             var subMenuPopup = new Popup
             {
                 AllowsTransparency = true,
-                PopupAnimation = PopupAnimation.Fade,
+                PopupAnimation = PopupAnimation.None,
                 Placement = PlacementMode.Absolute,
                 StaysOpen = true,
                 Child = subMenuContainer
@@ -528,12 +638,20 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
             }
             _subMenuPopups[depth] = subMenuPopup;
 
+            // Track which item has open sub-menu at this depth
+            _openSubMenuByDepth[depth] = parentItem;
+
             // Handle mouse events for sub-menu
-            subMenuContainer.MouseEnter += (s, e) => _subMenuCloseTimer.Stop();
+            subMenuContainer.MouseEnter += (s, e) =>
+            {
+                _subMenuCloseTimer.Stop();
+                _pendingCloseItem = null;
+            };
             subMenuContainer.MouseLeave += (s, e) =>
             {
                 if (!IsMouseOverParentItem(parentItem))
                 {
+                    _pendingCloseItem = parentItem;
                     _subMenuCloseTimer.Start();
                 }
             };
@@ -552,15 +670,13 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
                     _subMenuPopups[i].IsOpen = false;
                     _subMenuPopups[i] = null;
                 }
-            }
-
-            // Reset chevron animations for closed sub-menus
-            foreach (var kvp in _chevronPaths)
-            {
-                if (GetItemDepth(kvp.Key) >= depth - 1)
+                
+                // Also clean up the depth tracking
+                if (_openSubMenuByDepth.ContainsKey(i))
                 {
-                    AnimateChevron(kvp.Key, false);
-                    kvp.Key.IsSubMenuOpen = false;
+                    var item = _openSubMenuByDepth[i];
+                    item.IsSubMenuOpen = false;
+                    _openSubMenuByDepth.Remove(i);
                 }
             }
         }
@@ -568,6 +684,7 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
         private void CloseAllSubMenus()
         {
             CloseSubMenusFromDepth(0);
+            _openSubMenuByDepth.Clear();
         }
 
         private int GetItemDepth(CustomContextMenuItem item)
@@ -626,53 +743,15 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
 
         #endregion
 
-        #region Private Methods - Animation
-
-        private void AnimateChevron(CustomContextMenuItem item, bool open)
-        {
-            if (!_chevronPaths.TryGetValue(item, out var chevron)) return;
-
-            var targetAngle = open ? 90.0 : 0.0;
-            var animation = new DoubleAnimation
-            {
-                To = targetAngle,
-                Duration = TimeSpan.FromMilliseconds(150),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-
-            var transform = chevron.RenderTransform as RotateTransform;
-            if (transform == null)
-            {
-                transform = new RotateTransform(0);
-                chevron.RenderTransform = transform;
-            }
-
-            transform.BeginAnimation(RotateTransform.AngleProperty, animation);
-        }
-
-        #endregion
-
         #region Private Methods - Click Handling
 
         private void OnItemClick(CustomContextMenuItem item, MouseButtonEventArgs e)
         {
             if (!item.IsEnabled) return;
 
-            // If item has children, don't close - toggle sub-menu
+            // If item has children, do nothing - sub-menu is handled by hover only
             if (item.HasChildren)
             {
-                if (item.IsSubMenuOpen)
-                {
-                    int depth = GetItemDepth(item);
-                    CloseSubMenusFromDepth(depth + 1);
-                    AnimateChevron(item, false);
-                    item.IsSubMenuOpen = false;
-                    _currentOpenSubMenuItem = null;
-                }
-                else
-                {
-                    OpenSubMenu(item);
-                }
                 e.Handled = true;
                 return;
             }
@@ -702,24 +781,47 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
 
         #endregion
 
-        #region Mouse Capture Override
+        #region Private Methods - Global Mouse Handler
 
-        protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
+        private void RegisterGlobalMouseHandler()
         {
-            base.OnPreviewMouseDown(e);
+            if (_isGlobalMouseHandlerRegistered) return;
 
-            // Check if click is outside the menu
-            if (IsOpen && !IsMouseOverMenu())
-            {
-                Close();
-                e.Handled = true;
-            }
+            Mouse.AddPreviewMouseDownHandler(Application.Current.MainWindow, OnGlobalMouseDown);
+            _isGlobalMouseHandlerRegistered = true;
         }
 
-        private bool IsMouseOverMenu()
+        private void UnregisterGlobalMouseHandler()
         {
+            if (!_isGlobalMouseHandlerRegistered) return;
+
+            if (Application.Current?.MainWindow != null)
+            {
+                Mouse.RemovePreviewMouseDownHandler(Application.Current.MainWindow, OnGlobalMouseDown);
+            }
+            _isGlobalMouseHandlerRegistered = false;
+        }
+
+        private void OnGlobalMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!IsOpen) return;
+
+            // Check if click is inside any menu (root or sub-menus)
+            if (IsMouseOverAnyMenu())
+            {
+                return;
+            }
+
+            // Click is outside all menus, close the context menu
+            Close();
+        }
+
+        private bool IsMouseOverAnyMenu()
+        {
+            // Check root menu
             if (_menuContainer?.IsMouseOver == true) return true;
 
+            // Check all sub-menu popups
             foreach (var popup in _subMenuPopups)
             {
                 if (popup?.Child is FrameworkElement element && element.IsMouseOver)

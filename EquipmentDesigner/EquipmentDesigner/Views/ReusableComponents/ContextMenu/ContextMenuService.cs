@@ -20,10 +20,82 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
         public static ContextMenuService Instance => _instance.Value;
 
         private CustomContextMenu _currentMenu;
+        private bool _isApplicationExitRegistered;
+        private bool _isWindowDeactivatedRegistered;
 
         private ContextMenuService()
         {
+            RegisterApplicationExitHandler();
         }
+
+        #region Application Lifecycle
+
+        private void RegisterApplicationExitHandler()
+        {
+            if (_isApplicationExitRegistered) return;
+
+            if (Application.Current != null)
+            {
+                Application.Current.Exit += OnApplicationExit;
+                Application.Current.Dispatcher.ShutdownStarted += OnDispatcherShutdown;
+                _isApplicationExitRegistered = true;
+            }
+        }
+
+        private void OnApplicationExit(object sender, ExitEventArgs e)
+        {
+            Close();
+        }
+
+        private void OnDispatcherShutdown(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        #endregion
+
+        #region Window Deactivation Handling
+
+        /// <summary>
+        /// Registers for window deactivation events to close menus when window loses focus.
+        /// </summary>
+        private void RegisterWindowDeactivatedHandler()
+        {
+            if (_isWindowDeactivatedRegistered) return;
+
+            var mainWindow = Application.Current?.MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.Deactivated += OnWindowDeactivated;
+                _isWindowDeactivatedRegistered = true;
+            }
+        }
+
+        /// <summary>
+        /// Unregisters from window deactivation events.
+        /// </summary>
+        private void UnregisterWindowDeactivatedHandler()
+        {
+            if (!_isWindowDeactivatedRegistered) return;
+
+            var mainWindow = Application.Current?.MainWindow;
+            if (mainWindow != null)
+            {
+                mainWindow.Deactivated -= OnWindowDeactivated;
+            }
+            _isWindowDeactivatedRegistered = false;
+        }
+
+        /// <summary>
+        /// Handles window deactivation (e.g., Alt+Tab to another application).
+        /// Closes all open context menus.
+        /// </summary>
+        private void OnWindowDeactivated(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        #endregion
 
         /// <summary>
         /// Creates a new context menu builder.
@@ -71,6 +143,9 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
                 _currentMenu.ItemClicked += (s, item) => onItemClicked(item);
             }
 
+            // Register for window deactivation to close menu when window loses focus
+            RegisterWindowDeactivatedHandler();
+
             _currentMenu.Open(screenPosition);
         }
 
@@ -79,6 +154,9 @@ namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
         /// </summary>
         public void Close()
         {
+            // Unregister window deactivation handler
+            UnregisterWindowDeactivatedHandler();
+
             _currentMenu?.Close();
             _currentMenu = null;
         }

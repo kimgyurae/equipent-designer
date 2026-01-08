@@ -37,11 +37,15 @@
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource ContextMenu.Item.Hover}"/>
             </Trigger>
+            <!-- Keep hover background when sub-menu is open -->
+            <DataTrigger Binding="{Binding Tag.IsSubMenuOpen, RelativeSource={RelativeSource Self}}" Value="True">
+                <Setter Property="Background" Value="{StaticResource ContextMenu.Item.Hover}"/>
+            </DataTrigger>
         </Style.Triggers>
     </Style>
 
     <!-- ============================================================
-         Chevron Icon Style with Animation
+         Chevron Icon Style (Static, always pointing right)
          ============================================================ -->
     <Style x:Key="ChevronPathStyle" TargetType="Path">
         <Setter Property="Data" Value="{StaticResource ChevronRightPath}"/>
