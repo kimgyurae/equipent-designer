@@ -26,12 +26,12 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Node type that was validated
         /// </summary>
-        public ProcessNodeType NodeType { get; set; }
+        public UMLNodeType NodeType { get; set; }
 
         /// <summary>
         /// Creates a valid result
         /// </summary>
-        public static NodeValidationResult Valid(string nodeId, ProcessNodeType nodeType)
+        public static NodeValidationResult Valid(string nodeId, UMLNodeType nodeType)
         {
             return new NodeValidationResult
             {
@@ -43,7 +43,7 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Creates an invalid result with error messages
         /// </summary>
-        public static NodeValidationResult Invalid(string nodeId, ProcessNodeType nodeType, params string[] errors)
+        public static NodeValidationResult Invalid(string nodeId, UMLNodeType nodeType, params string[] errors)
         {
             var result = new NodeValidationResult
             {

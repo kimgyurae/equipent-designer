@@ -13,6 +13,11 @@ namespace EquipmentDesigner.Controls
     /// </summary>
     public partial class ProcessEditButton : UserControl
     {
+        /// <summary>
+        /// Tracks the currently open Process editor window (if any).
+        /// </summary>
+        private Window _openProcessEditorWindow;
+
         public ProcessEditButton()
         {
             InitializeComponent();
@@ -23,6 +28,15 @@ namespace EquipmentDesigner.Controls
         /// </summary>
         private void OnMainButtonClick(object sender, RoutedEventArgs e)
         {
+            // Check if a Process editor window is already open
+            if (_openProcessEditorWindow != null)
+            {
+                ToastService.Instance.ShowWarning(
+                    Strings.Toast_ProcessEditorAlreadyOpen_Title,
+                    Strings.Toast_ProcessEditorAlreadyOpen_Description);
+                return;
+            }
+
             NavigationService.Instance.NavigateToDrawboard();
         }
 
@@ -41,6 +55,16 @@ namespace EquipmentDesigner.Controls
         /// </summary>
         private void OpenInNewWindow()
         {
+            // Check if a Process editor window is already open
+            if (_openProcessEditorWindow != null)
+            {
+                ToastService.Instance.ShowWarning(
+                    Strings.Toast_ProcessEditorAlreadyOpen_Title,
+                    Strings.Toast_ProcessEditorAlreadyOpen_Description);
+                _openProcessEditorWindow.Activate();
+                return;
+            }
+
             var viewModel = new DrawboardViewModel(showBackButton: false);
             var view = new DrawboardView
             {
@@ -56,6 +80,10 @@ namespace EquipmentDesigner.Controls
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
                 Owner = Application.Current.MainWindow
             };
+
+            // Track the window and clear reference when closed
+            _openProcessEditorWindow = window;
+            window.Closed += (s, args) => _openProcessEditorWindow = null;
 
             window.Show();
         }

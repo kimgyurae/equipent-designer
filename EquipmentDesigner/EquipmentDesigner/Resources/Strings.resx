@@ -666,4 +666,10 @@
   <data name="Drawboard_Help" xml:space="preserve">
     <value>Help</value>
   </data>
+  <data name="Toast_ProcessEditorAlreadyOpen_Title" xml:space="preserve">
+    <value>Process Editor Already Open</value>
+  </data>
+  <data name="Toast_ProcessEditorAlreadyOpen_Description" xml:space="preserve">
+    <value>Only one Process editor window can be opened at a time. Please close the existing window first.</value>
+  </data>
 </root>

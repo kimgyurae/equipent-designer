@@ -13,12 +13,12 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Node type (determined by derived class)
         /// </summary>
-        public abstract ProcessNodeType NodeType { get; }
+        public abstract UMLNodeType NodeType { get; }
 
         /// <summary>
         /// Node name
         /// </summary>
-        public string Name { get; set; }
+        public string Label { get; set; }
 
         /// <summary>
         /// Node description (optional)

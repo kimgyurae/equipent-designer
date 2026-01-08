@@ -8,7 +8,7 @@ namespace EquipmentDesigner.Models
     /// </summary>
     public class InitialNodeDto : ProcessNodeBase
     {
-        public override ProcessNodeType NodeType => ProcessNodeType.Initial;
+        public override UMLNodeType NodeType => UMLNodeType.Initial;
 
         /// <summary>
         /// Outgoing connections (1 or more required)

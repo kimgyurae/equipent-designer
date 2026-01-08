@@ -6,7 +6,7 @@ namespace EquipmentDesigner.Models
     /// </summary>
     public class TerminalNodeDto : ProcessNodeBase
     {
-        public override ProcessNodeType NodeType => ProcessNodeType.Terminal;
+        public override UMLNodeType NodeType => UMLNodeType.Terminal;
 
         // No OutgoingConnection property - terminal nodes cannot have outgoing connections
 

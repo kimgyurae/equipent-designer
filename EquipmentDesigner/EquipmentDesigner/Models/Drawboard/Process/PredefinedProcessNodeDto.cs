@@ -10,7 +10,7 @@ namespace EquipmentDesigner.Models
     /// </summary>
     public class PredefinedProcessNodeDto : ProcessNodeBase
     {
-        public override ProcessNodeType NodeType => ProcessNodeType.PredefinedProcess;
+        public override UMLNodeType NodeType => UMLNodeType.PredefinedAction;
 
         /// <summary>
         /// All nodes in this predefined process (polymorphic storage).

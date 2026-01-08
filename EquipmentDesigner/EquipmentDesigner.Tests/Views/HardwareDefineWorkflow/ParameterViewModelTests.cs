@@ -1,3 +1,4 @@
+using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
@@ -248,7 +249,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void FromDto_PopulatesAllPropertiesFromParameterDto()
         {
             // Arrange
-            var dto = new Models.ParameterDto
+            var dto = new ParameterDto
             {
                 Name = "TestParam",
                 Type = "Float",

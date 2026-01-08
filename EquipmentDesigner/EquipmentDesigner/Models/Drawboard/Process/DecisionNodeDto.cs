@@ -6,7 +6,7 @@ namespace EquipmentDesigner.Models
     /// </summary>
     public class DecisionNodeDto : ProcessNodeBase
     {
-        public override ProcessNodeType NodeType => ProcessNodeType.Decision;
+        public override UMLNodeType NodeType => UMLNodeType.Decision;
 
         /// <summary>
         /// Branch condition expression

@@ -17,7 +17,7 @@ namespace EquipmentDesigner.Tests.Process
         public void NodeValidationResult_IsValid_ShouldBeTrue_WhenNoErrors()
         {
             // Arrange
-            var result = NodeValidationResult.Valid("node-001", ProcessNodeType.Action);
+            var result = NodeValidationResult.Valid("node-001", UMLNodeType.Action);
 
             // Assert
             result.IsValid.Should().BeTrue();
@@ -28,7 +28,7 @@ namespace EquipmentDesigner.Tests.Process
         public void NodeValidationResult_IsValid_ShouldBeFalse_WhenHasErrors()
         {
             // Arrange
-            var result = NodeValidationResult.Invalid("node-001", ProcessNodeType.Action, "Error 1", "Error 2");
+            var result = NodeValidationResult.Invalid("node-001", UMLNodeType.Action, "Error 1", "Error 2");
 
             // Assert
             result.IsValid.Should().BeFalse();
@@ -39,7 +39,7 @@ namespace EquipmentDesigner.Tests.Process
         public void NodeValidationResult_AddError_ShouldAppendError()
         {
             // Arrange
-            var result = NodeValidationResult.Valid("node-001", ProcessNodeType.Action);
+            var result = NodeValidationResult.Valid("node-001", UMLNodeType.Action);
 
             // Act
             result.AddError("New error");
@@ -126,7 +126,7 @@ namespace EquipmentDesigner.Tests.Process
 
             // Assert
             result.IsValid.Should().BeTrue();
-            result.NodeType.Should().Be(ProcessNodeType.Terminal);
+            result.NodeType.Should().Be(UMLNodeType.Terminal);
         }
 
         #endregion

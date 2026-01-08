@@ -3,7 +3,7 @@ namespace EquipmentDesigner.Models
     /// <summary>
     /// Process node types for UML Activity Diagram workflow
     /// </summary>
-    public enum ProcessNodeType
+    public enum UMLNodeType
     {
         /// <summary>
         /// Start node - workflow entry point
@@ -33,6 +33,6 @@ namespace EquipmentDesigner.Models
         /// Predefined process node - reusable subprocess reference
         /// Inbound: 1+ | Outbound: 0 or 1
         /// </summary>
-        PredefinedProcess
+        PredefinedAction
     }
 }

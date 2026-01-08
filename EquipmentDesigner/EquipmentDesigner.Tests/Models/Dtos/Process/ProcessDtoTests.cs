@@ -55,19 +55,19 @@ namespace EquipmentDesigner.Tests.Process
         public void ProcessNodeType_ShouldContain_Exactly5Types()
         {
             // Arrange & Act
-            var typeCount = System.Enum.GetValues(typeof(ProcessNodeType)).Length;
+            var typeCount = System.Enum.GetValues(typeof(UMLNodeType)).Length;
 
             // Assert
             typeCount.Should().Be(5);
         }
 
         [Theory]
-        [InlineData(ProcessNodeType.Initial)]
-        [InlineData(ProcessNodeType.Terminal)]
-        [InlineData(ProcessNodeType.Action)]
-        [InlineData(ProcessNodeType.Decision)]
-        [InlineData(ProcessNodeType.PredefinedProcess)]
-        public void ProcessNodeType_ShouldContain_AllNodeTypes(ProcessNodeType nodeType)
+        [InlineData(UMLNodeType.Initial)]
+        [InlineData(UMLNodeType.Terminal)]
+        [InlineData(UMLNodeType.Action)]
+        [InlineData(UMLNodeType.Decision)]
+        [InlineData(UMLNodeType.PredefinedAction)]
+        public void ProcessNodeType_ShouldContain_AllNodeTypes(UMLNodeType nodeType)
         {
             // Assert
             nodeType.Should().BeDefined();
@@ -122,10 +122,10 @@ namespace EquipmentDesigner.Tests.Process
         public void ProcessNodeBase_ShouldHave_NameProperty()
         {
             // Arrange
-            var node = new InitialNodeDto { Name = "Start Node" };
+            var node = new InitialNodeDto { Label = "Start Node" };
 
             // Assert
-            node.Name.Should().Be("Start Node");
+            node.Label.Should().Be("Start Node");
         }
 
         [Fact]
@@ -156,7 +156,7 @@ namespace EquipmentDesigner.Tests.Process
             var node = new InitialNodeDto();
 
             // Assert
-            node.NodeType.Should().Be(ProcessNodeType.Initial);
+            node.NodeType.Should().Be(UMLNodeType.Initial);
         }
 
         [Fact]
@@ -200,7 +200,7 @@ namespace EquipmentDesigner.Tests.Process
             var node = new TerminalNodeDto();
 
             // Assert
-            node.NodeType.Should().Be(ProcessNodeType.Terminal);
+            node.NodeType.Should().Be(UMLNodeType.Terminal);
         }
 
         [Fact]
@@ -229,7 +229,7 @@ namespace EquipmentDesigner.Tests.Process
             var node = new ActionNodeDto();
 
             // Assert
-            node.NodeType.Should().Be(ProcessNodeType.Action);
+            node.NodeType.Should().Be(UMLNodeType.Action);
         }
 
         [Fact]
@@ -264,7 +264,7 @@ namespace EquipmentDesigner.Tests.Process
             var node = new DecisionNodeDto();
 
             // Assert
-            node.NodeType.Should().Be(ProcessNodeType.Decision);
+            node.NodeType.Should().Be(UMLNodeType.Decision);
         }
 
         [Fact]
@@ -323,7 +323,7 @@ namespace EquipmentDesigner.Tests.Process
             var node = new PredefinedProcessNodeDto();
 
             // Assert
-            node.NodeType.Should().Be(ProcessNodeType.PredefinedProcess);
+            node.NodeType.Should().Be(UMLNodeType.PredefinedAction);
         }
 
         [Fact]
@@ -372,7 +372,7 @@ namespace EquipmentDesigner.Tests.Process
             var nestedProcess = new PredefinedProcessNodeDto
             {
                 Id = "nested-001",
-                Name = "Nested Subprocess",
+                Label = "Nested Subprocess",
                 InitialNodeId = "nested-init-001"
             };
             nestedProcess.Nodes.Add(new InitialNodeDto { Id = "nested-init-001" });
@@ -381,7 +381,7 @@ namespace EquipmentDesigner.Tests.Process
             var parentProcess = new PredefinedProcessNodeDto
             {
                 Id = "parent-001",
-                Name = "Parent Process",
+                Label = "Parent Process",
                 InitialNodeId = "parent-init-001"
             };
             parentProcess.Nodes.Add(new InitialNodeDto { Id = "parent-init-001" });
@@ -514,11 +514,11 @@ namespace EquipmentDesigner.Tests.Process
             // Arrange
             var nodes = new List<ProcessNodeBase>
             {
-                new InitialNodeDto { Id = "1", Name = "Start" },
-                new TerminalNodeDto { Id = "2", Name = "End" },
-                new ActionNodeDto { Id = "3", Name = "Process" },
-                new DecisionNodeDto { Id = "4", Name = "Branch" },
-                new PredefinedProcessNodeDto { Id = "5", Name = "Subprocess" }
+                new InitialNodeDto { Id = "1", Label = "Start" },
+                new TerminalNodeDto { Id = "2", Label = "End" },
+                new ActionNodeDto { Id = "3", Label = "Process" },
+                new DecisionNodeDto { Id = "4", Label = "Branch" },
+                new PredefinedProcessNodeDto { Id = "5", Label = "Subprocess" }
             };
 
             // Assert
@@ -550,7 +550,7 @@ namespace EquipmentDesigner.Tests.Process
             ProcessNodeBase baseNode = new ActionNodeDto
             {
                 Id = "action-001",
-                Name = "Test Action",
+                Label = "Test Action",
                 Description = "Test Description",
                 OutgoingConnection = new ProcessConnectionDto { TargetNodeId = "next" }
             };
@@ -561,7 +561,7 @@ namespace EquipmentDesigner.Tests.Process
             // Assert
             actionNode.Should().NotBeNull();
             actionNode.Id.Should().Be("action-001");
-            actionNode.Name.Should().Be("Test Action");
+            actionNode.Label.Should().Be("Test Action");
             actionNode.Description.Should().Be("Test Description");
             actionNode.OutgoingConnection.TargetNodeId.Should().Be("next");
         }

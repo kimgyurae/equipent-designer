@@ -6,7 +6,7 @@ namespace EquipmentDesigner.Models
     /// </summary>
     public class ActionNodeDto : ProcessNodeBase
     {
-        public override ProcessNodeType NodeType => ProcessNodeType.Action;
+        public override UMLNodeType NodeType => UMLNodeType.Action;
 
         /// <summary>
         /// Outgoing connection (exactly 1 required)
