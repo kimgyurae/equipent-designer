@@ -1,6 +1,6 @@
 using System.Collections.Specialized;
 using System.Linq;
-using EquipmentDesigner.Models.Dtos;
+using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;

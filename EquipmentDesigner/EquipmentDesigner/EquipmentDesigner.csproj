@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -75,7 +75,7 @@
 
   <ItemGroup>
     <Folder Include="Services\Api\" />
-    <Folder Include="Views\UMLBoard\Engine\" />
+    <Folder Include="Views\Drawboard\UMLEngine\" />
   </ItemGroup>
 
 </Project>

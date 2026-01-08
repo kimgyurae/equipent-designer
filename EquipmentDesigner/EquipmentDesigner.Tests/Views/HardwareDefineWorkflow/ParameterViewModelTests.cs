@@ -248,7 +248,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void FromDto_PopulatesAllPropertiesFromParameterDto()
         {
             // Arrange
-            var dto = new Models.Dtos.ParameterDto
+            var dto = new Models.ParameterDto
             {
                 Name = "TestParam",
                 Type = "Float",

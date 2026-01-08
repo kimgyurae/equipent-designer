@@ -1,0 +1,551 @@
+<UserControl x:Class="EquipmentDesigner.Views.DrawboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
+             lex:LocalizeDictionary.DesignCulture="ko"
+             lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
+             lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
+             mc:Ignorable="d"
+             Background="{StaticResource Brush.Background.Secondary}"
+             d:DesignHeight="600" d:DesignWidth="1200">
+
+    <UserControl.Resources>
+        <!-- Icon Path Style (Common) -->
+        <Style x:Key="IconPathStyle" TargetType="Path">
+            <Setter Property="Stroke" Value="#0A0A0A"/>
+            <Setter Property="StrokeThickness" Value="0.8"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Stretch" Value="Uniform"/>
+        </Style>
+
+        <!-- Tool Shortcut Text Style (Common) -->
+        <Style x:Key="ToolShortcutTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{StaticResource Brush.Text.Secondary}"/>
+            <Setter Property="Opacity" Value="1.0"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Bottom"/>
+            <Setter Property="Margin" Value="0,0,-8,-8"/>
+        </Style>
+
+        <!-- Tool Button Style -->
+        <Style x:Key="ToolButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{StaticResource Radius.LG}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Hover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Pressed}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Brush.Status.Info.Background}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Floating Panel Style -->
+        <Style x:Key="FloatingPanelStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Primary}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Effect" Value="{StaticResource Shadow.LG}"/>
+        </Style>
+
+        <!-- Toolbar Divider Style -->
+        <Style x:Key="ToolbarDividerStyle" TargetType="Rectangle">
+            <Setter Property="Width" Value="1"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Fill" Value="{StaticResource Brush.Border.Primary}"/>
+            <Setter Property="Margin" Value="4,4"/>
+        </Style>
+
+        <!-- Control Button Style (for zoom, undo/redo) -->
+        <Style x:Key="ControlButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Hover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Pressed}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Back Button Hover Style -->
+        <Style x:Key="BackButtonHoverStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Opacity" Value="0.6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{StaticResource Radius.LG}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="1"/>
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Hover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Pressed}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- Main Canvas Area (white background) -->
+        <Border Background="{StaticResource Brush.Surface.Primary}"/>
+
+        <!-- Top Left: Back Button + State ComboBox -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="16">
+            <!-- Back Button (Chevron only) -->
+            <Button Style="{StaticResource BackButtonHoverStyle}"
+                    Command="{Binding BackToHardwareDefineCommand}"
+                    ToolTip="{lex:Loc Key=Process_BackToHardwareDefine}"
+                    Visibility="{Binding ShowBackButton, Converter={StaticResource BoolToVisibilityConverter}}"
+                    Margin="0,0,8,0">
+                <Path Data="M15 19l-7-7 7-7"
+                      Stroke="{StaticResource Brush.Text.Primary}"
+                      StrokeThickness="2"
+                      Width="16" Height="16"
+                      Stretch="Uniform"/>
+            </Button>
+
+            <!-- State Selection ComboBox -->
+            <Border Style="{StaticResource FloatingPanelStyle}"
+                    Padding="0">
+                <ComboBox ItemsSource="{Binding AvailableStates}"
+                          SelectedItem="{Binding SelectedState, Mode=TwoWay}"
+                          Style="{StaticResource StyledComboBox}"
+                          Height="{StaticResource Size.Input.Height.MD}"
+                          BorderThickness="0"/>
+            </Border>
+        </StackPanel>
+
+        <!-- Top Center: Floating Tool Menu -->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Margin="0,16,0,0">
+            <!-- Toolbar Panel -->
+            <Border Style="{StaticResource FloatingPanelStyle}"
+                    Padding="4">
+                <StackPanel Orientation="Horizontal">
+                    <!-- ToolLock Button -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[0]}"
+                            DataContext="{Binding}"
+                            ToolTip="{Binding Tools[0].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[0].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[0].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- Divider after ToolLock -->
+                    <Rectangle Style="{StaticResource ToolbarDividerStyle}"/>
+
+                    <!-- Hand Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[1]}"
+                            ToolTip="{Binding Tools[1].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[1].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M12.0002,7.33329 V3.99996 C12.0002,3.64634 11.8597,3.3072 11.6096,3.05715 C11.3596,2.8071 11.0205,2.66663 10.6668,2.66663 C10.3132,2.66663 9.97407,2.8071 9.72402,3.05715 C9.47397,3.3072 9.3335,3.64634 9.3335,3.99996 M9.33317,6.66671 V2.66671 C9.33317,2.31309 9.19269,1.97395 8.94265,1.7239 C8.6926,1.47385 8.35346,1.33337 7.99984,1.33337 C7.64622,1.33337 7.30708,1.47385 7.05703,1.7239 C6.80698,1.97395 6.6665,2.31309 6.6665,2.66671 V4.00004 M6.66667,6.99996 V3.99996 C6.66667,3.64634 6.52619,3.3072 6.27614,3.05715 C6.02609,2.8071 5.68696,2.66663 5.33333,2.66663 C4.97971,2.66663 4.64057,2.8071 4.39052,3.05715 C4.14048,3.3072 4,3.64634 4,3.99996 V9.33329 M11.9997,5.33333 C11.9997,4.97971 12.1402,4.64057 12.3903,4.39052 C12.6403,4.14048 12.9795,4 13.3331,4 C13.6867,4 14.0258,4.14048 14.2759,4.39052 C14.5259,4.64057 14.6664,4.97971 14.6664,5.33333 V9.33333 C14.6664,10.7478 14.1045,12.1044 13.1043,13.1046 C12.1041,14.1048 10.7476,14.6667 9.33308,14.6667 H7.99974 C6.13308,14.6667 4.99974,14.0933 4.00641,13.1067 L1.60641,10.7067 C1.37703,10.4526 1.25413,10.1201 1.26316,9.77796 C1.27218,9.43581 1.41244,9.11023 1.65489,8.86864 C1.89734,8.62705 2.22341,8.48794 2.56559,8.48013 C2.90777,8.47232 3.23985,8.59639 3.49308,8.82667 L4.66641,10"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[1].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- Selection Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[2]}"
+                            ToolTip="{Binding Tools[2].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[2].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M2.69127,3.12539 C2.66496,3.06467 2.65751,2.99744 2.66989,2.93243 C2.68228,2.86742 2.71392,2.80763 2.76072,2.76084 C2.80751,2.71404 2.8673,2.6824 2.9323,2.67002 C2.99731,2.65763 3.06454,2.66508 3.12527,2.69139 L13.7919,7.02472 C13.8568,7.05115 13.9117,7.09733 13.9488,7.15671 C13.9859,7.2161 14.0034,7.28566 13.9988,7.35554 C13.9941,7.42543 13.9676,7.49207 13.9229,7.54601 C13.8782,7.59995 13.8177,7.63846 13.7499,7.65606 L9.66727,8.70939 C9.43659,8.76869 9.22601,8.8887 9.05742,9.05694 C8.88883,9.22518 8.76838,9.43551 8.7086,9.66606 L7.65593,13.7501 C7.63833,13.8178 7.59983,13.8784 7.54589,13.923 C7.49194,13.9677 7.4253,13.9942 7.35542,13.9989 C7.28554,14.0035 7.21597,13.9861 7.15659,13.9489 C7.09721,13.9118 7.05102,13.8569 7.0246,13.7921 L2.69127,3.12539 Z"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[2].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- Divider before Node Tools -->
+                    <Rectangle Style="{StaticResource ToolbarDividerStyle}"/>
+
+                    <!-- InitialNode Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[3]}"
+                            ToolTip="{Binding Tools[3].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[3].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M8.00016,14.6667 C11.6821,14.6667 14.6668,11.6819 14.6668,8.00004 C14.6668,4.31814 11.6821,1.33337 8.00016,1.33337 C4.31826,1.33337 1.3335,4.31814 1.3335,8.00004 C1.3335,11.6819 4.31826,14.6667 8.00016,14.6667 Z"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[3].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- ActionNode Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[4]}"
+                            ToolTip="{Binding Tools[4].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[4].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M12.6667,2 H3.33333 C2.59695,2 2,2.59695 2,3.33333 V12.6667 C2,13.403 2.59695,14 3.33333,14 H12.6667 C13.403,14 14,13.403 14,12.6667 V3.33333 C14,2.59695 13.403,2 12.6667,2 Z"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[4].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- DecisionNode Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[5]}"
+                            ToolTip="{Binding Tools[5].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[5].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M1.79978,6.86661 C1.65041,7.01583 1.53192,7.19302 1.45107,7.38806 C1.37023,7.58309 1.32861,7.79215 1.32861,8.00328 C1.32861,8.21441 1.37023,8.42347 1.45107,8.61851 C1.53192,8.81354 1.65041,8.99073 1.79978,9.13995 L6.85978,14.1999 C7.00899,14.3493 7.18618,14.4678 7.38122,14.5487 C7.57626,14.6295 7.78531,14.6711 7.99644,14.6711 C8.20757,14.6711 8.41663,14.6295 8.61167,14.5487 C8.80671,14.4678 8.9839,14.3493 9.13311,14.1999 L14.1931,9.13995 C14.3425,8.99073 14.461,8.81354 14.5418,8.61851 C14.6227,8.42347 14.6643,8.21441 14.6643,8.00328 C14.6643,7.79215 14.6227,7.58309 14.5418,7.38806 C14.461,7.19302 14.3425,7.01583 14.1931,6.86661 L9.13311,1.80661 C8.9839,1.65725 8.80671,1.53875 8.61167,1.45791 C8.41663,1.37706 8.20757,1.33545 7.99644,1.33545 C7.78531,1.33545 7.57626,1.37706 7.38122,1.45791 C7.18618,1.53875 7.00899,1.65725 6.85978,1.80661 L1.79978,6.86661 Z"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[5].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- TerminalNode Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[6]}"
+                            ToolTip="{Binding Tools[6].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[6].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M8.00016,14.6667 C11.6821,14.6667 14.6668,11.6819 14.6668,8.00004 C14.6668,4.31814 11.6821,1.33337 8.00016,1.33337 C4.31826,1.33337 1.3335,4.31814 1.3335,8.00004 C1.3335,11.6819 4.31826,14.6667 8.00016,14.6667 Z"/>
+                            <Ellipse Width="8" Height="8"
+                                     Stroke="#0A0A0A"
+                                     StrokeThickness="1"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[6].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- PredefinedActionNode Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[7]}"
+                            ToolTip="{Binding Tools[7].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[7].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M12.6667,2 H3.33333 C2.59695,2 2,2.59695 2,3.33333 V12.6667 C2,13.403 2.59695,14 3.33333,14 H12.6667 C13.403,14 14,13.403 14,12.6667 V3.33333 C14,2.59695 13.403,2 12.6667,2 Z M11.5,3.5 H4.5 C3.94772,3.5 3.5,3.94772 3.5,4.5 V11.5 C3.5,12.0523 3.94772,12.5 4.5,12.5 H11.5 C12.0523,12.5 12.5,12.0523 12.5,11.5 V4.5 C12.5,3.94772 12.0523,3.5 11.5,3.5 Z"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[7].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- Divider before Text/Eraser -->
+                    <Rectangle Style="{StaticResource ToolbarDividerStyle}"/>
+
+                    <!-- Textbox Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[8]}"
+                            ToolTip="{Binding Tools[8].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[8].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M2.6665,4.66663 V2.66663 H13.3332 V4.66663 M6,13.3334 H10 M8,2.66663 V13.3333"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[8].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- Eraser Tool -->
+                    <Button Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding SelectToolCommand}"
+                            CommandParameter="{Binding Tools[9]}"
+                            ToolTip="{Binding Tools[9].Instruction}">
+                        <Button.Background>
+                            <Binding Path="Tools[9].IsSelected">
+                                <Binding.Converter>
+                                    <converters:BoolToBrushConverter TrueValue="{StaticResource Brush.Status.Info.Background}"
+                                                                FalseValue="Transparent"/>
+                                </Binding.Converter>
+                            </Binding>
+                        </Button.Background>
+                        <Grid>
+                            <Path Style="{StaticResource IconPathStyle}"
+                                  Data="M4.66647,14 L1.7998,11.1333 C1.13314,10.4667 1.13314,9.46668 1.7998,8.86668 L8.1998,2.46667 C8.86647,1.80001 9.86647,1.80001 10.4665,2.46667 L14.1998,6.20001 C14.8665,6.86668 14.8665,7.86667 14.1998,8.46667 L8.66647,14 M14.6665,14 H4.6665 M3.3335,7.33337 L9.3335,13.3334"/>
+                            <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
+                                       Text="{Binding Tools[9].Shortcut}"/>
+                        </Grid>
+                    </Button>
+
+                    <!-- Divider after ToolLock -->
+                    <Rectangle Style="{StaticResource ToolbarDividerStyle}"/>
+
+                    <!-- More Tools Button -->
+                    <Button x:Name="MoreToolsButton"
+                            Style="{StaticResource ToolButtonStyle}"
+                            Command="{Binding ShowMoreToolsCommand}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                            ToolTip="{lex:Loc Key=Drawboard_MoreTools}">
+                        <Path Style="{StaticResource IconPathStyle}"
+                              Data="M8.00016,8.66671 C8.36835,8.66671 8.66683,8.36823 8.66683,8.00004 C8.66683,7.63185 8.36835,7.33337 8.00016,7.33337 C7.63197,7.33337 7.3335,7.63185 7.3335,8.00004 C7.3335,8.36823 7.63197,8.66671 8.00016,8.66671 Z M12.6667,8.66671 C13.0349,8.66671 13.3333,8.36823 13.3333,8.00004 C13.3333,7.63185 13.0349,7.33337 12.6667,7.33337 C12.2985,7.33337 12,7.63185 12,8.00004 C12,8.36823 12.2985,8.66671 12.6667,8.66671 Z M3.33317,8.66671 C3.70136,8.66671 3.99984,8.36823 3.99984,8.00004 C3.99984,7.63185 3.70136,7.33337 3.33317,7.33337 C2.96498,7.33337 2.6665,7.63185 2.6665,8.00004 C2.6665,8.36823 2.96498,8.66671 3.33317,8.66671 Z"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Hint Text Display -->
+            <TextBlock converters:HintTextBehavior.HintText="{Binding CurrentHint}"
+                       Style="{StaticResource Typography.Body.Small}"
+                       Foreground="{StaticResource Brush.Text.Tertiary}"
+                       Opacity="0.9"
+                       HorizontalAlignment="Center"
+                       Margin="0,12,0,0"
+                       Visibility="{Binding CurrentHint, Converter={StaticResource StringToVisibilityConverter}}"/>
+        </StackPanel>
+
+        <!-- Bottom Left: Zoom Controls + Undo/Redo -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="16">
+            <!-- Zoom Controls -->
+            <Border Style="{StaticResource FloatingPanelStyle}"
+                    Padding="1">
+                <StackPanel Orientation="Horizontal">
+                    <!-- Zoom Out -->
+                    <Button Style="{StaticResource ControlButtonStyle}"
+                            Command="{Binding ZoomOutCommand}"
+                            Width="32" Height="36">
+                        <TextBlock Text="−"
+                                   FontSize="14"
+                                   Foreground="{StaticResource Brush.Text.Primary}"
+                                   HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Divider -->
+                    <Rectangle Width="1" Height="24"
+                               Fill="{StaticResource Brush.Border.Primary}"/>
+
+                    <!-- Zoom Level -->
+                    <TextBlock Text="{Binding ZoomLevel, StringFormat={}{0}%}"
+                               Style="{StaticResource Typography.Body.Small}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Width="35"
+                               TextAlignment="Center"
+                               Margin="4,0"/>
+
+                    <!-- Divider -->
+                    <Rectangle Width="1" Height="24"
+                               Fill="{StaticResource Brush.Border.Primary}"/>
+
+                    <!-- Zoom In -->
+                    <Button Style="{StaticResource ControlButtonStyle}"
+                            Command="{Binding ZoomInCommand}"
+                            Width="32" Height="36">
+                        <TextBlock Text="+"
+                                   FontSize="14"
+                                   Foreground="{StaticResource Brush.Text.Primary}"
+                                   HorizontalAlignment="Center"/>
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Undo/Redo Controls -->
+            <Border Style="{StaticResource FloatingPanelStyle}"
+                    Padding="1"
+                    Margin="8,0,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <!-- Undo -->
+                    <Button Style="{StaticResource ControlButtonStyle}"
+                            Command="{Binding UndoCommand}"
+                            IsEnabled="{Binding CanUndo}"
+                            Width="32" Height="36"
+                            ToolTip="{lex:Loc Key=Drawboard_Undo}">
+                        <Path Data="M3 10h10c2.76 0 5 2.24 5 5s-2.24 5-5 5H9M3 10l4-4M3 10l4 4"
+                              Stroke="{StaticResource Brush.Text.Primary}"
+                              StrokeThickness="1.5"
+                              Width="16" Height="16"
+                              Stretch="Uniform"/>
+                    </Button>
+
+                    <!-- Divider -->
+                    <Rectangle Width="1" Height="24"
+                               Fill="{StaticResource Brush.Border.Primary}"/>
+
+                    <!-- Redo -->
+                    <Button Style="{StaticResource ControlButtonStyle}"
+                            Command="{Binding RedoCommand}"
+                            IsEnabled="{Binding CanRedo}"
+                            Width="32" Height="36"
+                            ToolTip="{lex:Loc Key=Drawboard_Redo}">
+                        <Path Data="M21 10H11c-2.76 0-5 2.24-5 5s2.24 5 5 5h4M21 10l-4-4M21 10l-4 4"
+                              Stroke="{StaticResource Brush.Text.Primary}"
+                              StrokeThickness="1.5"
+                              Width="16" Height="16"
+                              Stretch="Uniform"/>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Bottom Right: Help Button -->
+        <Button Style="{StaticResource BackButtonHoverStyle}"
+                Command="{Binding ShowHelpCommand}"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="16"
+                Width="38" Height="38"
+                ToolTip="Help">
+            <Border Style="{StaticResource FloatingPanelStyle}"
+                    Width="38" Height="38"
+                    Padding="0">
+                <TextBlock Text="?"
+                           FontSize="16"
+                           FontWeight="Medium"
+                           Foreground="{StaticResource Brush.Text.Secondary}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Border>
+        </Button>
+    </Grid>
+</UserControl>

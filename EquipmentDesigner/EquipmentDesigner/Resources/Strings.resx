@@ -609,4 +609,61 @@
   <data name="ConfirmDialog_PlaceholderFormat" xml:space="preserve">
     <value>Type '{0}'</value>
   </data>
+  <data name="Drawboard_Tool_ToolLock_Instruction" xml:space="preserve">
+    <value>Keep selected tool active after drawing</value>
+  </data>
+  <data name="Drawboard_Tool_Hand_Instruction" xml:space="preserve">
+    <value>Hand (panning tool)</value>
+  </data>
+  <data name="Drawboard_Tool_Hand_Hint" xml:space="preserve">
+    <value>Hold and drag to pan the canvas</value>
+  </data>
+  <data name="Drawboard_Tool_Selection_Instruction" xml:space="preserve">
+    <value>Selection</value>
+  </data>
+  <data name="Drawboard_Tool_Selection_Hint" xml:space="preserve">
+    <value>To pan the canvas, hold [Scroll Wheel] or [Space] and drag.</value>
+  </data>
+  <data name="Drawboard_Tool_InitialNode_Instruction" xml:space="preserve">
+    <value>Initial Node (Every workflow must start with this)</value>
+  </data>
+  <data name="Drawboard_Tool_ActionNode_Instruction" xml:space="preserve">
+    <value>Action Node</value>
+  </data>
+  <data name="Drawboard_Tool_DecisionNode_Instruction" xml:space="preserve">
+    <value>Decision Node</value>
+  </data>
+  <data name="Drawboard_Tool_TerminalNode_Instruction" xml:space="preserve">
+    <value>Terminal Node (Every workflow must end with this)</value>
+  </data>
+  <data name="Drawboard_Tool_PredefinedActionNode_Instruction" xml:space="preserve">
+    <value>Predefined Action Node (You must define one before using it)</value>
+  </data>
+  <data name="Drawboard_Tool_Textbox_Instruction" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Drawboard_Tool_Textbox_Hint" xml:space="preserve">
+    <value>Tip: you can also add text by double-clicking anywhere with the Selection tool</value>
+  </data>
+  <data name="Drawboard_Tool_Eraser_Instruction" xml:space="preserve">
+    <value>Eraser</value>
+  </data>
+  <data name="Drawboard_Tool_Eraser_Hint" xml:space="preserve">
+    <value>Hold [Alt] to revert the elements marked for deletion</value>
+  </data>
+  <data name="Drawboard_Tool_Image_Instruction" xml:space="preserve">
+    <value>Insert Image</value>
+  </data>
+  <data name="Drawboard_MoreTools" xml:space="preserve">
+    <value>More tools</value>
+  </data>
+  <data name="Drawboard_Undo" xml:space="preserve">
+    <value>Undo (Ctrl+Z)</value>
+  </data>
+  <data name="Drawboard_Redo" xml:space="preserve">
+    <value>Redo (Ctrl+Y)</value>
+  </data>
+  <data name="Drawboard_Help" xml:space="preserve">
+    <value>Help</value>
+  </data>
 </root>

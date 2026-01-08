@@ -20,8 +20,9 @@ namespace EquipmentDesigner.Controls
         public static ContextMenuService Instance => _instance.Value;
 
         private CustomContextMenu _currentMenu;
+        private object _currentOwner;
         private bool _isApplicationExitRegistered;
-        private bool _isWindowDeactivatedRegistered;
+        private bool _isWindowEventHandlersRegistered;
 
         private ContextMenuService()
         {
@@ -54,36 +55,43 @@ namespace EquipmentDesigner.Controls
 
         #endregion
 
-        #region Window Deactivation Handling
+        #region Window Event Handling
 
         /// <summary>
-        /// Registers for window deactivation events to close menus when window loses focus.
+        /// Registers for window events to close menus when window state changes.
+        /// Includes: deactivation, state change (minimize/maximize), location change, size change.
         /// </summary>
-        private void RegisterWindowDeactivatedHandler()
+        private void RegisterWindowEventHandlers()
         {
-            if (_isWindowDeactivatedRegistered) return;
+            if (_isWindowEventHandlersRegistered) return;
 
             var mainWindow = Application.Current?.MainWindow;
             if (mainWindow != null)
             {
                 mainWindow.Deactivated += OnWindowDeactivated;
-                _isWindowDeactivatedRegistered = true;
+                mainWindow.StateChanged += OnWindowStateChanged;
+                mainWindow.LocationChanged += OnWindowLocationChanged;
+                mainWindow.SizeChanged += OnWindowSizeChanged;
+                _isWindowEventHandlersRegistered = true;
             }
         }
 
         /// <summary>
-        /// Unregisters from window deactivation events.
+        /// Unregisters from window events.
         /// </summary>
-        private void UnregisterWindowDeactivatedHandler()
+        private void UnregisterWindowEventHandlers()
         {
-            if (!_isWindowDeactivatedRegistered) return;
+            if (!_isWindowEventHandlersRegistered) return;
 
             var mainWindow = Application.Current?.MainWindow;
             if (mainWindow != null)
             {
                 mainWindow.Deactivated -= OnWindowDeactivated;
+                mainWindow.StateChanged -= OnWindowStateChanged;
+                mainWindow.LocationChanged -= OnWindowLocationChanged;
+                mainWindow.SizeChanged -= OnWindowSizeChanged;
             }
-            _isWindowDeactivatedRegistered = false;
+            _isWindowEventHandlersRegistered = false;
         }
 
         /// <summary>
@@ -95,7 +103,49 @@ namespace EquipmentDesigner.Controls
             Close();
         }
 
+        /// <summary>
+        /// Handles window state changes (minimize, maximize, restore).
+        /// Closes all open context menus.
+        /// </summary>
+        private void OnWindowStateChanged(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        /// <summary>
+        /// Handles window location changes (moving the window).
+        /// Closes all open context menus.
+        /// </summary>
+        private void OnWindowLocationChanged(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        /// <summary>
+        /// Handles window size changes (resizing the window).
+        /// Closes all open context menus.
+        /// </summary>
+        private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            Close();
+        }
+
         #endregion
+
+        /// <summary>
+        /// Gets whether a context menu is currently open.
+        /// </summary>
+        public bool IsOpen => _currentMenu != null;
+
+        /// <summary>
+        /// Checks if the menu opened by the specified owner is currently open.
+        /// </summary>
+        /// <param name="owner">The owner element that opened the menu.</param>
+        /// <returns>True if the menu from this owner is open.</returns>
+        public bool IsOpenFrom(object owner)
+        {
+            return _currentMenu != null && _currentOwner == owner;
+        }
 
         /// <summary>
         /// Creates a new context menu builder.
@@ -125,11 +175,20 @@ namespace EquipmentDesigner.Controls
         /// <param name="items">The menu items to display.</param>
         /// <param name="screenPosition">Position in screen coordinates.</param>
         /// <param name="onItemClicked">Optional callback when an item is clicked.</param>
+        /// <param name="owner">Optional owner element for toggle support.</param>
         public void Show(
             ObservableCollection<CustomContextMenuItem> items,
             Point screenPosition,
-            Action<CustomContextMenuItem> onItemClicked = null)
+            Action<CustomContextMenuItem> onItemClicked = null,
+            object owner = null)
         {
+            // If the same owner is requesting and menu is already open, close it (toggle behavior)
+            if (owner != null && IsOpenFrom(owner))
+            {
+                Close();
+                return;
+            }
+
             // Close existing menu
             Close();
 
@@ -137,6 +196,7 @@ namespace EquipmentDesigner.Controls
             {
                 Items = items
             };
+            _currentOwner = owner;
 
             if (onItemClicked != null)
             {
@@ -144,7 +204,7 @@ namespace EquipmentDesigner.Controls
             }
 
             // Register for window deactivation to close menu when window loses focus
-            RegisterWindowDeactivatedHandler();
+            RegisterWindowEventHandlers();
 
             _currentMenu.Open(screenPosition);
         }
@@ -155,10 +215,11 @@ namespace EquipmentDesigner.Controls
         public void Close()
         {
             // Unregister window deactivation handler
-            UnregisterWindowDeactivatedHandler();
+            UnregisterWindowEventHandlers();
 
             _currentMenu?.Close();
             _currentMenu = null;
+            _currentOwner = null;
         }
 
         private Point GetMouseScreenPosition()
@@ -321,6 +382,16 @@ namespace EquipmentDesigner.Controls
         public void ShowAt(Point screenPosition)
         {
             _service.Show(_items, screenPosition, _onItemClicked);
+        }
+
+        /// <summary>
+        /// Shows the context menu at the specified screen position with owner for toggle support.
+        /// </summary>
+        /// <param name="screenPosition">Position in screen coordinates.</param>
+        /// <param name="owner">The owner element for toggle support. If the same owner calls this again while open, the menu will close.</param>
+        public void ShowAt(Point screenPosition, object owner)
+        {
+            _service.Show(_items, screenPosition, _onItemClicked, owner);
         }
 
         /// <summary>

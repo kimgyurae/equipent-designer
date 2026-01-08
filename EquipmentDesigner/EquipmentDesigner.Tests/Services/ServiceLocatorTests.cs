@@ -1,9 +1,7 @@
 using System;
 using FluentAssertions;
 using Xunit;
-using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
-using EquipmentDesigner.Services.Storage;
 
 namespace EquipmentDesigner.Tests.Services
 {

@@ -3,10 +3,10 @@ using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
-using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Services;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.Models;
 
 namespace EquipmentDesigner.Tests.Services.Storage
 {

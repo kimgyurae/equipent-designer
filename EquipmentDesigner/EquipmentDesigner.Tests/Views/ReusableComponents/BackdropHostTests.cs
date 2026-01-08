@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using EquipmentDesigner.Views.ReusableComponents;
+using EquipmentDesigner.Controls;
 using FluentAssertions;
 using Xunit;
 

@@ -609,4 +609,61 @@
   <data name="ConfirmDialog_PlaceholderFormat" xml:space="preserve">
     <value>'{0}' 입력</value>
   </data>
+  <data name="Drawboard_Tool_ToolLock_Instruction" xml:space="preserve">
+    <value>그리기 후에도 선택된 도구 유지</value>
+  </data>
+  <data name="Drawboard_Tool_Hand_Instruction" xml:space="preserve">
+    <value>손 (화면 이동)</value>
+  </data>
+  <data name="Drawboard_Tool_Hand_Hint" xml:space="preserve">
+    <value>화면을 잡은 상태로 마우스를 움직여서 화면 이동</value>
+  </data>
+  <data name="Drawboard_Tool_Selection_Instruction" xml:space="preserve">
+    <value>선택</value>
+  </data>
+  <data name="Drawboard_Tool_Selection_Hint" xml:space="preserve">
+    <value>화면을 이동하려면 마우스 [스크롤휠]을 누른 상태에서 움직이거나 [Space]를 누른 상태에서 움직이세요.</value>
+  </data>
+  <data name="Drawboard_Tool_InitialNode_Instruction" xml:space="preserve">
+    <value>시작 노드 (모든 워크플로우는 이 노드로 시작해야 합니다)</value>
+  </data>
+  <data name="Drawboard_Tool_ActionNode_Instruction" xml:space="preserve">
+    <value>액션 노드</value>
+  </data>
+  <data name="Drawboard_Tool_DecisionNode_Instruction" xml:space="preserve">
+    <value>분기 노드</value>
+  </data>
+  <data name="Drawboard_Tool_TerminalNode_Instruction" xml:space="preserve">
+    <value>종료 노드 (모든 워크플로우는 이 노드로 끝나야 합니다)</value>
+  </data>
+  <data name="Drawboard_Tool_PredefinedActionNode_Instruction" xml:space="preserve">
+    <value>사전 정의 액션 노드 (사용 전에 먼저 정의해야 합니다)</value>
+  </data>
+  <data name="Drawboard_Tool_Textbox_Instruction" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="Drawboard_Tool_Textbox_Hint" xml:space="preserve">
+    <value>팁: 선택 도구로 아무 곳이나 더블 클릭해도 텍스트를 추가할 수 있습니다</value>
+  </data>
+  <data name="Drawboard_Tool_Eraser_Instruction" xml:space="preserve">
+    <value>지우개</value>
+  </data>
+  <data name="Drawboard_Tool_Eraser_Hint" xml:space="preserve">
+    <value>[Alt]를 누르면 삭제 표시된 요소를 복원할 수 있습니다</value>
+  </data>
+  <data name="Drawboard_Tool_Image_Instruction" xml:space="preserve">
+    <value>이미지 삽입</value>
+  </data>
+  <data name="Drawboard_MoreTools" xml:space="preserve">
+    <value>더 많은 도구</value>
+  </data>
+  <data name="Drawboard_Undo" xml:space="preserve">
+    <value>실행 취소 (Ctrl+Z)</value>
+  </data>
+  <data name="Drawboard_Redo" xml:space="preserve">
+    <value>다시 실행 (Ctrl+Y)</value>
+  </data>
+  <data name="Drawboard_Help" xml:space="preserve">
+    <value>도움말</value>
+  </data>
 </root>

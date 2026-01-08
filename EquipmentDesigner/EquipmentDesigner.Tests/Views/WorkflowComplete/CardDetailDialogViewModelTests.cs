@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;

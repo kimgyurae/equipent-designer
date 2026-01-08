@@ -19,11 +19,11 @@ namespace EquipmentDesigner.Controls
         }
 
         /// <summary>
-        /// Handles click on the main edit button - navigates to ProcessDefineView.
+        /// Handles click on the main edit button - navigates to DrawboardView.
         /// </summary>
         private void OnMainButtonClick(object sender, RoutedEventArgs e)
         {
-            NavigationService.Instance.NavigateToProcessDefine();
+            NavigationService.Instance.NavigateToDrawboard();
         }
 
         /// <summary>
@@ -37,12 +37,12 @@ namespace EquipmentDesigner.Controls
         }
 
         /// <summary>
-        /// Opens the ProcessDefineView in a new window.
+        /// Opens the DrawboardView in a new window.
         /// </summary>
         private void OpenInNewWindow()
         {
-            var viewModel = new ProcessDefineViewModel(showBackButton: false);
-            var view = new ProcessDefineView
+            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var view = new DrawboardView
             {
                 DataContext = viewModel
             };
