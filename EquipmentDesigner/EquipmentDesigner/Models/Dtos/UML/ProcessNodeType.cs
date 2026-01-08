@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Models.Dtos.Process
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Process node types for UML Activity Diagram workflow

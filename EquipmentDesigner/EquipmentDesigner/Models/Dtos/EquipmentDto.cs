@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace EquipmentDesigner.Models.Dtos
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Equipment DTO - 최상위 설비 정의

@@ -1,6 +1,6 @@
 using System;
 
-namespace EquipmentDesigner.Views.ReusableComponents.Spinner
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Singleton service for displaying a global loading spinner throughout the application.

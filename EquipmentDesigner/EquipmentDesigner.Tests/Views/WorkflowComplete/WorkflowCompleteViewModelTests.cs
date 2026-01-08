@@ -4,7 +4,7 @@ using System.Linq;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
-using EquipmentDesigner.Views.WorkflowComplete;
+using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
 

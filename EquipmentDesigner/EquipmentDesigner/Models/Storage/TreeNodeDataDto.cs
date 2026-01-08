@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using EquipmentDesigner.Models.Dtos;
 
-namespace EquipmentDesigner.Models.Storage
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Data transfer object for serializing tree node structure and associated ViewModel data.

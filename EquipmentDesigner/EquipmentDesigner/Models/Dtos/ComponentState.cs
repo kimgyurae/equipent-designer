@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Models.Dtos
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// 컴포넌트 상태 정의

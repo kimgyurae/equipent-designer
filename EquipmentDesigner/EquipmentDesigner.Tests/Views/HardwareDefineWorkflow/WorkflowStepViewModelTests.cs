@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
+using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
 

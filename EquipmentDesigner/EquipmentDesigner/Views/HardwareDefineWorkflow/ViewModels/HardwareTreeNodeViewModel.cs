@@ -5,12 +5,8 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.EquipmentDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// ViewModel representing a node in the hardware hierarchy tree.

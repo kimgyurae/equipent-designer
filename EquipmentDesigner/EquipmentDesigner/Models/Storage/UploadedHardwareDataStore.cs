@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using EquipmentDesigner.Models.Dtos;
 
-namespace EquipmentDesigner.Models.Storage
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// SharedMemory 파일에 저장되는 루트 데이터 구조

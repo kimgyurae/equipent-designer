@@ -2,7 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
 
-namespace EquipmentDesigner.Views.ReusableComponents.Toast
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Singleton service for displaying toast notifications throughout the application.

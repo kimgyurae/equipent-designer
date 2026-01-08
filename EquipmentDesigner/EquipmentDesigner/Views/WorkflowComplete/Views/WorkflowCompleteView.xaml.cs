@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace EquipmentDesigner.Views.WorkflowComplete
+namespace EquipmentDesigner.Views
 {
     /// <summary>
     /// Interaction logic for WorkflowCompleteView.xaml

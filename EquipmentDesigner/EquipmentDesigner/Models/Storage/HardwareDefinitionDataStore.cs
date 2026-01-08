@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using EquipmentDesigner.Models.Dtos;
 
-namespace EquipmentDesigner.Models.Storage
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Data store for hardware definition workflow sessions.

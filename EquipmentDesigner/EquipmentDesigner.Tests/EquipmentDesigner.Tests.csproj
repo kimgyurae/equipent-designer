@@ -6,6 +6,11 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RootNamespace>EquipmentDesigner.Tests</RootNamespace>
+    <!-- 폴더 기반 namespace 생성 비활성화 -->
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />

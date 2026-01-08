@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
-using EquipmentDesigner.Models.Dtos;
+using EquipmentDesigner.Models;
 using Microsoft.Win32;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// ViewModel for Equipment definition form.

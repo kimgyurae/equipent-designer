@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 
-namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Represents the direction in which a sub-menu should open.

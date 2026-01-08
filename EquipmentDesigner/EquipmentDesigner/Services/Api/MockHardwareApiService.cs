@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
-using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Views.ReusableComponents.Spinner;
-namespace EquipmentDesigner.Services.Api
+using EquipmentDesigner.Controls;
+namespace EquipmentDesigner.Services
 {
     /// <summary>
     /// Mock implementation of IHardwareApiService for development.

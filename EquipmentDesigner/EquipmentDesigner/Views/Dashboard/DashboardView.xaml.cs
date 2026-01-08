@@ -1,7 +1,8 @@
 using System.Windows.Controls;
+using EquipmentDesigner.ViewModels;
 using System.Windows.Input;
 
-namespace EquipmentDesigner.Views.Dashboard
+namespace EquipmentDesigner.Views
 {
     /// <summary>
     /// Interaction logic for DashboardView.xaml

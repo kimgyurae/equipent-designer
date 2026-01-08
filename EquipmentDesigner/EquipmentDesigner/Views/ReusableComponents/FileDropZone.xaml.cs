@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 
-namespace EquipmentDesigner.Views.ReusableComponents
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// A reusable file drop zone component that supports drag-and-drop and click-to-upload.

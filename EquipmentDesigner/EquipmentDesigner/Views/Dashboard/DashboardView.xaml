@@ -1,4 +1,4 @@
-<UserControl x:Class="EquipmentDesigner.Views.Dashboard.DashboardView"
+<UserControl x:Class="EquipmentDesigner.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,7 +6,7 @@
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:services="clr-namespace:EquipmentDesigner.Services"
              xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
-             xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
+             xmlns:controls="clr-namespace:EquipmentDesigner.Controls"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -275,7 +275,7 @@
                                                                    Style="{StaticResource Typography.Body.Large}"
                                                                    Foreground="{StaticResource Brush.Text.Primary}"/>
 
-                                                        <reusable:StateChip Text="{Binding ComponentStateDisplayText}"
+                                                        <controls:StateChip Text="{Binding ComponentStateDisplayText}"
                                                                             ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
                                                                             ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
                                                                             Margin="12,0,0,0"/>
@@ -564,7 +564,7 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <reusable:StateChip Grid.Column="1"
+                                                <controls:StateChip Grid.Column="1"
                                                                     Text="{Binding Status}"
                                                                     ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
                                                                     ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
@@ -633,7 +633,7 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <reusable:StateChip Grid.Column="1"
+                                                <controls:StateChip Grid.Column="1"
                                                                     Text="{Binding Status}"
                                                                     ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
                                                                     ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
@@ -701,7 +701,7 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <reusable:StateChip Grid.Column="1"
+                                                <controls:StateChip Grid.Column="1"
                                                                     Text="{Binding Status}"
                                                                     ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
                                                                     ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
@@ -769,7 +769,7 @@
                                                                Style="{StaticResource Typography.Body.Large}"
                                                                Foreground="{StaticResource Brush.Text.Secondary}"/>
                                                 </StackPanel>
-                                                <reusable:StateChip Grid.Column="1"
+                                                <controls:StateChip Grid.Column="1"
                                                                     Text="{Binding Status}"
                                                                     ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
                                                                     ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"

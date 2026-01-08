@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// ViewModel for the Add Command dialog window.

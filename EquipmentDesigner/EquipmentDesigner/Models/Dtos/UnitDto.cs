@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace EquipmentDesigner.Models.Dtos
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Unit DTO - System 하위의 유닛 정의

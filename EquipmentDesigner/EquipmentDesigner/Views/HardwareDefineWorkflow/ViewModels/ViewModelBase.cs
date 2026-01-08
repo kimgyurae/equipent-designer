@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// Base class for ViewModels implementing INotifyPropertyChanged.

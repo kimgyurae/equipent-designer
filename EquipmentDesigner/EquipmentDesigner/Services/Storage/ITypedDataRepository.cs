@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Models;
 
-namespace EquipmentDesigner.Services.Storage
+namespace EquipmentDesigner.Services
 {
     /// <summary>
     /// Generic typed data repository interface for type-safe data persistence.

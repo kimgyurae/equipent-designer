@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// ViewModel representing a single step in the hardware definition workflow.

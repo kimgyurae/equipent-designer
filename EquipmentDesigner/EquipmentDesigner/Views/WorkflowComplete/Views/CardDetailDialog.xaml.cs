@@ -1,9 +1,9 @@
 using System;
 using System.Windows;
-using EquipmentDesigner.Models.Storage;
-using EquipmentDesigner.Views.WorkflowComplete.ViewModels;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.ViewModels;
 
-namespace EquipmentDesigner.Views.WorkflowComplete
+namespace EquipmentDesigner.Views
 {
     /// <summary>
     /// Interaction logic for CardDetailDialog.xaml

@@ -5,10 +5,11 @@
 # - System Process: 모든 상태에서 CheckSubsystemState만 사용 (하위 Unit 상태 동기화)
 # - Unit Process: Execute 상태에서 세부 Step 정의 (Device 직접 제어)
 # - Hardware-Process 1:1 매핑: 7 Systems + 16 Units = 23 Processes
+# - NextStep 필드: 플랫 구조 기반 흐름 제어 (decision.md 참조)
 # Based on: D:\SW\laser-burr\LaserBurr\Process.cs, Define_Step.cs, IO.cs analysis
 # ============================================================================
 
-EquipmentName: LaserBurrMachine
+EquipmentName: TestMachine
 DocumentType: ProcessDescriptionFile
 
 # Reference to Hardware Description File
@@ -430,9 +431,10 @@ Processes:
   # --------------------------------------------------------------------------
 
   # 8. OPShutter Unit Process
+  # ★ Decision Node 예시: Depth 3+ 복잡한 분기 구조
   - Owner: OPShutter
     OwnerType: Unit
-    Description: OP측 셔터 제어 프로세스 - IN_OP_SIDE_SHUTTER_UP/DN, OUT_OP_SHUTTER_UP/DN_SOL
+    Description: OP측 셔터 제어 프로세스 - IN_OP_SIDE_SHUTTER_UP/DN, OUT_OP_SHUTTER_UP/DN_SOL (Decision Node 예시 포함)
     States:
       - StateName: Idle
         Steps:
@@ -443,27 +445,184 @@ Processes:
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Execute
+        # ================================================================
+        # Decision Node 예시: Depth 3+ 복잡한 분기 구조
+        # 플로우:
+        #   WaitShutterCommand
+        #     └─> [Decision1] ShutterCommandRouter (Open/Close/Invalid)
+        #           ├─> [Decision2] CheckSafetyForOpen
+        #           │     ├─> [Decision3] CheckSensorStatus
+        #           │     │     ├─> ActivateShutterUp → WaitShutterUpPosition → ...
+        #           │     │     └─> SensorErrorHandler → ...
+        #           │     └─> SafetyViolationHandler → ...
+        #           ├─> [Decision2] CheckSafetyForClose
+        #           │     ├─> [Decision3] CheckObstruction
+        #           │     │     ├─> ActivateShutterDown → WaitShutterDownPosition → ...
+        #           │     │     └─> ObstructionErrorHandler → ...
+        #           │     └─> SafetyViolationHandler → ...
+        #           └─> InvalidCommandHandler → ...
+        # ================================================================
         Steps:
+          # ────────────────────────────────────────────────────────────
+          # 1. 시작점: 셔터 명령 대기
+          # ────────────────────────────────────────────────────────────
           - Name: WaitShutterCommand
             ImplementationInstructions:
               - "셔터 동작 명령 대기"
-              - "명령 종류: Open (UP) 또는 Close (DN)"
-          - Name: ActivateShutterSolenoid
+              - "명령 종류: Open (UP), Close (DN), 또는 Invalid"
+            NextStep: ShutterCommandRouter
+
+          # ────────────────────────────────────────────────────────────
+          # 2. [Depth 1] Decision: 셔터 명령 종류 라우팅
+          # ────────────────────────────────────────────────────────────
+          - Name: ShutterCommandRouter
             ImplementationInstructions:
-              - "셔터 솔레노이드 활성화"
-              - "UP 동작: OUT_OP_SHUTTER_UP_SOL (0x0010) ON"
-              - "DN 동작: OUT_OP_SHUTTER_DN_SOL (0x0011) ON"
-          - Name: WaitShutterPosition
+              - 셔터 명령 종류에 따른 분기 (Open/Close/Invalid)"
+            OnTrue: CheckSafetyForOpen
+            OnFalse: InvalidCommandHandler
+
+          # ────────────────────────────────────────────────────────────
+          # 3. [Depth 2] Decision: Open 명령 시 안전 조건 확인
+          # ────────────────────────────────────────────────────────────
+          - Name: CheckSafetyForOpen
             ImplementationInstructions:
-              - "셔터 위치 센서 확인 대기"
-              - "UP 센서: IN_OP_SIDE_SHUTTER_UP (0x0020)"
-              - "DN 센서: IN_OP_SIDE_SHUTTER_DN (0x0021)"
-          - Name: CompleteShutterMove
+              - 셔터 Open 전 안전 조건 확인"
+            OnTrue: CheckSensorStatusForOpen
+            OnFalse: SafetyViolationHandler
+
+          # ────────────────────────────────────────────────────────────
+          # 4. [Depth 3] Decision: 센서 상태 확인 (Open용)
+          # ────────────────────────────────────────────────────────────
+          - Name: CheckSensorStatusForOpen
             ImplementationInstructions:
-              - "셔터 동작 완료 처리"
+              - Open 동작 전 센서 정상 여부 확인"
+            OnTrue: ActivateShutterUp
+            OnFalse: SensorErrorHandler
+
+          # ────────────────────────────────────────────────────────────
+          # 5. Open 경로: 셔터 상승 동작
+          # ────────────────────────────────────────────────────────────
+          - Name: ActivateShutterUp
+            ImplementationInstructions:
+              - "셔터 상승 솔레노이드 활성화"
+              - "OUT_OP_SHUTTER_UP_SOL (0x0010) ON"
+            NextStep: WaitShutterUpPosition
+
+          - Name: WaitShutterUpPosition
+            ImplementationInstructions:
+              - "셔터 상승 위치 센서 확인 대기"
+              - "IN_OP_SIDE_SHUTTER_UP (0x0020) 확인"
+            NextStep: CheckUpPositionTimeout
+
+          # ────────────────────────────────────────────────────────────
+          # 6. [Depth 3] Decision: 상승 타임아웃 확인
+          # ────────────────────────────────────────────────────────────
+          - Name: CheckUpPositionTimeout
+            ImplementationInstructions:
+              - "셔터 상승 타임아웃 확인"
+            OnTrue: CompleteShutterOpen
+            OnFalse: TimeoutErrorHandler
+
+          - Name: CompleteShutterOpen
+            ImplementationInstructions:
+              - "셔터 Open 완료 처리"
               - "솔레노이드 OFF 및 상태 업데이트"
+            NextStep: FinalizeOperation
+
+          # ────────────────────────────────────────────────────────────
+          # 7. [Depth 2] Decision: Close 명령 시 안전 조건 확인
+          # ────────────────────────────────────────────────────────────
+          - Name: CheckSafetyForClose
+            ImplementationInstructions:
+              - "셔터 Close 전 안전 조건 확인"
+            OnTrue: CheckObstruction
+            OnFalse: SafetyViolationHandler
+
+          # ────────────────────────────────────────────────────────────
+          # 8. [Depth 3] Decision: 장애물 감지 확인 (Close용)
+          # ────────────────────────────────────────────────────────────
+          - Name: CheckObstruction
+            ImplementationInstructions:
+              - "Close 동작 전 장애물 감지 확인"
+            OnTrue: ActivateShutterDown
+            OnFalse: ObstructionErrorHandler
+
+          # ────────────────────────────────────────────────────────────
+          # 9. Close 경로: 셔터 하강 동작
+          # ────────────────────────────────────────────────────────────
+          - Name: ActivateShutterDown
+            ImplementationInstructions:
+              - "셔터 하강 솔레노이드 활성화"
+              - "OUT_OP_SHUTTER_DN_SOL (0x0011) ON"
+            NextStep: WaitShutterDownPosition
+
+          - Name: WaitShutterDownPosition
+            ImplementationInstructions:
+              - "셔터 하강 위치 센서 확인 대기"
+              - "IN_OP_SIDE_SHUTTER_DN (0x0021) 확인"
+            NextStep: CheckDownPositionTimeout
+
+          # ────────────────────────────────────────────────────────────
+          # 10. [Depth 3] Decision: 하강 타임아웃 확인
+          # ────────────────────────────────────────────────────────────
+          - Name: CheckDownPositionTimeout
+            ImplementationInstructions:
+              - "셔터 하강 타임아웃 확인"
+            OnTrue: CompleteShutterClose
+            OnFalse: TimeoutErrorHandler
+
+          - Name: CompleteShutterClose
+            ImplementationInstructions:
+              - "셔터 Close 완료 처리"
+              - "솔레노이드 OFF 및 상태 업데이트"
+            NextStep: FinalizeOperation
+
+          # ────────────────────────────────────────────────────────────
+          # 11. 에러 핸들러들 (플랫 구조로 동일 레벨에 배치)
+          # ────────────────────────────────────────────────────────────
+          - Name: InvalidCommandHandler
+            ImplementationInstructions:
+              - "유효하지 않은 명령 처리"
+              - "알람 발생 및 로그 기록"
+            NextStep: FinalizeOperation
+
+          - Name: SafetyViolationHandler
+            ImplementationInstructions:
+              - "안전 조건 위반 처리"
+              - "OUT_EQP_SERVO_STOP (0x0008) ON"
+              - "장비 정지 및 알람 발생"
+            NextStep: FinalizeOperation
+
+          - Name: SensorErrorHandler
+            ImplementationInstructions:
+              - "센서 이상 처리"
+              - "센서 상태 진단 및 알람 발생"
+            NextStep: FinalizeOperation
+
+          - Name: ObstructionErrorHandler
+            ImplementationInstructions:
+              - "장애물 감지 처리"
+              - "셔터 동작 중지 및 알람 발생"
+            NextStep: FinalizeOperation
+
+          - Name: TimeoutErrorHandler
+            ImplementationInstructions:
+              - "타임아웃 에러 처리"
+              - "솔레노이드 OFF 및 알람 발생"
+            NextStep: FinalizeOperation
+
+          # ────────────────────────────────────────────────────────────
+          # 12. 공통 종료점
+          # ────────────────────────────────────────────────────────────
+          - Name: FinalizeOperation
+            ImplementationInstructions:
+              - "동작 결과 기록"
+              - "상태 업데이트"
+            NextStep: CheckSubsystemState
+
           - Name: CheckSubsystemState
             ImplementationInstructions: []
+
       - StateName: Completing
         Steps:
           - Name: CheckSubsystemState
@@ -520,25 +679,30 @@ Processes:
             ImplementationInstructions:
               - "EMO 스위치 상태 확인"
               - "IN_EMO1 (0x0006), IN_EMO2 (0x0007), IN_EMO3 (0x0008), IN_EMO4 (0x0009)"
+            NextStep: CheckDoorStatus
           - Name: CheckDoorStatus
             ImplementationInstructions:
               - "도어 센서 상태 확인"
               - "IN_DOOR1 (0x000A), IN_DOOR2 (0x000B), IN_DOOR3 (0x000C)"
               - "IN_DOOR1_LOCK (0x000D), IN_DOOR2_LOCK (0x000E), IN_DOOR3_LOCK (0x000F)"
+            NextStep: CheckLightCurtain
           - Name: CheckLightCurtain
             ImplementationInstructions:
               - "라이트 커튼 상태 확인"
               - "IN_LIGHT_CURTAIN_OUT1 (0x0025), IN_LIGHT_CURTAIN_OUT2 (0x0026)"
               - "IN_LIGHT_CURTAIN_DETECT (0x0027)"
+            NextStep: CheckInterlockConditions
           - Name: CheckInterlockConditions
             ImplementationInstructions:
               - "종합 인터록 조건 평가"
               - "Main CDA: IN_MAIN_CDA (0x0004), Sub CDA: IN_SUB_CDA (0x0005)"
+            NextStep: UpdateSafetyState
           - Name: UpdateSafetyState
             ImplementationInstructions:
               - "안전 상태 업데이트 및 알람 처리"
               - "서보 정지 신호: OUT_EQP_SERVO_STOP (0x0008)"
               - "도어 잠금: OUT_DOOR_LOCK_SOL (0x0001)"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -601,21 +765,26 @@ Processes:
             ImplementationInstructions:
               - "LDS 센서 초기화"
               - "OUT_LDS_ZERO_SET (0x0014) 사용하여 영점 설정"
+            NextStep: CheckMaterialPresence
           - Name: CheckMaterialPresence
             ImplementationInstructions:
               - "자재 유무 확인"
               - "AUTO_STEP.LOAD_POS_START (200) 참조"
+            NextStep: ValidateLdsSignal
           - Name: ValidateLdsSignal
             ImplementationInstructions:
               - "LDS 감지 신호 검증"
               - "IN_LDS_DETECT (0x0023)"
+            NextStep: ValidateGasketSignal
           - Name: ValidateGasketSignal
             ImplementationInstructions:
               - "Gasket 감지 신호 검증"
               - "IN_GASKET_DETECT (0x0024)"
+            NextStep: ReportDetectionResult
           - Name: ReportDetectionResult
             ImplementationInstructions:
               - "감지 결과 리포트 및 상위 시스템 통보"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -678,18 +847,22 @@ Processes:
             ImplementationInstructions:
               - "진공 솔레노이드 활성화"
               - "OUT_GASKET_VAC_SOL (0x0020) ON"
+            NextStep: WaitVacuumEstablished
           - Name: WaitVacuumEstablished
             ImplementationInstructions:
               - "진공 압력 형성 대기"
               - "IN_GASKET_VAC_ON (0x1013) 확인"
+            NextStep: MonitorVacuumPressure
           - Name: MonitorVacuumPressure
             ImplementationInstructions:
               - "진공 압력 모니터링"
               - "지속적인 진공 유지 상태 확인"
+            NextStep: ReleaseVacuum
           - Name: ReleaseVacuum
             ImplementationInstructions:
               - "진공 해제"
               - "OUT_GASKET_VAC_SOL (0x0020) OFF"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -748,22 +921,27 @@ Processes:
             ImplementationInstructions:
               - "클램프 하강"
               - "OUT_GASKET_CYL_DN_SOL (0x0022) ON"
+            NextStep: WaitClampDownPosition
           - Name: WaitClampDownPosition
             ImplementationInstructions:
               - "클램프 하강 완료 대기"
               - "IN_GASKET_CYL_DN (0x1012) 확인"
+            NextStep: VerifyClampState
           - Name: VerifyClampState
             ImplementationInstructions:
               - "클램핑 상태 검증"
               - "자재 고정 상태 확인"
+            NextStep: ActivateClampUp
           - Name: ActivateClampUp
             ImplementationInstructions:
               - "클램프 상승"
               - "OUT_GASKET_CYL_UP_SOL (0x0021) ON"
+            NextStep: WaitClampUpPosition
           - Name: WaitClampUpPosition
             ImplementationInstructions:
               - "클램프 상승 완료 대기"
               - "IN_GASKET_CYL_UP (0x1011) 확인"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -826,30 +1004,37 @@ Processes:
             ImplementationInstructions:
               - "Head Z/X축 초기화"
               - "WMX3 모션 컨트롤러 연결 확인"
+            NextStep: EnableHeadServo
           - Name: EnableHeadServo
             ImplementationInstructions:
               - "Head 서보 드라이버 Enable"
+            NextStep: MoveHeadZAxis
           - Name: MoveHeadZAxis
             ImplementationInstructions:
               - "Head Z축 이동"
               - "Reference: INIT_STEP.HEAD_Z_HOME_START (120)"
               - "안전을 위해 Z축을 먼저 홈으로 이동 (워크피스에서 멀어짐)"
+            NextStep: WaitHeadZComplete
           - Name: WaitHeadZComplete
             ImplementationInstructions:
               - "Head Z축 이동 완료 대기"
               - "Reference: INIT_STEP.HEAD_Z_HOME_WAIT (121)"
+            NextStep: MoveHeadXAxis
           - Name: MoveHeadXAxis
             ImplementationInstructions:
               - "Head X축 이동"
               - "Reference: INIT_STEP.HEAD_X_HOME_START (130)"
+            NextStep: WaitHeadXComplete
           - Name: WaitHeadXComplete
             ImplementationInstructions:
               - "Head X축 이동 완료 대기"
               - "Reference: INIT_STEP.HEAD_X_HOME_WAIT (131)"
+            NextStep: VerifyHeadPosition
           - Name: VerifyHeadPosition
             ImplementationInstructions:
               - "Head 위치 검증"
               - "End Position 이동 완료 확인"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -908,20 +1093,25 @@ Processes:
             ImplementationInstructions:
               - "Stage Y축 초기화"
               - "WMX3 모션 컨트롤러 연결 확인"
+            NextStep: EnableStageYServo
           - Name: EnableStageYServo
             ImplementationInstructions:
               - "Stage Y축 서보 Enable"
+            NextStep: MoveStageYAxis
           - Name: MoveStageYAxis
             ImplementationInstructions:
               - "Stage Y축 이동"
               - "Reference: INIT_STEP.STAGE_Y_HOME_START (140)"
+            NextStep: WaitStageYComplete
           - Name: WaitStageYComplete
             ImplementationInstructions:
               - "Stage Y축 이동 완료 대기"
               - "Reference: INIT_STEP.STAGE_Y_HOME_WAIT (141)"
+            NextStep: VerifyStageYPosition
           - Name: VerifyStageYPosition
             ImplementationInstructions:
               - "Stage Y축 위치 검증"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -980,36 +1170,45 @@ Processes:
             ImplementationInstructions:
               - "Table X/Y/T축 초기화"
               - "WMX3 모션 컨트롤러 연결 확인"
+            NextStep: EnableTableServo
           - Name: EnableTableServo
             ImplementationInstructions:
               - "Table 서보 드라이버 Enable"
+            NextStep: MoveTableXAxis
           - Name: MoveTableXAxis
             ImplementationInstructions:
               - "Table X축 이동"
               - "Reference: INIT_STEP.TABLE_X_HOME_START (150)"
+            NextStep: WaitTableXComplete
           - Name: WaitTableXComplete
             ImplementationInstructions:
               - "Table X축 이동 완료 대기"
               - "Reference: INIT_STEP.TABLE_X_HOME_WAIT (151)"
+            NextStep: MoveTableYAxis
           - Name: MoveTableYAxis
             ImplementationInstructions:
               - "Table Y축 이동"
               - "Reference: INIT_STEP.TABLE_Y_HOME_START (160)"
+            NextStep: WaitTableYComplete
           - Name: WaitTableYComplete
             ImplementationInstructions:
               - "Table Y축 이동 완료 대기"
               - "Reference: INIT_STEP.TABLE_Y_HOME_WAIT (161)"
+            NextStep: MoveTableTAxis
           - Name: MoveTableTAxis
             ImplementationInstructions:
               - "Table T축(Theta) 이동"
               - "Reference: INIT_STEP.TABLE_T_HOME_START (170)"
+            NextStep: WaitTableTComplete
           - Name: WaitTableTComplete
             ImplementationInstructions:
               - "Table T축 이동 완료 대기"
               - "Reference: INIT_STEP.TABLE_T_HOME_WAIT (171)"
+            NextStep: VerifyTablePosition
           - Name: VerifyTablePosition
             ImplementationInstructions:
               - "Table 전체 위치 검증"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1072,32 +1271,40 @@ Processes:
             ImplementationInstructions:
               - "얼라인먼트 카메라 초기화"
               - "MELSEC PLC 통신 연결 확인"
+            NextStep: MoveToAlignmentPosition
           - Name: MoveToAlignmentPosition
             ImplementationInstructions:
               - "얼라인먼트 위치로 스테이지 이동"
               - "Reference: AUTO_STEP.ALIGN_POS_START (300)"
+            NextStep: RequestCameraCapture
           - Name: RequestCameraCapture
             ImplementationInstructions:
               - "카메라 캡처 요청 (MELSEC 통신)"
               - "Reference: AUTO_STEP.ALIGN_PROCESS_START (302)"
+            NextStep: WaitCaptureComplete1
           - Name: WaitCaptureComplete1
             ImplementationInstructions:
               - "캡처 완료 대기"
               - "Reference: AUTO_STEP.ALIGN_PROCESS_WAIT (303)"
+            NextStep: AnalyzeAlignmentData
           - Name: AnalyzeAlignmentData
             ImplementationInstructions:
               - "얼라인먼트 이미지 분석"
               - "Reference: AUTO_STEP.ALIGN_RESULT (304)"
+            NextStep: CalculateOffset
           - Name: CalculateOffset
             ImplementationInstructions:
               - "X/Y/T 오프셋 계산"
+            NextStep: ApplyAlignmentCorrection
           - Name: ApplyAlignmentCorrection
             ImplementationInstructions:
               - "오프셋 보정 적용"
               - "Reference: AUTO_STEP.ALIGN_CORRECTION (305)"
+            NextStep: VerifyAlignment
           - Name: VerifyAlignment
             ImplementationInstructions:
               - "얼라인먼트 정확도 검증"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1155,28 +1362,35 @@ Processes:
           - Name: InitializeInspectionCamera
             ImplementationInstructions:
               - "검사 카메라 초기화"
+            NextStep: MoveToInspectionPosition
           - Name: MoveToInspectionPosition
             ImplementationInstructions:
               - "검사 위치로 스테이지 이동"
               - "Reference: AUTO_STEP.INSP_POS_START (400)"
+            NextStep: RequestInspectionCapture
           - Name: RequestInspectionCapture
             ImplementationInstructions:
               - "검사 이미지 캡처 요청"
               - "Reference: AUTO_STEP.INSP_PROCESS_START (402)"
+            NextStep: WaitCaptureComplete2
           - Name: WaitCaptureComplete2
             ImplementationInstructions:
               - "캡처 완료 대기"
               - "Reference: AUTO_STEP.INSP_PROCESS_WAIT (403)"
+            NextStep: AnalyzeInspectionImage
           - Name: AnalyzeInspectionImage
             ImplementationInstructions:
               - "검사 이미지 분석 (버 형태, 크기, 위치)"
               - "Reference: AUTO_STEP.INSP_RESULT (404)"
+            NextStep: EvaluateInspectionResult
           - Name: EvaluateInspectionResult
             ImplementationInstructions:
               - "검사 결과 평가 (Pass/Fail 판정)"
+            NextStep: ReportInspectionStatus
           - Name: ReportInspectionStatus
             ImplementationInstructions:
               - "검사 결과 리포트 및 로깅"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1235,32 +1449,40 @@ Processes:
             ImplementationInstructions:
               - "LDS 센서 초기화"
               - "AD_BURR_HEIGHT_SENSOR (64) 아날로그 입력 채널"
+            NextStep: MoveToMeasurementPosition
           - Name: MoveToMeasurementPosition
             ImplementationInstructions:
               - "측정 위치로 스테이지 이동"
               - "Reference: AUTO_STEP.MEAS_POS_START (500)"
+            NextStep: SetLdsZeroPoint
           - Name: SetLdsZeroPoint
             ImplementationInstructions:
               - "LDS 영점 설정"
               - "OUT_LDS_ZERO_SET (0x0014)"
+            NextStep: TriggerMeasurement
           - Name: TriggerMeasurement
             ImplementationInstructions:
               - "측정 트리거"
               - "Reference: AUTO_STEP.MEAS_PROCESS_START (502)"
+            NextStep: WaitMeasurementComplete
           - Name: WaitMeasurementComplete
             ImplementationInstructions:
               - "측정 완료 대기"
               - "Reference: AUTO_STEP.MEAS_PROCESS_WAIT (503)"
+            NextStep: ReadMeasurementData
           - Name: ReadMeasurementData
             ImplementationInstructions:
               - "아날로그 측정값 읽기"
               - "Reference: AUTO_STEP.MEAS_RESULT (504)"
+            NextStep: ValidateMeasurementRange
           - Name: ValidateMeasurementRange
             ImplementationInstructions:
               - "측정값 범위 검증"
+            NextStep: StoreMeasurementResult
           - Name: StoreMeasurementResult
             ImplementationInstructions:
               - "측정 결과 저장"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1323,6 +1545,7 @@ Processes:
             ImplementationInstructions:
               - "레이저 상태 확인"
               - "IN_LASER_OK_SIGNAL (0x0032)"
+            NextStep: CheckLaserFaults
           - Name: CheckLaserFaults
             ImplementationInstructions:
               - "레이저 Fault 확인"
@@ -1332,41 +1555,50 @@ Processes:
               - "IN_LASER_SUPPLY_OT (0x0036)"
               - "IN_LASER_SUPPLY_VSMR_FAULT (0x0037)"
               - "IN_LASER_AORF_POWER_FLT (0x0038)"
+            NextStep: EnableLaserReady
           - Name: EnableLaserReady
             ImplementationInstructions:
               - "레이저 Ready 신호 출력"
               - "OUT_LASER_READY_OK (0x0015)"
+            NextStep: OpenLaserShutter
           - Name: OpenLaserShutter
             ImplementationInstructions:
               - "레이저 셔터 열기"
               - "OUT_LASER_SHUTTER_OPEN_SOL (0x0012)"
               - "Reference: AUTO_STEP.LASER_SHUTTER_OPEN_START (606)"
+            NextStep: WaitShutterOpen
           - Name: WaitShutterOpen
             ImplementationInstructions:
               - "셔터 열림 완료 대기"
               - "IN_LASER_SHUTTER_OPEN (0x0030)"
               - "Reference: AUTO_STEP.LASER_SHUTTER_OPEN_WAIT (607)"
+            NextStep: ExecuteLaserProcess
           - Name: ExecuteLaserProcess
             ImplementationInstructions:
               - "레이저 가공 실행"
               - "Reference: AUTO_STEP.LASER_PROCESS_START (608)"
+            NextStep: MonitorLaserOperation
           - Name: MonitorLaserOperation
             ImplementationInstructions:
               - "레이저 동작 모니터링"
               - "Reference: AUTO_STEP.LASER_PROCESS_WAIT (609)"
+            NextStep: CloseLaserShutter
           - Name: CloseLaserShutter
             ImplementationInstructions:
               - "레이저 셔터 닫기"
               - "OUT_LASER_SHUTTER_CLOSE_SOL (0x0013)"
               - "Reference: AUTO_STEP.LASER_SHUTTER_CLOSE_START (610)"
+            NextStep: WaitShutterClose
           - Name: WaitShutterClose
             ImplementationInstructions:
               - "셔터 닫힘 완료 대기"
               - "IN_LASER_SHUTTER_CLOSE (0x0031)"
               - "Reference: AUTO_STEP.LASER_SHUTTER_CLOSE_WAIT (611)"
+            NextStep: DisableLaserReady
           - Name: DisableLaserReady
             ImplementationInstructions:
               - "레이저 Ready 신호 해제"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1426,23 +1658,29 @@ Processes:
               - "칠러 상태 확인"
               - "IN_CHILLER_RUN (0x003B)"
               - "IN_CHILLER_REMOTE (0x003C)"
+            NextStep: CheckChillerAlarm
           - Name: CheckChillerAlarm
             ImplementationInstructions:
               - "칠러 알람 확인"
               - "IN_CHILLER_ALARM (0x003D)"
+            NextStep: StartChiller
           - Name: StartChiller
             ImplementationInstructions:
               - "칠러 시작"
               - "OUT_CHILLER_RUN_SIGNAL (0x0016)"
+            NextStep: WaitChillerReady
           - Name: WaitChillerReady
             ImplementationInstructions:
               - "칠러 Ready 상태 대기"
+            NextStep: MonitorChillerTemperature
           - Name: MonitorChillerTemperature
             ImplementationInstructions:
               - "칠러 온도 모니터링"
+            NextStep: StopChiller
           - Name: StopChiller
             ImplementationInstructions:
               - "칠러 정지"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1506,27 +1744,33 @@ Processes:
               - "노즐 현재 위치 확인"
               - "IN_CO2_NOZZLE_UP (0x0039)"
               - "IN_CO2_NOZZLE_DN (0x003A)"
+            NextStep: MoveNozzleDown
           - Name: MoveNozzleDown
             ImplementationInstructions:
               - "노즐 하강"
               - "OUT_CO2_NOZZLE_DN_SOL (0x0018)"
               - "Reference: AUTO_STEP.CLEAN_POS_START (700)"
+            NextStep: WaitNozzleDownPosition
           - Name: WaitNozzleDownPosition
             ImplementationInstructions:
               - "노즐 하강 완료 대기"
               - "IN_CO2_NOZZLE_DN (0x003A) 확인"
+            NextStep: ExecuteCleanPosition
           - Name: ExecuteCleanPosition
             ImplementationInstructions:
               - "클리닝 위치에서 대기"
               - "Reference: AUTO_STEP.CLEAN_PROCESS_START (702)"
+            NextStep: MoveNozzleUp
           - Name: MoveNozzleUp
             ImplementationInstructions:
               - "노즐 상승"
               - "OUT_CO2_NOZZLE_UP_SOL (0x0017)"
+            NextStep: WaitNozzleUpPosition
           - Name: WaitNozzleUpPosition
             ImplementationInstructions:
               - "노즐 상승 완료 대기"
               - "IN_CO2_NOZZLE_UP (0x0039) 확인"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1584,34 +1828,43 @@ Processes:
           - Name: CheckValveStatus
             ImplementationInstructions:
               - "밸브 상태 확인"
+            NextStep: EnableCo2System
           - Name: EnableCo2System
             ImplementationInstructions:
               - "CO2 시스템 활성화"
               - "OUT_CO2_ON (0x0019)"
+            NextStep: OpenCo2Valve
           - Name: OpenCo2Valve
             ImplementationInstructions:
               - "CO2 밸브 열기"
               - "OUT_CO2_VALVE_OPEN (0x001A)"
+            NextStep: FlowCo2Gas
           - Name: FlowCo2Gas
             ImplementationInstructions:
               - "CO2 가스 분사"
               - "클리닝 시간 동안 유지"
+            NextStep: CloseCo2Valve
           - Name: CloseCo2Valve
             ImplementationInstructions:
               - "CO2 밸브 닫기"
+            NextStep: OpenCdaValve
           - Name: OpenCdaValve
             ImplementationInstructions:
               - "CDA 밸브 열기"
               - "OUT_CDA_VALVE_OPEN (0x001B)"
+            NextStep: FlowCdaGas
           - Name: FlowCdaGas
             ImplementationInstructions:
               - "CDA 가스 분사 (건조)"
+            NextStep: CloseCdaValve
           - Name: CloseCdaValve
             ImplementationInstructions:
               - "CDA 밸브 닫기"
+            NextStep: DisableCo2System
           - Name: DisableCo2System
             ImplementationInstructions:
               - "CO2 시스템 비활성화"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1669,19 +1922,24 @@ Processes:
           - Name: CheckFumeCollectorStatus
             ImplementationInstructions:
               - "hue 집진기 상태 확인"
+            NextStep: StartFumeCollector
           - Name: StartFumeCollector
             ImplementationInstructions:
               - "hue 집진기 가동"
               - "OUT_FUME_RUN_SIGINAL (0x001D)"
+            NextStep: WaitFumeRunning
           - Name: WaitFumeRunning
             ImplementationInstructions:
               - "hue 집진기 가동 확인"
+            NextStep: MonitorFumeOperation
           - Name: MonitorFumeOperation
             ImplementationInstructions:
               - "hue 집진기 동작 모니터링"
+            NextStep: StopFumeCollector
           - Name: StopFumeCollector
             ImplementationInstructions:
               - "hue 집진기 정지"
+            NextStep: CheckSubsystemState
           - Name: CheckSubsystemState
             ImplementationInstructions: []
       - StateName: Completing
@@ -1727,10 +1985,11 @@ Processes:
 # Summary:
 # - 7 System Processes (CheckSubsystemState only for ALL states)
 #   1. Loading, 2. Unloading, 3. Suction, 4. Stage, 5. Vision, 6. Laser, 7. Co2Clean
-# - 16 Unit Processes (Detailed Execute steps, CheckSubsystemState for other states)
-#   8. OPShutter, 9. SafetyInterlock, 10. MaterialDetection, 11. Vacuum, 12. Clamp
-#   13. Head, 14. StageY, 15. Table, 16. Alignment, 17. Inspection, 18. Measurement
-#   19. LaserControl, 20. Chiller, 21. Nozzle, 22. Valve, 23. Fume
+# - 16 Unit Processes (Detailed Execute steps with NextStep, CheckSubsystemState for other states)
+#   8. OPShutter (★ Decision Node 예시: Depth 3+), 9. SafetyInterlock, 10. MaterialDetection,
+#   11. Vacuum, 12. Clamp, 13. Head, 14. StageY, 15. Table, 16. Alignment, 17. Inspection,
+#   18. Measurement, 19. LaserControl, 20. Chiller, 21. Nozzle, 22. Valve, 23. Fume
 # - Total: 23 Processes (1:1 mapping with hardware-description-file3.yaml)
+# - NextStep 필드: 플랫 구조 기반 흐름 제어 적용 (decision.md 참조)
 # - Based on: D:\SW\laser-burr\LaserBurr\Process.cs, Define_Step.cs, IO.cs
 # ============================================================================

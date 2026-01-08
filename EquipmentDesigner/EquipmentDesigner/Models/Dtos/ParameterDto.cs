@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Models.Dtos
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Command Parameter DTO

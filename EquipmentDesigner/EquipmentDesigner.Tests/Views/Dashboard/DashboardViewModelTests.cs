@@ -7,8 +7,8 @@ using EquipmentDesigner.Models.Dtos;
 using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Views.Dashboard;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
+using EquipmentDesigner.ViewModels;
+using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
 

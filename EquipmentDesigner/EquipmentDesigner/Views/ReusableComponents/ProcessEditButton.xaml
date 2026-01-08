@@ -1,0 +1,57 @@
+<UserControl x:Class="EquipmentDesigner.Controls.ProcessEditButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:lex="http://wpflocalizeextension.codeplex.com"
+             xmlns:local="clr-namespace:EquipmentDesigner.Controls"
+             lex:LocalizeDictionary.DesignCulture="ko"
+             lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
+             lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
+             mc:Ignorable="d"
+             d:DesignHeight="40" d:DesignWidth="200">
+
+    <Border Background="{StaticResource Brush.Input.Background}"
+            BorderBrush="{StaticResource Brush.Input.Border}"
+            BorderThickness="{StaticResource Border.Thin}"
+            CornerRadius="{StaticResource Radius.MD}"
+            Height="{StaticResource Size.Input.Height.MD}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Main Edit Button -->
+            <Button x:Name="MainEditButton"
+                    Grid.Column="0"
+                    Click="OnMainButtonClick"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    HorizontalContentAlignment="Left"
+                    Padding="12,0,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <!-- Edit Icon -->
+                    <Path Data="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          Stroke="{StaticResource Brush.Text.Primary}"
+                          StrokeThickness="1.5"
+                          Width="14" Height="14"
+                          Stretch="Uniform"
+                          VerticalAlignment="Center"/>
+                    <!-- Button Text -->
+                    <TextBlock Text="{lex:Loc Key=Process_EditButton}"
+                               Style="{StaticResource Typography.Body}"
+                               Foreground="{StaticResource Brush.Text.Primary}"
+                               VerticalAlignment="Center"
+                               Margin="8,0,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <!-- Ellipsis Button (More Options) -->
+            <local:EllipsisButton x:Name="MoreOptionsButton"
+                                  Grid.Column="1"
+                                  Click="OnMoreOptionsClick"/>
+        </Grid>
+    </Border>
+</UserControl>

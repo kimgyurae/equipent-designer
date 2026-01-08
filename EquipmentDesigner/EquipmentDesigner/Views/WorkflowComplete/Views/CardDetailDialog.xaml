@@ -1,10 +1,10 @@
-<Window x:Class="EquipmentDesigner.Views.WorkflowComplete.CardDetailDialog"
+<Window x:Class="EquipmentDesigner.Views.CardDetailDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:EquipmentDesigner.Views.WorkflowComplete.ViewModels"
-        xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
+        xmlns:vm="clr-namespace:EquipmentDesigner.ViewModels"
+        xmlns:controls="clr-namespace:EquipmentDesigner.Controls"
         xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         lex:LocalizeDictionary.DesignCulture="ko"
@@ -88,7 +88,7 @@
 
                     <!-- Hardware Layer Chip + Title -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <reusable:StateChip Text="{Binding HardwareLayerDisplayText}"
+                        <controls:StateChip Text="{Binding HardwareLayerDisplayText}"
                                             ChipBackground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToBackgroundConverter}}"
                                             ChipForeground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToForegroundConverter}}"
                                             VerticalAlignment="Center"/>

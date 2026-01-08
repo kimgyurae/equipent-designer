@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 
-namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Service for easily creating and showing context menus throughout the application.

@@ -1,0 +1,32 @@
+<UserControl x:Class="EquipmentDesigner.Controls.EllipsisButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="36" d:DesignWidth="36">
+
+    <Button x:Name="EllipsisBtn"
+            Click="OnButtonClick"
+            Background="Transparent"
+            BorderThickness="0"
+            Cursor="Hand"
+            Width="36"
+            Padding="0">
+        <Border Background="Transparent"
+                CornerRadius="50"
+                Width="28" Height="28">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <!-- Three dots (ellipsis) -->
+                <Ellipse Fill="{StaticResource Brush.Text.Secondary}"
+                         Width="4" Height="4"/>
+                <Ellipse Fill="{StaticResource Brush.Text.Secondary}"
+                         Width="4" Height="4" Margin="3,0,0,0"/>
+                <Ellipse Fill="{StaticResource Brush.Text.Secondary}"
+                         Width="4" Height="4" Margin="3,0,0,0"/>
+            </StackPanel>
+        </Border>
+    </Button>
+</UserControl>

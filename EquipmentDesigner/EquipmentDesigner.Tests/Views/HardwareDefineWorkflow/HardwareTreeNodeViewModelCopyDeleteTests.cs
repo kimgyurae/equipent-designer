@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.EquipmentDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine;
-using EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine;
+using EquipmentDesigner.ViewModels;
+using EquipmentDesigner.ViewModels;
+using EquipmentDesigner.ViewModels;
+using EquipmentDesigner.ViewModels;
+using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
 

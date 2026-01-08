@@ -2,13 +2,9 @@ using System;
 using System.Linq;
 using System.Windows;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
-using EquipmentDesigner.Services.Api;
-using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Views.Dashboard;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
-using EquipmentDesigner.Views.WorkflowComplete;
+using EquipmentDesigner.ViewModels;
+using EquipmentDesigner.Views;
 
 namespace EquipmentDesigner
 {

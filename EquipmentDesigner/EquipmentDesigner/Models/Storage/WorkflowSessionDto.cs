@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using EquipmentDesigner.Models.Dtos;
 
-namespace EquipmentDesigner.Models.Storage
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// 워크플로우 세션 DTO - 미완료 워크플로우의 전체 상태 저장

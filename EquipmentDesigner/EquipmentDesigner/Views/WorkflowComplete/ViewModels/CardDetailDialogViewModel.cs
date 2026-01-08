@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Input;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
 
-namespace EquipmentDesigner.Views.WorkflowComplete.ViewModels
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// Event arguments for dialog close request.

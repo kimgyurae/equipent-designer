@@ -1,4 +1,5 @@
-﻿## Requirements
+﻿
+## Requirements
 
 * **Component Reuse:** Before implementing any `.xaml` code, check `EquipmentDesigner\EquipmentDesigner\Views\ReusableComponents\reusable-components.json`. If a reusable component exists, you must use it.
 * **Avoid Hardcoding:** Do not hardcode the size or position of UI elements unless absolutely necessary.
@@ -7,7 +8,7 @@
 
 ## Reusable UI Components
 
-* **Creating New Components:** When implementing a new UI (e.g., `.xaml`) that can be reused in other contexts, add the code to `EquipmentDesigner\EquipmentDesigner\Views\ReusableComponents` and update the `reusable-components.json` file.
+* **Creating New Components:** When the user explicitly requests to create reusable UI components, add the code to `EquipmentDesigner\EquipmentDesigner\Views\ReusableComponents` and update the `reusable-components.json` file.
 * **Registry Update:** If a new UI element is added to the `ReusableComponents` directory, it must be registered in `reusable-components.json`.
 
 ## Figma MCP

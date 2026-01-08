@@ -1,10 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
+using EquipmentDesigner.ViewModels;
 using System.Windows.Input;
 using EquipmentDesigner.Resources;
-using CustomContextMenuService = EquipmentDesigner.Views.ReusableComponents.ContextMenu.ContextMenuService;
+using CustomContextMenuService = EquipmentDesigner.Controls.ContextMenuService;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.Views
 {
     /// <summary>
     /// Interaction logic for HardwareTreeItemControl.xaml

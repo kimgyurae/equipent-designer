@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 
-namespace EquipmentDesigner.Views.ReusableComponents.Toast
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Individual toast message control with slide-in/out animations.

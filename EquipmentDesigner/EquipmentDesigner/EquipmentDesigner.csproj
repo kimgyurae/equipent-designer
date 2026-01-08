@@ -1,11 +1,43 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <Platforms>AnyCPU;x64</Platforms>
     <ApplicationIcon>Resources\equipment-designer.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!--
+    ============================================================================
+    NAMESPACE CONVENTION (See: .rules/always_on/csharp-namespace-rule.md)
+    ============================================================================
+    
+    Folders are for file organization. Namespaces are for logical grouping.
+    Keep namespaces flat (2-3 levels maximum).
+    
+    Standard Namespaces:
+    - EquipmentDesigner              : Root (App.xaml, common classes)
+    - EquipmentDesigner.Views        : All XAML views (regardless of subfolder)
+    - EquipmentDesigner.ViewModels   : All view models
+    - EquipmentDesigner.Models       : Domain models and entities
+    - EquipmentDesigner.Services     : Business logic, data access
+    - EquipmentDesigner.Converters   : IValueConverter implementations
+    - EquipmentDesigner.Controls     : Custom controls
+    - EquipmentDesigner.Constants    : Constant definitions
+    
+    DO NOT create deeply nested namespaces like:
+    - EquipmentDesigner.Views.HardwareDefineWorkflow.ViewModels (wrong)
+    - EquipmentDesigner.Models.Dtos.UML (wrong)
+    
+    DO use flat namespaces:
+    - EquipmentDesigner.ViewModels (correct for all ViewModels)
+    - EquipmentDesigner.Models (correct for all Models/DTOs)
+    ============================================================================
+  -->
+  <PropertyGroup>
+    <RootNamespace>EquipmentDesigner</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,6 +75,7 @@
 
   <ItemGroup>
     <Folder Include="Services\Api\" />
+    <Folder Include="Views\UMLBoard\Engine\" />
   </ItemGroup>
 
 </Project>

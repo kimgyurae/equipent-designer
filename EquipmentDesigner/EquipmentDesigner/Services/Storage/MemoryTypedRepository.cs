@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Models;
 
-namespace EquipmentDesigner.Services.Storage
+namespace EquipmentDesigner.Services
 {
     /// <summary>
     /// Memory-based typed repository for testing purposes.

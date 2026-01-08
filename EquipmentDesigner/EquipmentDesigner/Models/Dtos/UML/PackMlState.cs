@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Models.Dtos.Process
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// PackML standard 17 states enum

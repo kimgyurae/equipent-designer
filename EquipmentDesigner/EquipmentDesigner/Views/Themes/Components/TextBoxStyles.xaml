@@ -1,7 +1,7 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents">
+    xmlns:reusable="clr-namespace:EquipmentDesigner.Controls">
 
     <!-- ============================================================
          TextBox Styles with Placeholder Support

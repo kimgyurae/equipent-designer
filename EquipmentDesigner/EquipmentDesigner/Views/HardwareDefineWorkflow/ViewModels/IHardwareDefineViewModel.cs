@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// Common interface for hardware definition ViewModels.

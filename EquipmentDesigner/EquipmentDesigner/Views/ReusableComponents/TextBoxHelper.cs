@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace EquipmentDesigner.Views.ReusableComponents
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Attached properties for extending TextBox functionality.

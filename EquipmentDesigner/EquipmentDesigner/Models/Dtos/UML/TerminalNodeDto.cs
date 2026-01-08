@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Models.Dtos.Process
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Terminal node - workflow termination point
@@ -9,5 +9,14 @@ namespace EquipmentDesigner.Models.Dtos.Process
         public override ProcessNodeType NodeType => ProcessNodeType.Terminal;
 
         // No OutgoingConnection property - terminal nodes cannot have outgoing connections
+
+        /// <summary>
+        /// Validates the Terminal node configuration.
+        /// Terminal nodes are always valid as they have no outgoing connections by design.
+        /// </summary>
+        public override NodeValidationResult Validate()
+        {
+            return NodeValidationResult.Valid(Id, NodeType);
+        }
     }
 }

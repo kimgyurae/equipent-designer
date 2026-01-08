@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace EquipmentDesigner.Models.Dtos
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Command DTO

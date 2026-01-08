@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace EquipmentDesigner.Views.ReusableComponents.Toast
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Container control that hosts multiple toast messages.

@@ -1,7 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using EquipmentDesigner.ViewModels;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.Views
 {
     /// <summary>
     /// Interaction logic for HardwareDefineWorkflowView.xaml

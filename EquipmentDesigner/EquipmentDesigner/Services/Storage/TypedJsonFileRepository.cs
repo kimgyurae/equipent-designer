@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EquipmentDesigner.Services.Storage
+namespace EquipmentDesigner.Services
 {
     /// <summary>
     /// Abstract base class for typed JSON file repositories.

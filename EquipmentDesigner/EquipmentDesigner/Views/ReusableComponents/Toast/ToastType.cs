@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Views.ReusableComponents.Toast
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Defines the visual type/severity of a toast message.

@@ -1,6 +1,6 @@
-using EquipmentDesigner.Models.Dtos;
+using EquipmentDesigner.Models;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// ViewModel for a command parameter.

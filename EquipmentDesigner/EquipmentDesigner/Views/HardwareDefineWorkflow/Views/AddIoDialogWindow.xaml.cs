@@ -1,6 +1,7 @@
 using System.Windows;
+using EquipmentDesigner.ViewModels;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.Views
 {
     /// <summary>
     /// Code-behind for AddIoDialogWindow.xaml

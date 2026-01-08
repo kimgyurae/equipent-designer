@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace EquipmentDesigner.Models.Dtos.Process
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// 17 PackML State to Process Workflow mapping

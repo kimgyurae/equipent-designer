@@ -4,10 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
-using EquipmentDesigner.Services.Api;
-using EquipmentDesigner.Services.Storage;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.Services;
+using EquipmentDesigner.Services;
 using FluentAssertions;
 using Xunit;
 

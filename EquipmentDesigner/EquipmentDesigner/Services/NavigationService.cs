@@ -1,6 +1,5 @@
 using System;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Storage;
 
 namespace EquipmentDesigner.Services
 {
@@ -36,6 +35,16 @@ namespace EquipmentDesigner.Services
         /// Event raised when navigating to workflow complete view is requested.
         /// </summary>
         public event Action<NavigationTarget> WorkflowCompleteRequested;
+
+        /// <summary>
+        /// Event raised when navigating to process define view is requested.
+        /// </summary>
+        public event Action<NavigationTarget> ProcessDefineRequested;
+
+        /// <summary>
+        /// Event raised when navigating back from process define view is requested.
+        /// </summary>
+        public event Action NavigateBackFromProcessDefineRequested;
 
         /// <summary>
         /// Navigate to the Hardware Define Workflow with the specified start type.
@@ -98,6 +107,25 @@ namespace EquipmentDesigner.Services
                 SessionDto = sessionDto
             });
         }
+
+        /// <summary>
+        /// Navigate to the process define view.
+        /// </summary>
+        public void NavigateToProcessDefine()
+        {
+            ProcessDefineRequested?.Invoke(new NavigationTarget
+            {
+                TargetType = NavigationTargetType.ProcessDefine
+            });
+        }
+
+        /// <summary>
+        /// Navigate back from process define view to the previous view (hardware define workflow).
+        /// </summary>
+        public void NavigateBackFromProcessDefine()
+        {
+            NavigateBackFromProcessDefineRequested?.Invoke();
+        }
     }
 
     /// <summary>
@@ -141,6 +169,7 @@ namespace EquipmentDesigner.Services
     {
         Dashboard,
         HardwareDefineWorkflow,
-        WorkflowComplete
+        WorkflowComplete,
+        ProcessDefine
     }
 }

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace EquipmentDesigner.Views.ReusableComponents
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Interface for ViewModels that can show/hide a backdrop overlay.

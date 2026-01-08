@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace EquipmentDesigner.Views.ReusableComponents
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// A reusable chip control for displaying state/type information with customizable colors.

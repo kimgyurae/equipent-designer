@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using EquipmentDesigner.Models.Storage;
+using EquipmentDesigner.Models;
 
-namespace EquipmentDesigner.Services.Storage
+namespace EquipmentDesigner.Services
 {
     /// <summary>
     /// Repository for managing incomplete workflow data.

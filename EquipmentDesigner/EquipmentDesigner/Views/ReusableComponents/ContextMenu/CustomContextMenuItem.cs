@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
-namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Represents the type of a context menu item.

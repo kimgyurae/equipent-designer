@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using EquipmentDesigner.Models.Dtos.Process;
+using EquipmentDesigner.Models;
 using FluentAssertions;
 using Xunit;
 
@@ -327,13 +327,72 @@ namespace EquipmentDesigner.Tests.Process
         }
 
         [Fact]
-        public void PredefinedProcessNodeDto_ShouldHave_PredefinedProcessIdProperty()
+        public void PredefinedProcessNodeDto_Nodes_ShouldBeInitializedAsEmptyList()
         {
             // Arrange
-            var node = new PredefinedProcessNodeDto { PredefinedProcessId = "subprocess-001" };
+            var node = new PredefinedProcessNodeDto();
 
             // Assert
-            node.PredefinedProcessId.Should().Be("subprocess-001");
+            node.Nodes.Should().NotBeNull();
+            node.Nodes.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void PredefinedProcessNodeDto_ShouldHave_InitialNodeIdProperty()
+        {
+            // Arrange
+            var node = new PredefinedProcessNodeDto { InitialNodeId = "init-001" };
+
+            // Assert
+            node.InitialNodeId.Should().Be("init-001");
+        }
+
+        [Fact]
+        public void PredefinedProcessNodeDto_Nodes_ShouldSupportPolymorphicStorage()
+        {
+            // Arrange
+            var node = new PredefinedProcessNodeDto();
+            node.Nodes.Add(new InitialNodeDto { Id = "init-001" });
+            node.Nodes.Add(new ActionNodeDto { Id = "action-001" });
+            node.Nodes.Add(new DecisionNodeDto { Id = "decision-001" });
+            node.Nodes.Add(new TerminalNodeDto { Id = "terminal-001" });
+
+            // Assert
+            node.Nodes.Should().HaveCount(4);
+            node.Nodes.OfType<InitialNodeDto>().Should().HaveCount(1);
+            node.Nodes.OfType<ActionNodeDto>().Should().HaveCount(1);
+            node.Nodes.OfType<DecisionNodeDto>().Should().HaveCount(1);
+            node.Nodes.OfType<TerminalNodeDto>().Should().HaveCount(1);
+        }
+
+        [Fact]
+        public void PredefinedProcessNodeDto_Nodes_ShouldSupportNestedPredefinedProcess()
+        {
+            // Arrange - create a predefined process with a nested predefined process
+            var nestedProcess = new PredefinedProcessNodeDto
+            {
+                Id = "nested-001",
+                Name = "Nested Subprocess",
+                InitialNodeId = "nested-init-001"
+            };
+            nestedProcess.Nodes.Add(new InitialNodeDto { Id = "nested-init-001" });
+            nestedProcess.Nodes.Add(new TerminalNodeDto { Id = "nested-terminal-001" });
+
+            var parentProcess = new PredefinedProcessNodeDto
+            {
+                Id = "parent-001",
+                Name = "Parent Process",
+                InitialNodeId = "parent-init-001"
+            };
+            parentProcess.Nodes.Add(new InitialNodeDto { Id = "parent-init-001" });
+            parentProcess.Nodes.Add(nestedProcess);
+            parentProcess.Nodes.Add(new TerminalNodeDto { Id = "parent-terminal-001" });
+
+            // Assert
+            parentProcess.Nodes.Should().HaveCount(3);
+            parentProcess.Nodes.OfType<PredefinedProcessNodeDto>().Should().HaveCount(1);
+            var nested = parentProcess.Nodes.OfType<PredefinedProcessNodeDto>().First();
+            nested.Nodes.Should().HaveCount(2);
         }
 
         [Fact]

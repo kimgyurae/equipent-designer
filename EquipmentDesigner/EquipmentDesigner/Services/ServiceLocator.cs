@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using EquipmentDesigner.Models.Storage;
-using EquipmentDesigner.Services.Api;
-using EquipmentDesigner.Services.Storage;
+using EquipmentDesigner.Models;
 
 namespace EquipmentDesigner.Services
 {

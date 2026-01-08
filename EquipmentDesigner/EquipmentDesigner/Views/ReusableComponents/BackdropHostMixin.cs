@@ -1,6 +1,6 @@
 using System;
 
-namespace EquipmentDesigner.Views.ReusableComponents
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Helper class to reduce boilerplate for IBackdropHost implementation.

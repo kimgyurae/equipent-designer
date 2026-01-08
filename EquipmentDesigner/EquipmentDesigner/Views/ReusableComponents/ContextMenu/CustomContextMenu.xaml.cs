@@ -10,7 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace EquipmentDesigner.Views.ReusableComponents.ContextMenu
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// A reusable custom context menu with support for nested sub-menus (max depth 4),

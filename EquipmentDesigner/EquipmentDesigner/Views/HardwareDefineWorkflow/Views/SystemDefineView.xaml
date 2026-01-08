@@ -1,10 +1,10 @@
-<UserControl x:Class="EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine.SystemDefineView"
+<UserControl x:Class="EquipmentDesigner.Views.SystemDefineView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
-             xmlns:reusable="clr-namespace:EquipmentDesigner.Views.ReusableComponents"
+             xmlns:controls="clr-namespace:EquipmentDesigner.Controls"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -168,14 +168,7 @@
                                    Style="{StaticResource Typography.Label}"
                                    Foreground="{StaticResource Brush.Text.Primary}"
                                    Margin="0,0,0,6"/>
-                        <TextBox Text="{Binding Process, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Height="{StaticResource Size.Input.Height.MD}"
-                                 Padding="{StaticResource Spacing.Padding.Input}"
-                                 Background="{StaticResource Brush.Input.Background}"
-                                 BorderBrush="{StaticResource Brush.Input.Border}"
-                                 VerticalContentAlignment="Center"
-                                 IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
-                                 IsHitTestVisible="{Binding IsEditable}"/>
+                        <controls:ProcessEditButton IsEnabled="{Binding IsEditable}"/>
                     </StackPanel>
 
                 </StackPanel>
@@ -311,7 +304,7 @@
                     BorderThickness="{StaticResource Border.Thin}"
                     CornerRadius="{StaticResource Radius.LG}"
                     Padding="{StaticResource Spacing.Padding.Card}">
-                <reusable:FileDropZone LabelText="{lex:Loc Key=Equipment_AttachedDocuments}"
+                <controls:FileDropZone LabelText="{lex:Loc Key=Equipment_AttachedDocuments}"
                                        Documents="{Binding AttachedDocuments}"
                                        IsEditable="{Binding IsEditable}"/>
             </Border>

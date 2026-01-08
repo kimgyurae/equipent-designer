@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using EquipmentDesigner.Resources;
 
-namespace EquipmentDesigner.Views.ReusableComponents
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// A reusable confirmation dialog for various confirmation operations.

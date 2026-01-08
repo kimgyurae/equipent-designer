@@ -7,18 +7,14 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
-using EquipmentDesigner.Services.Api;
-using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Views.ReusableComponents;
-using EquipmentDesigner.Views.ReusableComponents.Toast;
+using EquipmentDesigner.Controls;
 using EquipmentDesigner.Resources;
+using EquipmentDesigner.Views;
 
 using MainWindow = EquipmentDesigner.MainWindow;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// Main ViewModel for the Hardware Define Workflow.

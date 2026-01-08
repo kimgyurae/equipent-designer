@@ -1,6 +1,6 @@
 using System.Collections.Specialized;
 using System.Linq;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
+using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
 

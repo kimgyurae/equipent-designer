@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
+using EquipmentDesigner.ViewModels;
 
-namespace EquipmentDesigner.Views.ReusableComponents.Toast
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// ViewModel for an individual toast message.
@@ -131,7 +131,7 @@ namespace EquipmentDesigner.Views.ReusableComponents.Toast
         /// </summary>
         public ToastMessageViewModel()
         {
-            DismissCommand = new RelayCommand(ExecuteDismiss);
+            DismissCommand = new RelayCommand(_ => ExecuteDismiss());
         }
 
         /// <summary>

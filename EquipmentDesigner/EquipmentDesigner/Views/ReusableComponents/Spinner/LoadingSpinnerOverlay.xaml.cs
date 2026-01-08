@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 
-namespace EquipmentDesigner.Views.ReusableComponents.Spinner
+namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Interaction logic for LoadingSpinnerOverlay.xaml

@@ -5,15 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
-using EquipmentDesigner.Services.Api;
-using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
-using EquipmentDesigner.Views.ReusableComponents.Toast;
+using EquipmentDesigner.Controls;
+using EquipmentDesigner.Views;
 
-namespace EquipmentDesigner.Views.WorkflowComplete
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// Display model for hierarchical hardware nodes in WorkflowCompleteView.

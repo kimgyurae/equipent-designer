@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace EquipmentDesigner.Models.Dtos.Process
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Single PackML State workflow definition

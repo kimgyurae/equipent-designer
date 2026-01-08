@@ -7,16 +7,11 @@ using System.Windows;
 using System.Windows.Input;
 using System.IO;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
-using EquipmentDesigner.Services.Api;
-using EquipmentDesigner.Services.Storage;
-using EquipmentDesigner.Views.HardwareDefineWorkflow;
-using EquipmentDesigner.Views.ReusableComponents;
+using EquipmentDesigner.Controls;
 using EquipmentDesigner.Resources;
 
-namespace EquipmentDesigner.Views.Dashboard
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// ViewModel for the Dashboard view.

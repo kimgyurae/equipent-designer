@@ -1,13 +1,10 @@
-<UserControl x:Class="EquipmentDesigner.Views.HardwareDefineWorkflow.HardwareDefineWorkflowView"
+<UserControl x:Class="EquipmentDesigner.Views.HardwareDefineWorkflowView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:local="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow"
-             xmlns:equipment="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow.EquipmentDefine"
-             xmlns:system="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow.SystemDefine"
-             xmlns:unit="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow.UnitDefine"
-             xmlns:device="clr-namespace:EquipmentDesigner.Views.HardwareDefineWorkflow.DeviceDefine"
+             xmlns:local="clr-namespace:EquipmentDesigner.Views"
+             xmlns:vm="clr-namespace:EquipmentDesigner.ViewModels"
              xmlns:models="clr-namespace:EquipmentDesigner.Models"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              lex:LocalizeDictionary.DesignCulture="ko"
@@ -231,17 +228,17 @@
                 <ContentControl Content="{Binding SelectedTreeNode.DataViewModel}"
                                 Margin="{StaticResource Spacing.Padding.2XL}">
                     <ContentControl.Resources>
-                        <DataTemplate DataType="{x:Type local:EquipmentDefineViewModel}">
-                            <equipment:EquipmentDefineView />
+                        <DataTemplate DataType="{x:Type vm:EquipmentDefineViewModel}">
+                            <local:EquipmentDefineView />
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:SystemDefineViewModel}">
-                            <system:SystemDefineView />
+                        <DataTemplate DataType="{x:Type vm:SystemDefineViewModel}">
+                            <local:SystemDefineView />
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:UnitDefineViewModel}">
-                            <unit:UnitDefineView />
+                        <DataTemplate DataType="{x:Type vm:UnitDefineViewModel}">
+                            <local:UnitDefineView />
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type local:DeviceDefineViewModel}">
-                            <device:DeviceDefineView />
+                        <DataTemplate DataType="{x:Type vm:DeviceDefineViewModel}">
+                            <local:DeviceDefineView />
                         </DataTemplate>
                     </ContentControl.Resources>
                 </ContentControl>

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Views.Dashboard;
+using EquipmentDesigner.Models;
+using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
 

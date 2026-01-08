@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Dtos;
-using EquipmentDesigner.Models.Storage;
 
-namespace EquipmentDesigner.Services.Api
+namespace EquipmentDesigner.Services
 {
     /// <summary>
     /// Hardware API service interface for managing uploaded hardware workflow sessions.

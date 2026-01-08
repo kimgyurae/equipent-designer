@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Input;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// ViewModel for the Add IO dialog window.

@@ -35,6 +35,9 @@
         <!-- Component Styles -->
         <ResourceDictionary Source="Components/ComboBoxStyles.xaml"/>
         <ResourceDictionary Source="Components/TextBoxStyles.xaml"/>
+        
+        <!-- Context Menu Styles -->
+        <ResourceDictionary Source="../ReusableComponents/ContextMenu/ContextMenuStyles.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

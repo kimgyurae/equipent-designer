@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace EquipmentDesigner.Views.HardwareDefineWorkflow
+namespace EquipmentDesigner.ViewModels
 {
     /// <summary>
     /// A command implementation that delegates execution to provided delegates.

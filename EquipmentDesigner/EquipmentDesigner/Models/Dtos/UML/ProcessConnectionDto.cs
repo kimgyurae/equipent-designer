@@ -1,4 +1,4 @@
-namespace EquipmentDesigner.Models.Dtos.Process
+namespace EquipmentDesigner.Models
 {
     /// <summary>
     /// Connection information between nodes
