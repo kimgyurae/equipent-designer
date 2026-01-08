@@ -14,6 +14,7 @@ namespace EquipmentDesigner
     public partial class MainWindow : Window
     {
         private readonly DashboardView _dashboardView;
+        private object _previousViewBeforeDrawboard;
 
         public MainWindow()
         {
@@ -28,6 +29,8 @@ namespace EquipmentDesigner
             NavigationService.Instance.ResumeWorkflowRequested += OnResumeWorkflowRequested;
             NavigationService.Instance.ViewComponentRequested += OnViewComponentRequested;
             NavigationService.Instance.WorkflowCompleteRequested += OnWorkflowCompleteRequested;
+            NavigationService.Instance.ShowDashboardRequested += OnShowDrawboardRequested;
+            NavigationService.Instance.NavigateBackFromShowDashboardRequested += OnNavigateBackFromDrawboard;
             
             // Show dashboard by default
             MainContent.Content = _dashboardView;
@@ -141,6 +144,34 @@ namespace EquipmentDesigner
             MainContent.Content = view;
         }
 
+        private void OnShowDrawboardRequested(NavigationTarget target)
+        {
+            // Save current view for back navigation
+            _previousViewBeforeDrawboard = MainContent.Content;
+
+            var viewModel = new DrawboardViewModel(showBackButton: true);
+            var view = new DrawboardView
+            {
+                DataContext = viewModel
+            };
+            MainContent.Content = view;
+        }
+
+        private void OnNavigateBackFromDrawboard()
+        {
+            // Restore previous view
+            if (_previousViewBeforeDrawboard != null)
+            {
+                MainContent.Content = _previousViewBeforeDrawboard;
+                _previousViewBeforeDrawboard = null;
+            }
+            else
+            {
+                // Fallback to dashboard if no previous view
+                OnNavigateToDashboard();
+            }
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             // Unsubscribe from events to prevent memory leaks
@@ -149,6 +180,8 @@ namespace EquipmentDesigner
             NavigationService.Instance.ResumeWorkflowRequested -= OnResumeWorkflowRequested;
             NavigationService.Instance.ViewComponentRequested -= OnViewComponentRequested;
             NavigationService.Instance.WorkflowCompleteRequested -= OnWorkflowCompleteRequested;
+            NavigationService.Instance.ShowDashboardRequested -= OnShowDrawboardRequested;
+            NavigationService.Instance.NavigateBackFromShowDashboardRequested -= OnNavigateBackFromDrawboard;
             base.OnClosed(e);
         }
     }
