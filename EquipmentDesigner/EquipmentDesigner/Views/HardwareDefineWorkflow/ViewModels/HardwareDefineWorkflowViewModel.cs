@@ -12,6 +12,7 @@ using EquipmentDesigner.Models.Storage;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
+using EquipmentDesigner.Views.ReusableComponents;
 using EquipmentDesigner.Views.ReusableComponents.Toast;
 using EquipmentDesigner.Resources;
 
@@ -611,8 +612,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             if (!response.Success)
             {
                 ToastService.Instance.ShowError(
-                    "Upload Failed",
-                    response.ErrorMessage ?? "Failed to upload data to the server.");
+                    Strings.Toast_UploadFailed_Title,
+                    response.ErrorMessage ?? Strings.Toast_UploadFailed_Description);
                 return;
             }
 
@@ -629,8 +630,8 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             // Show success toast
             ToastService.Instance.ShowSuccess(
-                "Upload Complete",
-                "Data has been uploaded to the server.");
+                Strings.Toast_UploadComplete_Title,
+                Strings.Toast_UploadComplete_Description);
         }
 
         /// <summary>
@@ -1361,7 +1362,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 // Root node: check if it's the only root
                 if (TreeRootNodes.Count <= 1)
                 {
-                    ToastService.Instance.ShowWarning(
+                    ToastService.Instance.ShowError(
                         Strings.DeleteHardware_CannotDelete_Title,
                         Strings.DeleteHardware_CannotDelete_MinChild);
                     return;
@@ -1372,7 +1373,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
                 // Non-root node: check if parent has only one child
                 if (node.Parent.Children.Count <= 1)
                 {
-                    ToastService.Instance.ShowWarning(
+                    ToastService.Instance.ShowError(
                         Strings.DeleteHardware_CannotDelete_Title,
                         Strings.DeleteHardware_CannotDelete_MinChild);
                     return;
@@ -1474,6 +1475,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// <summary>
         /// Executes node copy operation.
         /// Creates a deep copy of the node and adds it to the parent's children.
+        /// Root nodes cannot be copied as only one top-level component is allowed per session.
         /// </summary>
         private void ExecuteCopyNode(HardwareTreeNodeViewModel node)
         {
@@ -1481,18 +1483,20 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 
             bool isRootNode = node.Parent == null;
 
+            // Root nodes cannot be copied - only one top-level component allowed per session
+            if (isRootNode)
+            {
+                ToastService.Instance.ShowWarning(
+                    Strings.CopyHardware_CannotCopy_Title,
+                    Strings.CopyHardware_CannotCopy_RootNode);
+                return;
+            }
+
             // Create deep copy with the same parent
             var copiedNode = node.DeepCopy(node.Parent);
 
-            // Add to parent's children or root nodes
-            if (isRootNode)
-            {
-                TreeRootNodes.Add(copiedNode);
-            }
-            else
-            {
-                node.Parent.Children.Add(copiedNode);
-            }
+            // Add to parent's children
+            node.Parent.Children.Add(copiedNode);
 
             // Setup callbacks for the copied node hierarchy
             SetupDeviceCallbacksForNode(copiedNode);

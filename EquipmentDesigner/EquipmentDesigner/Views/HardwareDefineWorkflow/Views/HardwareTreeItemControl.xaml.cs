@@ -1,4 +1,8 @@
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using EquipmentDesigner.Resources;
+using CustomContextMenuService = EquipmentDesigner.Views.ReusableComponents.ContextMenu.ContextMenuService;
 
 namespace EquipmentDesigner.Views.HardwareDefineWorkflow
 {
@@ -10,6 +14,24 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         public HardwareTreeItemControl()
         {
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// Handles right-click on tree node to show custom context menu.
+        /// </summary>
+        private void OnNodeRightClick(object sender, MouseButtonEventArgs e)
+        {
+            if (!(sender is Border border)) return;
+            if (!(border.Tag is HardwareDefineWorkflowViewModel viewModel)) return;
+            if (!(DataContext is HardwareTreeNodeViewModel node)) return;
+
+            e.Handled = true;
+
+            CustomContextMenuService.Instance.Create()
+                .AddItem(Strings.ContextMenu_Copy, viewModel.CopyNodeCommand, node)
+                .AddSeparator()
+                .AddDestructiveItem(Strings.ContextMenu_Delete, viewModel.DeleteNodeCommand, node)
+                .Show();
         }
     }
 }

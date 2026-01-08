@@ -19,6 +19,22 @@
         {
             "path": "StateChip.xaml",
             "description": "Reusable chip control for displaying state/type information with customizable colors. Supports Text, ChipBackground, and ChipForeground dependency properties. Used with ComponentStateToBackgroundConverter, ComponentStateToForegroundConverter, HardwareLayerToBackgroundConverter, and HardwareLayerToForegroundConverter for enum-based styling."
+        },
+        {
+            "path": "ContextMenu/",
+            "description": "Custom context menu component with nested sub-menu support (max depth 4), animated chevrons, section dividers, and intelligent screen-boundary-aware positioning. Includes CustomContextMenuItem model, ContextMenuPositionHelper for placement calculation, and ContextMenuService for easy fluent-API-based invocation."
+        },
+        {
+            "path": "FileDropZone.xaml",
+            "description": "Reusable file drop zone component supporting drag-and-drop and click-to-upload. Provides LabelText, Documents (ObservableCollection<string>), and IsEditable dependency properties. Built-in file extension filtering for PDF, PPT, PPTX, MD, and DRAWIO formats."
+        },
+        {
+            "path": "ConfirmDeleteDialog.xaml",
+            "description": "Modal confirmation dialog for cascading delete operations. Requires user to type 'delete' to confirm. Displays ItemName and optional DescendantNames list. Returns IsConfirmed boolean via DialogResult."
+        },
+        {
+            "path": "Spinner/",
+            "description": "Global loading spinner overlay component. Includes LoadingSpinnerService singleton with Show()/Hide() methods for async operation indication, and LoadingSpinnerOverlay with rotation and fade animations."
         }
     ]
 }
