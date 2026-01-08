@@ -29,12 +29,16 @@
             "description": "Reusable file drop zone component supporting drag-and-drop and click-to-upload. Provides LabelText, Documents (ObservableCollection<string>), and IsEditable dependency properties. Built-in file extension filtering for PDF, PPT, PPTX, MD, and DRAWIO formats."
         },
         {
-            "path": "ConfirmDeleteDialog.xaml",
-            "description": "Modal confirmation dialog for cascading delete operations. Requires user to type 'delete' to confirm. Displays ItemName and optional DescendantNames list. Returns IsConfirmed boolean via DialogResult."
+            "path": "ConfirmDialog.xaml",
+            "description": "Generic confirmation dialog for various confirmation operations. Customizable Title, Subtitle (optional), Description (multiline), ConfirmationKeyword, ConfirmText, and CancelText. Requires user to type the confirmation keyword to confirm. Returns IsConfirmed boolean via DialogResult."
         },
         {
             "path": "Spinner/",
             "description": "Global loading spinner overlay component. Includes LoadingSpinnerService singleton with Show()/Hide() methods for async operation indication, and LoadingSpinnerOverlay with rotation and fade animations."
+        },
+        {
+            "path": "EllipsisButton.xaml",
+            "description": "Reusable ellipsis (three dots) button for 'more options' actions. Exposes Click routed event for parent component binding. Used in context menu triggers and overflow menus."
         }
     ]
 }

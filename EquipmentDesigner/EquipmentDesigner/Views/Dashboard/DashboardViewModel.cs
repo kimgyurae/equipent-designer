@@ -13,6 +13,8 @@ using EquipmentDesigner.Services;
 using EquipmentDesigner.Services.Api;
 using EquipmentDesigner.Services.Storage;
 using EquipmentDesigner.Views.HardwareDefineWorkflow;
+using EquipmentDesigner.Views.ReusableComponents;
+using EquipmentDesigner.Resources;
 
 namespace EquipmentDesigner.Views.Dashboard
 {
@@ -318,9 +320,13 @@ namespace EquipmentDesigner.Views.Dashboard
             try
             {
                 // Show delete confirmation dialog
-                var dialog = new DeleteWorkflowDialog
+                var dialog = new ConfirmDialog(
+                    Strings.DeleteWorkflow_Title,
+                    Strings.DeleteWorkflow_Description)
                 {
-                    Owner = mainWindow
+                    Owner = mainWindow,
+                    ConfirmText = Strings.DeleteWorkflow_DeleteButton,
+                    CancelText = Strings.Common_Cancel
                 };
 
                 var result = dialog.ShowDialog();
@@ -356,9 +362,13 @@ namespace EquipmentDesigner.Views.Dashboard
             try
             {
                 // Show delete confirmation dialog
-                var dialog = new DeleteWorkflowDialog
+                var dialog = new ConfirmDialog(
+                    Strings.DeleteWorkflow_Title,
+                    Strings.DeleteWorkflow_Description)
                 {
-                    Owner = mainWindow
+                    Owner = mainWindow,
+                    ConfirmText = Strings.DeleteWorkflow_DeleteButton,
+                    CancelText = Strings.Common_Cancel
                 };
 
                 var result = dialog.ShowDialog();
@@ -419,9 +429,13 @@ namespace EquipmentDesigner.Views.Dashboard
             try
             {
                 // Show delete confirmation dialog
-                var dialog = new DeleteWorkflowDialog
+                var dialog = new ConfirmDialog(
+                    Strings.DeleteWorkflow_Title,
+                    Strings.DeleteWorkflow_Description)
                 {
-                    Owner = mainWindow
+                    Owner = mainWindow,
+                    ConfirmText = Strings.DeleteWorkflow_DeleteButton,
+                    CancelText = Strings.Common_Cancel
                 };
 
                 var result = dialog.ShowDialog();

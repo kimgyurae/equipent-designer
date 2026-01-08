@@ -1348,7 +1348,7 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
         /// <summary>
         /// Executes node deletion with minimum child constraint validation.
         /// Shows Toast warning if deletion would violate the constraint.
-        /// Shows ConfirmDeleteDialog if deletion is allowed.
+        /// Shows ConfirmDialog if deletion is allowed.
         /// </summary>
         private void ExecuteDeleteNode(HardwareTreeNodeViewModel node)
         {
@@ -1384,6 +1384,13 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             var descendants = node.GetAllDescendants();
             var descendantNames = descendants.Select(d => $"{d.HardwareLayer}: {d.DisplayName}").ToList();
 
+            // Build description with descendants list
+            var description = Strings.DeleteHardware_Description;
+            if (descendantNames.Count > 0)
+            {
+                description += "\n\n" + Strings.DeleteHardware_DescendantsLabel + "\n• " + string.Join("\n• ", descendantNames);
+            }
+
             // Get MainWindow for backdrop control
             var mainWindow = System.Windows.Application.Current?.MainWindow as MainWindow;
 
@@ -1400,11 +1407,15 @@ namespace EquipmentDesigner.Views.HardwareDefineWorkflow
             try
             {
                 // Show confirmation dialog
-                var dialog = new ConfirmDeleteDialog(
-                    $"{node.HardwareLayer}: {node.DisplayName}",
-                    descendantNames)
+                var dialog = new ConfirmDialog(
+                    Strings.DeleteHardware_Title,
+                    description,
+                    "delete",
+                    $"{node.HardwareLayer}: {node.DisplayName}")
                 {
-                    Owner = mainWindow
+                    Owner = mainWindow,
+                    ConfirmText = Strings.DeleteHardware_DeleteButton,
+                    CancelText = Strings.Common_Cancel
                 };
 
                 if (dialog.ShowDialog() == true && dialog.IsConfirmed)

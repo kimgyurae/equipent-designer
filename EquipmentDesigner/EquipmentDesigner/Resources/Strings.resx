@@ -459,6 +459,12 @@
   <data name="Toast_UploadComplete_Description" xml:space="preserve">
     <value>Data has been uploaded to the server.</value>
   </data>
+  <data name="Toast_UploadFailed_Title" xml:space="preserve">
+    <value>Upload Failed</value>
+  </data>
+  <data name="Toast_UploadFailed_Description" xml:space="preserve">
+    <value>Failed to upload data to the server.</value>
+  </data>
   <data name="EditModeSelection_Title" xml:space="preserve">
     <value>Select Edit Mode</value>
   </data>
@@ -566,5 +572,41 @@
   </data>
   <data name="DeleteHardware_CannotDelete_MinChild" xml:space="preserve">
     <value>Each hardware component must have at least one child component.</value>
+  </data>
+  <data name="CopyHardware_CannotCopy_Title" xml:space="preserve">
+    <value>Cannot Copy</value>
+  </data>
+  <data name="CopyHardware_CannotCopy_RootNode" xml:space="preserve">
+    <value>The root hardware component cannot be copied. Only one top-level component is allowed per session.</value>
+  </data>
+  <data name="Process_Title" xml:space="preserve">
+    <value>Process Editor</value>
+  </data>
+  <data name="Process_BackToHardwareDefine" xml:space="preserve">
+    <value>Back to Hardware Definition</value>
+  </data>
+  <data name="Process_EmptyState" xml:space="preserve">
+    <value>Process Editor</value>
+  </data>
+  <data name="Process_EmptyStateHint" xml:space="preserve">
+    <value>Process editing functionality will be added here</value>
+  </data>
+  <data name="Process_EditButton" xml:space="preserve">
+    <value>Edit Process</value>
+  </data>
+  <data name="Process_OpenInNewWindow" xml:space="preserve">
+    <value>Open in New Window</value>
+  </data>
+  <data name="ConfirmDialog_DefaultTitle" xml:space="preserve">
+    <value>Confirm Action</value>
+  </data>
+  <data name="ConfirmDialog_DefaultDescription" xml:space="preserve">
+    <value>Are you sure you want to proceed? This action cannot be undone.</value>
+  </data>
+  <data name="ConfirmDialog_DefaultConfirmButton" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="ConfirmDialog_PlaceholderFormat" xml:space="preserve">
+    <value>Type '{0}'</value>
   </data>
 </root>
