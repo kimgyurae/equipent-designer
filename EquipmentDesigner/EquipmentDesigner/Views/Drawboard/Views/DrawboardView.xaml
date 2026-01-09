@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
+             xmlns:models="clr-namespace:EquipmentDesigner.Models.ProcessEditor"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -146,17 +147,127 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Shape Element Styles -->
+        <Style x:Key="ShapeElementStyle" TargetType="Shape">
+            <Setter Property="Stroke" Value="#333333"/>
+            <Setter Property="StrokeThickness" Value="1.5"/>
+            <Setter Property="Fill" Value="#FFFFFF"/>
+        </Style>
+
+        <!-- Drawing Element Data Templates -->
+        <DataTemplate x:Key="InitialNodeTemplate">
+            <Ellipse Style="{StaticResource ShapeElementStyle}"
+                     Width="{Binding Width}" Height="{Binding Height}"
+                     Fill="#E3F2FD"
+                     Opacity="{Binding Opacity}"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ActionNodeTemplate">
+            <Border Width="{Binding Width}" Height="{Binding Height}"
+                    Background="#FFF3E0"
+                    BorderBrush="#333333"
+                    BorderThickness="1.5"
+                    CornerRadius="4"
+                    Opacity="{Binding Opacity}"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DecisionNodeTemplate">
+            <Grid Width="{Binding Width}" Height="{Binding Height}"
+                  Opacity="{Binding Opacity}">
+                <Path Data="M 0.5,0 L 1,0.5 L 0.5,1 L 0,0.5 Z"
+                      Stretch="Fill"
+                      Fill="#FFF9C4"
+                      Stroke="#333333"
+                      StrokeThickness="1.5"/>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TerminalNodeTemplate">
+            <Grid Width="{Binding Width}" Height="{Binding Height}"
+                  Opacity="{Binding Opacity}">
+                <Ellipse Style="{StaticResource ShapeElementStyle}"
+                         Fill="#FFEBEE"/>
+                <Ellipse Stroke="#333333"
+                         StrokeThickness="1.5"
+                         Fill="Transparent"
+                         Margin="5"/>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PredefinedActionNodeTemplate">
+            <Grid Width="{Binding Width}" Height="{Binding Height}"
+                  Opacity="{Binding Opacity}">
+                <Border Background="#E8F5E9"
+                        BorderBrush="#333333"
+                        BorderThickness="1.5"
+                        CornerRadius="4"/>
+                <Border Background="Transparent"
+                        BorderBrush="#333333"
+                        BorderThickness="1.5"
+                        CornerRadius="2"
+                        Margin="6"/>
+            </Grid>
+        </DataTemplate>
+
+        <!-- Template Selector for Drawing Elements -->
+        <converters:DrawingShapeTemplateSelector x:Key="DrawingShapeTemplateSelector"
+            InitialNodeTemplate="{StaticResource InitialNodeTemplate}"
+            ActionNodeTemplate="{StaticResource ActionNodeTemplate}"
+            DecisionNodeTemplate="{StaticResource DecisionNodeTemplate}"
+            TerminalNodeTemplate="{StaticResource TerminalNodeTemplate}"
+            PredefinedActionNodeTemplate="{StaticResource PredefinedActionNodeTemplate}"/>
     </UserControl.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="352*"/>
-            <ColumnDefinition Width="0*"/>
-            <ColumnDefinition Width="117*"/>
-            <ColumnDefinition Width="731*"/>
-        </Grid.ColumnDefinitions>
-        <!-- Main Canvas Area (white background) -->
-        <Border Background="{StaticResource Brush.Surface.Primary}" Grid.ColumnSpan="4"/>
+        <!-- Main Canvas Area (white background) with cursor behavior -->
+        <Border x:Name="MainCanvasArea"
+                Background="{StaticResource Brush.Surface.Primary}"
+                Grid.ColumnSpan="4"
+                Focusable="True"
+                converters:DrawboardCursorBehavior.CursorType="{Binding CurrentCursorType}"
+                converters:DrawboardCursorBehavior.GhostTrailCanvas="{Binding ElementName=GhostTrailCanvas}"
+                PreviewMouseLeftButtonDown="OnCanvasPreviewMouseLeftButtonDown"
+                PreviewMouseRightButtonUp="OnCanvasPreviewMouseRightButtonUp"
+                MouseLeftButtonDown="OnCanvasMouseLeftButtonDown"
+                MouseMove="OnCanvasMouseMove"
+                MouseLeftButtonUp="OnCanvasMouseLeftButtonUp"
+                PreviewKeyDown="OnCanvasKeyDown">
+            <Grid>
+                <!-- Drawing Elements Canvas -->
+                <ItemsControl x:Name="ElementsItemsControl"
+                              ItemsSource="{Binding Elements}"
+                              ItemTemplateSelector="{StaticResource DrawingShapeTemplateSelector}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                            <Setter Property="Panel.ZIndex" Value="{Binding ZIndex}"/>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+
+                <!-- Preview Element (shown during drag operation) -->
+                <Canvas IsHitTestVisible="False"
+                        Visibility="{Binding IsDrawing, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ContentControl DataContext="{Binding PreviewElement}"
+                                    Content="{Binding}"
+                                    ContentTemplateSelector="{StaticResource DrawingShapeTemplateSelector}"
+                                    Canvas.Left="{Binding X}"
+                                    Canvas.Top="{Binding Y}"
+                                    Panel.ZIndex="9999"/>
+                </Canvas>
+
+                <!-- Ghost Trail Canvas for Eraser effect -->
+                <Canvas x:Name="GhostTrailCanvas"
+                        IsHitTestVisible="False"/>
+            </Grid>
+        </Border>
 
         <!-- Top Left: Back Button + State ComboBox -->
         <StackPanel Orientation="Horizontal"

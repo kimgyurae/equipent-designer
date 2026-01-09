@@ -50,16 +50,6 @@ namespace EquipmentDesigner.Models.ProcessEditor
         public int GroupIndex { get; set; }
 
         /// <summary>
-        /// Icon geometry data for the tool button (SVG path data).
-        /// </summary>
-        public string IconData { get; set; }
-
-        /// <summary>
-        /// Secondary/overlay icon data (for composite icons like TerminalNode).
-        /// </summary>
-        public string OverlayIconData { get; set; }
-
-        /// <summary>
         /// Whether this tool can be selected together with other tools (like ToolLock).
         /// </summary>
         public bool IsToggleable { get; set; }
