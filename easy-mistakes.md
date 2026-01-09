@@ -17,3 +17,6 @@ ToastService.Instance.ShowError(
                         Strings.DeleteHardware_CannotDelete_MinChild);
 
 ```
+
+### Mistake 4
+- 마우스 또는 키보드 action handler를 추가할 때 기존에 동일 한 action handler를 비활성화하거나 override하지 않게 주의할 것.

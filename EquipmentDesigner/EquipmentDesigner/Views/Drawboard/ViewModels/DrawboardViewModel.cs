@@ -43,6 +43,15 @@ namespace EquipmentDesigner.ViewModels
         private Rect _originalBounds;
         private double _originalAspectRatio;
 
+        // Immutable references for absolute position calculation - NEVER modified during resize operation
+        private Rect _trueOriginalBounds;           // Original element bounds at drag start
+        private Point _trueOriginalStartPoint;      // Original mouse position at drag start
+        private ResizeHandleType _initialHandle;    // Handle type at drag start
+
+        // Flip state tracking for reference point reset
+        private bool _wasVerticallyFlipped;
+        private bool _wasHorizontallyFlipped;
+
         public DrawboardViewModel(bool showBackButton = true)
         {
             _showBackButton = showBackButton;
@@ -150,8 +159,19 @@ namespace EquipmentDesigner.ViewModels
         public int ZoomLevel
         {
             get => _zoomLevel;
-            set => SetProperty(ref _zoomLevel, Math.Clamp(value, 10, 500));
+            set
+            {
+                if (SetProperty(ref _zoomLevel, Math.Clamp(value, 10, 3000)))
+                {
+                    OnPropertyChanged(nameof(ZoomScale));
+                }
+            }
         }
+
+        /// <summary>
+        /// Zoom scale factor for canvas transform (ZoomLevel / 100.0).
+        /// </summary>
+        public double ZoomScale => ZoomLevel / 100.0;
 
         /// <summary>
         /// Whether undo operation is available.
@@ -509,7 +529,7 @@ namespace EquipmentDesigner.ViewModels
 
         private void ZoomIn()
         {
-            ZoomLevel = Math.Min(ZoomLevel + 10, 500);
+            ZoomLevel = Math.Min(ZoomLevel + 10, 3000);
         }
 
         private void ZoomOut()
@@ -756,154 +776,143 @@ namespace EquipmentDesigner.ViewModels
         {
             if (_selectedElement == null || _selectedElement.IsLocked || handle == ResizeHandleType.None) return;
 
+            // Store immutable references - NEVER modified during entire drag operation
+            _trueOriginalBounds = _selectedElement.Bounds;
+            _trueOriginalStartPoint = startPoint;
+            _initialHandle = handle;
+
+            // Initialize flip state tracking
+            _wasVerticallyFlipped = false;
+            _wasHorizontallyFlipped = false;
+
+            // Keep existing fields for backward compatibility
             _editDragStartPoint = startPoint;
             _originalBounds = _selectedElement.Bounds;
             _originalAspectRatio = _originalBounds.Width / Math.Max(1, _originalBounds.Height);
+
             ActiveResizeHandle = handle;
             EditModeState = EditModeState.Resizing;
         }
 
         /// <summary>
-        /// Updates the element size during a resize operation.
+        /// Updates the element size during a resize operation using absolute position calculation.
         /// </summary>
         public void UpdateResize(Point currentPoint, bool maintainAspectRatio)
         {
             if (EditModeState != EditModeState.Resizing || _selectedElement == null) return;
 
-            double deltaX = currentPoint.X - _editDragStartPoint.X;
-            double deltaY = currentPoint.Y - _editDragStartPoint.Y;
+            const double MinSize = 1.0;
 
-            double newX = _originalBounds.X;
-            double newY = _originalBounds.Y;
-            double newWidth = _originalBounds.Width;
-            double newHeight = _originalBounds.Height;
+            // ABSOLUTE delta from TRUE original start point
+            double totalDeltaX = currentPoint.X - _trueOriginalStartPoint.X;
+            double totalDeltaY = currentPoint.Y - _trueOriginalStartPoint.Y;
 
-            const double MinSize = 1.0;  // Minimum size to keep stroke visible
+            // Start from TRUE original bounds
+            double left = _trueOriginalBounds.Left;
+            double top = _trueOriginalBounds.Top;
+            double right = _trueOriginalBounds.Right;
+            double bottom = _trueOriginalBounds.Bottom;
 
-            switch (_activeResizeHandle)
+            // Apply delta based on INITIAL handle type (determines which edges move)
+            switch (_initialHandle)
             {
                 case ResizeHandleType.TopLeft:
-                    newX = _originalBounds.X + deltaX;
-                    newY = _originalBounds.Y + deltaY;
-                    newWidth = _originalBounds.Width - deltaX;
-                    newHeight = _originalBounds.Height - deltaY;
+                    left += totalDeltaX;
+                    top += totalDeltaY;
                     break;
-
                 case ResizeHandleType.TopRight:
-                    newY = _originalBounds.Y + deltaY;
-                    newWidth = _originalBounds.Width + deltaX;
-                    newHeight = _originalBounds.Height - deltaY;
+                    right += totalDeltaX;
+                    top += totalDeltaY;
                     break;
-
                 case ResizeHandleType.BottomLeft:
-                    newX = _originalBounds.X + deltaX;
-                    newWidth = _originalBounds.Width - deltaX;
-                    newHeight = _originalBounds.Height + deltaY;
+                    left += totalDeltaX;
+                    bottom += totalDeltaY;
                     break;
-
                 case ResizeHandleType.BottomRight:
-                    newWidth = _originalBounds.Width + deltaX;
-                    newHeight = _originalBounds.Height + deltaY;
+                    right += totalDeltaX;
+                    bottom += totalDeltaY;
                     break;
-
                 case ResizeHandleType.Top:
-                    newY = _originalBounds.Y + deltaY;
-                    newHeight = _originalBounds.Height - deltaY;
+                    top += totalDeltaY;
                     break;
-
                 case ResizeHandleType.Bottom:
-                    newHeight = _originalBounds.Height + deltaY;
+                    bottom += totalDeltaY;
                     break;
-
                 case ResizeHandleType.Left:
-                    newX = _originalBounds.X + deltaX;
-                    newWidth = _originalBounds.Width - deltaX;
+                    left += totalDeltaX;
                     break;
-
                 case ResizeHandleType.Right:
-                    newWidth = _originalBounds.Width + deltaX;
+                    right += totalDeltaX;
                     break;
             }
 
-            // Maintain aspect ratio if Shift is held
-            if (maintainAspectRatio && IsCornerHandle(_activeResizeHandle))
+            // Calculate raw dimensions (may be negative if flipped)
+            double rawWidth = right - left;
+            double rawHeight = bottom - top;
+
+            // Detect flips via negative dimensions
+            bool horizontalFlip = rawWidth < 0;
+            bool verticalFlip = rawHeight < 0;
+
+            // Normalize: ensure positive dimensions and correct position
+            double newX, newY, newWidth, newHeight;
+
+            if (horizontalFlip)
             {
-                double scale = Math.Max(newWidth / _originalBounds.Width, newHeight / _originalBounds.Height);
-                if (scale <= 0) scale = MinSize / Math.Min(_originalBounds.Width, _originalBounds.Height);
-
-                double scaledWidth = _originalBounds.Width * scale;
-                double scaledHeight = _originalBounds.Height * scale;
-
-                // Adjust position based on which corner is being dragged
-                switch (_activeResizeHandle)
-                {
-                    case ResizeHandleType.TopLeft:
-                        newX = _originalBounds.Right - scaledWidth;
-                        newY = _originalBounds.Bottom - scaledHeight;
-                        break;
-                    case ResizeHandleType.TopRight:
-                        newY = _originalBounds.Bottom - scaledHeight;
-                        break;
-                    case ResizeHandleType.BottomLeft:
-                        newX = _originalBounds.Right - scaledWidth;
-                        break;
-                    // BottomRight: no position adjustment needed
-                }
-
-                newWidth = scaledWidth;
-                newHeight = scaledHeight;
+                newX = right;  // Swap: right becomes new left
+                newWidth = Math.Max(MinSize, -rawWidth);
+            }
+            else
+            {
+                newX = left;
+                newWidth = Math.Max(MinSize, rawWidth);
             }
 
-            // Handle flip resize when size becomes zero or negative
-            bool widthFlipped = newWidth <= 0;
-            bool heightFlipped = newHeight <= 0;
-
-            if (widthFlipped || heightFlipped)
+            if (verticalFlip)
             {
-                // Flip detected: update pivot point and return
-                // Next frame will calculate from new reference point
-
-                if (widthFlipped)
-                {
-                    // Determine pivot point (the edge that stays fixed)
-                    double pivotX = IsLeftHandle(_activeResizeHandle)
-                        ? _originalBounds.Right
-                        : _originalBounds.Left;
-                    _activeResizeHandle = FlipHorizontalHandle(_activeResizeHandle);
-
-                    // Set new position at pivot with minimum size
-                    newX = pivotX;
-                    newWidth = MinSize;
-                }
-
-                if (heightFlipped)
-                {
-                    // Determine pivot point (the edge that stays fixed)
-                    double pivotY = IsTopHandle(_activeResizeHandle)
-                        ? _originalBounds.Bottom
-                        : _originalBounds.Top;
-                    _activeResizeHandle = FlipVerticalHandle(_activeResizeHandle);
-
-                    newY = pivotY;
-                    newHeight = MinSize;
-                }
-
-                // Update reference bounds for next frame
-                _originalBounds = new Rect(newX, newY, newWidth, newHeight);
-                _editDragStartPoint = currentPoint;
-
-                // Apply minimum size element (flip frame only)
-                _selectedElement.X = newX;
-                _selectedElement.Y = newY;
-                _selectedElement.Width = newWidth;
-                _selectedElement.Height = newHeight;
-                return;  // Exit early - next frame will continue from new reference
+                newY = bottom;  // Swap: bottom becomes new top
+                newHeight = Math.Max(MinSize, -rawHeight);
+            }
+            else
+            {
+                newY = top;
+                newHeight = Math.Max(MinSize, rawHeight);
             }
 
-            // Enforce minimum size (prevent element from disappearing)
-            newWidth = Math.Max(MinSize, newWidth);
-            newHeight = Math.Max(MinSize, newHeight);
+            // Detect flip TRANSITIONS (not-flipped -> flipped)
+            bool justFlippedHorizontally = horizontalFlip && !_wasHorizontallyFlipped;
+            bool justFlippedVertically = verticalFlip && !_wasVerticallyFlipped;
 
+            // Detect UNFLIP transitions (flipped -> not-flipped)
+            bool justUnflippedHorizontally = !horizontalFlip && _wasHorizontallyFlipped;
+            bool justUnflippedVertically = !verticalFlip && _wasVerticallyFlipped;
+
+            // Reset reference points on ANY flip state change
+            if (justFlippedHorizontally || justFlippedVertically || 
+                justUnflippedHorizontally || justUnflippedVertically)
+            {
+                // Reset to current calculated state
+                _trueOriginalBounds = new Rect(newX, newY, newWidth, newHeight);
+                _trueOriginalStartPoint = currentPoint;
+                _initialHandle = GetFlippedHandle(_initialHandle, 
+                    justFlippedHorizontally || justUnflippedHorizontally, 
+                    justFlippedVertically || justUnflippedVertically);
+            }
+
+            // Update flip state tracking
+            _wasHorizontallyFlipped = horizontalFlip;
+            _wasVerticallyFlipped = verticalFlip;
+
+            // Update active handle for cursor display (UX feedback)
+            ActiveResizeHandle = GetFlippedHandle(_initialHandle, horizontalFlip, verticalFlip);
+
+            // Maintain aspect ratio if Shift is held (corner handles only)
+            if (maintainAspectRatio && IsCornerHandle(_initialHandle))
+            {
+                ApplyAspectRatioConstraint(ref newX, ref newY, ref newWidth, ref newHeight, MinSize);
+            }
+
+            // Apply final geometry to element
             _selectedElement.X = newX;
             _selectedElement.Y = newY;
             _selectedElement.Width = newWidth;
@@ -931,32 +940,80 @@ namespace EquipmentDesigner.ViewModels
             handle is ResizeHandleType.TopLeft or ResizeHandleType.TopRight or ResizeHandleType.Top;
 
         /// <summary>
-        /// Gets the horizontally opposite handle type for flip operations.
+        /// Gets the handle type after applying horizontal and/or vertical flip.
         /// </summary>
-        private static ResizeHandleType FlipHorizontalHandle(ResizeHandleType handle) => handle switch
+        private static ResizeHandleType GetFlippedHandle(ResizeHandleType initial, bool horizontalFlip, bool verticalFlip)
         {
-            ResizeHandleType.Left => ResizeHandleType.Right,
-            ResizeHandleType.Right => ResizeHandleType.Left,
-            ResizeHandleType.TopLeft => ResizeHandleType.TopRight,
-            ResizeHandleType.TopRight => ResizeHandleType.TopLeft,
-            ResizeHandleType.BottomLeft => ResizeHandleType.BottomRight,
-            ResizeHandleType.BottomRight => ResizeHandleType.BottomLeft,
-            _ => handle  // Top, Bottom은 수평 flip 영향 없음
-        };
+            var result = initial;
+
+            if (horizontalFlip)
+            {
+                result = result switch
+                {
+                    ResizeHandleType.Left => ResizeHandleType.Right,
+                    ResizeHandleType.Right => ResizeHandleType.Left,
+                    ResizeHandleType.TopLeft => ResizeHandleType.TopRight,
+                    ResizeHandleType.TopRight => ResizeHandleType.TopLeft,
+                    ResizeHandleType.BottomLeft => ResizeHandleType.BottomRight,
+                    ResizeHandleType.BottomRight => ResizeHandleType.BottomLeft,
+                    _ => result
+                };
+            }
+
+            if (verticalFlip)
+            {
+                result = result switch
+                {
+                    ResizeHandleType.Top => ResizeHandleType.Bottom,
+                    ResizeHandleType.Bottom => ResizeHandleType.Top,
+                    ResizeHandleType.TopLeft => ResizeHandleType.BottomLeft,
+                    ResizeHandleType.TopRight => ResizeHandleType.BottomRight,
+                    ResizeHandleType.BottomLeft => ResizeHandleType.TopLeft,
+                    ResizeHandleType.BottomRight => ResizeHandleType.TopRight,
+                    _ => result
+                };
+            }
+
+            return result;
+        }
 
         /// <summary>
-        /// Gets the vertically opposite handle type for flip operations.
+        /// Applies aspect ratio constraint to the given dimensions.
         /// </summary>
-        private static ResizeHandleType FlipVerticalHandle(ResizeHandleType handle) => handle switch
+        private void ApplyAspectRatioConstraint(ref double newX, ref double newY,
+            ref double newWidth, ref double newHeight, double minSize)
         {
-            ResizeHandleType.Top => ResizeHandleType.Bottom,
-            ResizeHandleType.Bottom => ResizeHandleType.Top,
-            ResizeHandleType.TopLeft => ResizeHandleType.BottomLeft,
-            ResizeHandleType.TopRight => ResizeHandleType.BottomRight,
-            ResizeHandleType.BottomLeft => ResizeHandleType.TopLeft,
-            ResizeHandleType.BottomRight => ResizeHandleType.TopRight,
-            _ => handle  // Left, Right는 수직 flip 영향 없음
-        };
+            double scaleX = newWidth / _trueOriginalBounds.Width;
+            double scaleY = newHeight / _trueOriginalBounds.Height;
+            double scale = Math.Max(scaleX, scaleY);
+
+            if (scale <= 0)
+                scale = minSize / Math.Min(_trueOriginalBounds.Width, _trueOriginalBounds.Height);
+
+            double scaledWidth = _trueOriginalBounds.Width * scale;
+            double scaledHeight = _trueOriginalBounds.Height * scale;
+
+            // Adjust position based on which corner is anchored (opposite of active handle)
+            switch (ActiveResizeHandle)
+            {
+                case ResizeHandleType.TopLeft:
+                    newX = (newX + newWidth) - scaledWidth;
+                    newY = (newY + newHeight) - scaledHeight;
+                    break;
+                case ResizeHandleType.TopRight:
+                    newY = (newY + newHeight) - scaledHeight;
+                    break;
+                case ResizeHandleType.BottomLeft:
+                    newX = (newX + newWidth) - scaledWidth;
+                    break;
+                case ResizeHandleType.BottomRight:
+                    // top-left anchor - no position adjustment needed
+                    break;
+            }
+
+            newWidth = scaledWidth;
+            newHeight = scaledHeight;
+        }
 
         #endregion
 

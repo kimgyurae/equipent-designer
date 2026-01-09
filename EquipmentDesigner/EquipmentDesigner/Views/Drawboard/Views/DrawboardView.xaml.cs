@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,10 +16,17 @@ namespace EquipmentDesigner.Views
     /// </summary>
     public partial class DrawboardView : UserControl
     {
+        /// <summary>
+        /// Exponential zoom factor for mouse scroll (Figma/Excalidraw style).
+        /// Each scroll step multiplies/divides by this factor (~10% change per step).
+        /// </summary>
+        private const double ScrollZoomFactor = 1.1;
+
         private SelectionAdorner _selectionAdorner;
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
         private DrawboardViewModel _viewModel;
+        private DrawingElement _editingElement;
 
         public DrawboardView()
         {
@@ -83,10 +91,129 @@ namespace EquipmentDesigner.Views
         #region Selection Event Handlers
 
         /// <summary>
+        /// Handles Ctrl+Mouse Wheel for zoom control with focus on mouse position.
+        /// Uses exponential scaling for consistent zoom feel across all zoom levels.
+        /// </summary>
+        private void OnCanvasPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers != ModifierKeys.Control) return;
+            if (_viewModel == null) return;
+
+            // 1. Get mouse position relative to viewport (before zoom)
+            Point mouseViewport = e.GetPosition(CanvasScrollViewer);
+
+            // 2. Calculate content coordinates at mouse position
+            double oldScale = _viewModel.ZoomScale;
+            Point mouseContent = new Point(
+                (CanvasScrollViewer.HorizontalOffset + mouseViewport.X) / oldScale,
+                (CanvasScrollViewer.VerticalOffset + mouseViewport.Y) / oldScale
+            );
+
+            // 3. Apply exponential zoom level change (Figma/Excalidraw style)
+            int oldZoom = _viewModel.ZoomLevel;
+            if (e.Delta > 0)
+            {
+                double newZoom = _viewModel.ZoomLevel * ScrollZoomFactor;
+                _viewModel.ZoomLevel = (int)Math.Round(Math.Min(newZoom, 3000));
+            }
+            else
+            {
+                double newZoom = _viewModel.ZoomLevel / ScrollZoomFactor;
+                _viewModel.ZoomLevel = (int)Math.Round(Math.Max(newZoom, 10));
+            }
+
+            // If zoom level didn't change, exit
+            if (_viewModel.ZoomLevel == oldZoom)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            // 4. Calculate new scroll offset after zoom
+            double newScale = _viewModel.ZoomScale;
+            double newHOffset = mouseContent.X * newScale - mouseViewport.X;
+            double newVOffset = mouseContent.Y * newScale - mouseViewport.Y;
+
+            // 5. Force layout update to ensure ScrollViewer extent is recalculated
+            CanvasScrollViewer.UpdateLayout();
+
+            // 6. Apply scroll offset synchronously (no Dispatcher needed after UpdateLayout)
+            CanvasScrollViewer.ScrollToHorizontalOffset(Math.Max(0, newHOffset));
+            CanvasScrollViewer.ScrollToVerticalOffset(Math.Max(0, newVOffset));
+
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// Handles Zoom In button click with focus on viewport center.
+        /// </summary>
+        private void OnZoomInClick(object sender, RoutedEventArgs e)
+        {
+            ZoomAtViewportCenter(zoomIn: true);
+        }
+
+        /// <summary>
+        /// Handles Zoom Out button click with focus on viewport center.
+        /// </summary>
+        private void OnZoomOutClick(object sender, RoutedEventArgs e)
+        {
+            ZoomAtViewportCenter(zoomIn: false);
+        }
+
+        /// <summary>
+        /// Applies zoom while maintaining viewport center position.
+        /// </summary>
+        private void ZoomAtViewportCenter(bool zoomIn)
+        {
+            if (_viewModel == null) return;
+
+            // 1. Calculate viewport center position
+            Point viewportCenter = new Point(
+                CanvasScrollViewer.ViewportWidth / 2,
+                CanvasScrollViewer.ViewportHeight / 2
+            );
+
+            // 2. Calculate content coordinates at viewport center
+            double oldScale = _viewModel.ZoomScale;
+            Point contentCenter = new Point(
+                (CanvasScrollViewer.HorizontalOffset + viewportCenter.X) / oldScale,
+                (CanvasScrollViewer.VerticalOffset + viewportCenter.Y) / oldScale
+            );
+
+            // 3. Apply zoom level change
+            int oldZoom = _viewModel.ZoomLevel;
+            if (zoomIn)
+                _viewModel.ZoomLevel = Math.Min(_viewModel.ZoomLevel + 10, 3000);
+            else
+                _viewModel.ZoomLevel = Math.Max(_viewModel.ZoomLevel - 10, 10);
+
+            // If zoom level didn't change, exit
+            if (_viewModel.ZoomLevel == oldZoom) return;
+
+            // 4. Calculate new scroll offset after zoom
+            double newScale = _viewModel.ZoomScale;
+            double newHOffset = contentCenter.X * newScale - viewportCenter.X;
+            double newVOffset = contentCenter.Y * newScale - viewportCenter.Y;
+
+            // 5. Force layout update to ensure ScrollViewer extent is recalculated
+            CanvasScrollViewer.UpdateLayout();
+
+            // 6. Apply scroll offset synchronously (no Dispatcher needed after UpdateLayout)
+            CanvasScrollViewer.ScrollToHorizontalOffset(Math.Max(0, newHOffset));
+            CanvasScrollViewer.ScrollToVerticalOffset(Math.Max(0, newVOffset));
+        }
+
+        /// <summary>
         /// Handles keyboard shortcuts for tool selection.
         /// </summary>
         private void OnDrawboardPreviewKeyDown(object sender, KeyEventArgs e)
         {
+            // If text editing is active, let the TextBox handle ESC
+            if (e.Key == Key.Escape && _editingElement != null)
+            {
+                return;  // OnInlineEditKeyDown will handle this
+            }
+
             // ESC key: Exit edit mode (clear selection) - works even in TextBox
             if (e.Key == Key.Escape)
             {
@@ -147,7 +274,7 @@ namespace EquipmentDesigner.Views
             // Only handle selection when Selection tool is active
             if (!_viewModel.IsSelectionToolActive) return;
 
-            var position = e.GetPosition(MainCanvasArea);
+            var position = e.GetPosition(ZoomableGrid);
             HandleSelectionClick(position, e);
         }
 
@@ -161,14 +288,14 @@ namespace EquipmentDesigner.Views
             // Only handle selection when Selection tool is active
             if (!_viewModel.IsSelectionToolActive) return;
 
-            var position = e.GetPosition(MainCanvasArea);
+            var position = e.GetPosition(ZoomableGrid);
             var hitElement = _viewModel.FindElementAtPoint(position);
 
             if (hitElement != null)
             {
                 // Right-click on element: select it
                 _viewModel.SelectElement(hitElement);
-                MainCanvasArea.Focus();
+                ZoomableGrid.Focus();
                 e.Handled = true;
             }
             else
@@ -199,11 +326,11 @@ namespace EquipmentDesigner.Views
                 // Check if on element surface - start move
                 if (_selectionAdorner != null)
                 {
-                    var adornerPoint = MainCanvasArea.TranslatePoint(position, _selectionAdorner);
+                    var adornerPoint = ZoomableGrid.TranslatePoint(position, _selectionAdorner);
                     if (_selectionAdorner.IsOnElementSurface(adornerPoint))
                     {
                         _viewModel.StartMove(position);
-                        MainCanvasArea.CaptureMouse();
+                        ZoomableGrid.CaptureMouse();
                         e.Handled = true;
                         return;
                     }
@@ -214,8 +341,8 @@ namespace EquipmentDesigner.Views
                 // Clicked on different element - select it and start move immediately
                 _viewModel.SelectElement(hitElement);
                 _viewModel.StartMove(position);
-                MainCanvasArea.CaptureMouse();
-                MainCanvasArea.Focus();
+                ZoomableGrid.CaptureMouse();
+                ZoomableGrid.Focus();
                 e.Handled = true;
             }
         }
@@ -463,6 +590,105 @@ namespace EquipmentDesigner.Views
             }
 
             return container;
+        }
+
+        #endregion
+
+        #region Inline Text Editing
+
+        /// <summary>
+        /// Handles double-click to enter text editing mode.
+        /// </summary>
+        private void OnCanvasMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_viewModel == null) return;
+            if (!_viewModel.IsSelectionToolActive) return;
+
+            var position = e.GetPosition(ZoomableGrid);
+            var hitElement = _viewModel.FindElementAtPoint(position);
+
+            if (hitElement != null)
+            {
+                StartTextEditing(hitElement);
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Starts inline text editing for the specified element.
+        /// </summary>
+        private void StartTextEditing(DrawingElement element)
+        {
+            _editingElement = element;
+
+            // Position and size the TextBox to match the element
+            InlineEditTextBox.Width = element.Width;
+            InlineEditTextBox.Height = element.Height;
+            Canvas.SetLeft(InlineEditTextBox, element.X);
+            Canvas.SetTop(InlineEditTextBox, element.Y);
+
+            // Set text and style
+            InlineEditTextBox.Text = element.Text;
+            InlineEditTextBox.FontSize = (int)element.FontSize;
+            
+            // Convert Models.TextAlignment to System.Windows.TextAlignment
+            InlineEditTextBox.TextAlignment = element.TextAlign switch
+            {
+                Models.TextAlignment.Left => System.Windows.TextAlignment.Left,
+                Models.TextAlignment.Center => System.Windows.TextAlignment.Center,
+                Models.TextAlignment.Right => System.Windows.TextAlignment.Right,
+                _ => System.Windows.TextAlignment.Center
+            };
+
+            // Show and focus
+            InlineEditTextBox.Visibility = Visibility.Visible;
+            InlineEditTextBox.Focus();
+            InlineEditTextBox.SelectAll();
+        }
+
+        /// <summary>
+        /// Commits the text changes and exits editing mode.
+        /// </summary>
+        private void CommitTextEditing()
+        {
+            if (_editingElement != null)
+            {
+                _editingElement.Text = InlineEditTextBox.Text;
+                _editingElement = null;
+            }
+            InlineEditTextBox.Visibility = Visibility.Collapsed;
+            MainCanvasArea.Focus();
+        }
+
+        /// <summary>
+        /// Cancels text editing without saving changes.
+        /// </summary>
+        private void CancelTextEditing()
+        {
+            _editingElement = null;
+            InlineEditTextBox.Visibility = Visibility.Collapsed;
+            MainCanvasArea.Focus();
+        }
+
+        /// <summary>
+        /// Handles focus loss on the inline edit TextBox.
+        /// </summary>
+        private void OnInlineEditLostFocus(object sender, RoutedEventArgs e)
+        {
+            CommitTextEditing();
+        }
+
+        /// <summary>
+        /// Handles key events in the inline edit TextBox.
+        /// </summary>
+        private void OnInlineEditKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                CancelTextEditing();
+                e.Handled = true;
+            }
+            // Enter allows line breaks (AcceptsReturn=True)
         }
 
         #endregion
