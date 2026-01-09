@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace EquipmentDesigner.Controls
 {
@@ -224,8 +225,21 @@ namespace EquipmentDesigner.Controls
 
         private Point GetMouseScreenPosition()
         {
-            var point = System.Windows.Forms.Control.MousePosition;
-            return new Point(point.X, point.Y);
+            // Get physical screen pixels from WinForms
+            var physicalPoint = System.Windows.Forms.Control.MousePosition;
+
+            // Convert physical pixels to WPF logical pixels (DIU)
+            // WPF Popup with PlacementMode.Absolute expects logical pixels
+            var source = PresentationSource.FromVisual(Application.Current.MainWindow);
+            if (source?.CompositionTarget != null)
+            {
+                var dpiX = source.CompositionTarget.TransformToDevice.M11;
+                var dpiY = source.CompositionTarget.TransformToDevice.M22;
+
+                return new Point(physicalPoint.X / dpiX, physicalPoint.Y / dpiY);
+            }
+
+            return new Point(physicalPoint.X, physicalPoint.Y);
         }
     }
 
@@ -251,12 +265,14 @@ namespace EquipmentDesigner.Controls
         /// <param name="header">The display text.</param>
         /// <param name="command">Optional command to execute.</param>
         /// <param name="commandParameter">Optional command parameter.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
         /// <returns>This builder for chaining.</returns>
-        public ContextMenuBuilder AddItem(string header, ICommand command = null, object commandParameter = null)
+        public ContextMenuBuilder AddItem(string header, ICommand command = null, object commandParameter = null, bool isEnabled = true)
         {
             var item = new CustomContextMenuItem(header, command, commandParameter)
             {
-                Section = _currentSection
+                Section = _currentSection,
+                IsEnabled = isEnabled
             };
             _items.Add(item);
             return this;
@@ -267,11 +283,12 @@ namespace EquipmentDesigner.Controls
         /// </summary>
         /// <param name="header">The display text.</param>
         /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
         /// <returns>This builder for chaining.</returns>
-        public ContextMenuBuilder AddItem(string header, Action onClick)
+        public ContextMenuBuilder AddItem(string header, Action onClick, bool isEnabled = true)
         {
             var command = new RelayCommand(_ => onClick());
-            return AddItem(header, command);
+            return AddItem(header, command, null, isEnabled);
         }
 
         /// <summary>
@@ -280,11 +297,12 @@ namespace EquipmentDesigner.Controls
         /// <param name="header">The display text.</param>
         /// <param name="onClick">Action to execute on click with parameter.</param>
         /// <param name="parameter">Parameter to pass to the action.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
         /// <returns>This builder for chaining.</returns>
-        public ContextMenuBuilder AddItem<T>(string header, Action<T> onClick, T parameter)
+        public ContextMenuBuilder AddItem<T>(string header, Action<T> onClick, T parameter, bool isEnabled = true)
         {
             var command = new RelayCommand(_ => onClick(parameter));
-            return AddItem(header, command);
+            return AddItem(header, command, null, isEnabled);
         }
 
         /// <summary>
@@ -293,11 +311,13 @@ namespace EquipmentDesigner.Controls
         /// <param name="header">The display text.</param>
         /// <param name="command">Optional command to execute.</param>
         /// <param name="commandParameter">Optional command parameter.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
         /// <returns>This builder for chaining.</returns>
-        public ContextMenuBuilder AddDestructiveItem(string header, ICommand command = null, object commandParameter = null)
+        public ContextMenuBuilder AddDestructiveItem(string header, ICommand command = null, object commandParameter = null, bool isEnabled = true)
         {
             var item = CustomContextMenuItem.CreateDestructive(header, command, commandParameter);
             item.Section = _currentSection;
+            item.IsEnabled = isEnabled;
             _items.Add(item);
             return this;
         }
@@ -307,11 +327,12 @@ namespace EquipmentDesigner.Controls
         /// </summary>
         /// <param name="header">The display text.</param>
         /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
         /// <returns>This builder for chaining.</returns>
-        public ContextMenuBuilder AddDestructiveItem(string header, Action onClick)
+        public ContextMenuBuilder AddDestructiveItem(string header, Action onClick, bool isEnabled = true)
         {
             var command = new RelayCommand(_ => onClick());
-            return AddDestructiveItem(header, command);
+            return AddDestructiveItem(header, command, null, isEnabled);
         }
 
         /// <summary>
@@ -420,11 +441,17 @@ namespace EquipmentDesigner.Controls
         /// <summary>
         /// Adds a menu item to the sub-menu.
         /// </summary>
-        public SubMenuBuilder AddItem(string header, ICommand command = null, object commandParameter = null)
+        /// <param name="header">The display text.</param>
+        /// <param name="command">Optional command to execute.</param>
+        /// <param name="commandParameter">Optional command parameter.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public SubMenuBuilder AddItem(string header, ICommand command = null, object commandParameter = null, bool isEnabled = true)
         {
             var item = new CustomContextMenuItem(header, command, commandParameter)
             {
-                Section = _currentSection
+                Section = _currentSection,
+                IsEnabled = isEnabled
             };
             _parentItem.Children.Add(item);
             return this;
@@ -433,19 +460,29 @@ namespace EquipmentDesigner.Controls
         /// <summary>
         /// Adds a menu item with a click action.
         /// </summary>
-        public SubMenuBuilder AddItem(string header, Action onClick)
+        /// <param name="header">The display text.</param>
+        /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public SubMenuBuilder AddItem(string header, Action onClick, bool isEnabled = true)
         {
             var command = new RelayCommand(_ => onClick());
-            return AddItem(header, command);
+            return AddItem(header, command, null, isEnabled);
         }
 
         /// <summary>
         /// Adds a destructive menu item.
         /// </summary>
-        public SubMenuBuilder AddDestructiveItem(string header, ICommand command = null, object commandParameter = null)
+        /// <param name="header">The display text.</param>
+        /// <param name="command">Optional command to execute.</param>
+        /// <param name="commandParameter">Optional command parameter.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public SubMenuBuilder AddDestructiveItem(string header, ICommand command = null, object commandParameter = null, bool isEnabled = true)
         {
             var item = CustomContextMenuItem.CreateDestructive(header, command, commandParameter);
             item.Section = _currentSection;
+            item.IsEnabled = isEnabled;
             _parentItem.Children.Add(item);
             return this;
         }
@@ -453,10 +490,14 @@ namespace EquipmentDesigner.Controls
         /// <summary>
         /// Adds a destructive menu item with a click action.
         /// </summary>
-        public SubMenuBuilder AddDestructiveItem(string header, Action onClick)
+        /// <param name="header">The display text.</param>
+        /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public SubMenuBuilder AddDestructiveItem(string header, Action onClick, bool isEnabled = true)
         {
             var command = new RelayCommand(_ => onClick());
-            return AddDestructiveItem(header, command);
+            return AddDestructiveItem(header, command, null, isEnabled);
         }
 
         /// <summary>

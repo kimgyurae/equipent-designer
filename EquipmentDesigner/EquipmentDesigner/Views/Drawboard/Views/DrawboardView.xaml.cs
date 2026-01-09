@@ -19,13 +19,22 @@ namespace EquipmentDesigner.Views
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
         private DrawboardViewModel _viewModel;
-        private Cursor _baseCursor;
-        private bool _isShowingResizeCursor;
 
         public DrawboardView()
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
+            PreviewKeyDown += OnDrawboardPreviewKeyDown;
+            Loaded += OnDrawboardLoaded;
+        }
+
+        /// <summary>
+        /// Sets keyboard focus when the view is loaded.
+        /// </summary>
+        private void OnDrawboardLoaded(object sender, RoutedEventArgs e)
+        {
+            Focusable = true;
+            Focus();
         }
 
         /// <summary>
@@ -74,6 +83,60 @@ namespace EquipmentDesigner.Views
         #region Selection Event Handlers
 
         /// <summary>
+        /// Handles keyboard shortcuts for tool selection.
+        /// </summary>
+        private void OnDrawboardPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // ESC key: Exit edit mode (clear selection) - works even in TextBox
+            if (e.Key == Key.Escape)
+            {
+                if (DataContext is DrawboardViewModel viewModel && viewModel.SelectedElement != null)
+                {
+                    viewModel.ClearSelection();
+                    e.Handled = true;
+                }
+                return;
+            }
+
+            // Ignore other keys when typing in TextBox
+            if (e.OriginalSource is TextBox)
+                return;
+
+            // Ignore when modifier keys are pressed (allow Ctrl+C, Ctrl+V, etc.)
+            if (Keyboard.Modifiers != ModifierKeys.None)
+                return;
+
+            var toolId = GetToolIdFromKey(e.Key);
+            if (toolId != null && DataContext is DrawboardViewModel vm)
+            {
+                vm.SelectToolById(toolId);
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Maps keyboard keys to tool IDs.
+        /// </summary>
+        private static string GetToolIdFromKey(Key key)
+        {
+            return key switch
+            {
+                Key.L => "ToolLock",
+                Key.H => "Hand",
+                Key.V => "Selection",
+                Key.D1 or Key.NumPad1 => "InitialNode",
+                Key.D2 or Key.NumPad2 => "ActionNode",
+                Key.D3 or Key.NumPad3 => "DecisionNode",
+                Key.D4 or Key.NumPad4 => "TerminalNode",
+                Key.D5 or Key.NumPad5 => "PredefinedActionNode",
+                Key.T => "Textbox",
+                Key.E => "Eraser",
+                Key.I => "Image",
+                _ => null
+            };
+        }
+
+        /// <summary>
         /// Handles preview mouse left button down for selection logic.
         /// This runs before the regular MouseLeftButtonDown to handle selection first.
         /// </summary>
@@ -117,6 +180,7 @@ namespace EquipmentDesigner.Views
 
         /// <summary>
         /// Common logic for handling selection clicks.
+        /// Note: Resize operations are now handled directly by Thumb drag events in SelectionAdorner.
         /// </summary>
         private void HandleSelectionClick(Point position, MouseButtonEventArgs e)
         {
@@ -132,22 +196,10 @@ namespace EquipmentDesigner.Views
             // Check if we clicked on already selected element
             if (hitElement == _viewModel.SelectedElement)
             {
-                // Check if clicking on a resize handle
+                // Check if on element surface - start move
                 if (_selectionAdorner != null)
                 {
-                    var adornerPoint = MainCanvasArea.TranslatePoint(position, _selectionAdorner.AdornedElement);
-                    var handleType = _selectionAdorner.HitTestHandle(adornerPoint);
-
-                    if (handleType != ResizeHandleType.None)
-                    {
-                        // Start resize operation
-                        _viewModel.StartResize(handleType, position);
-                        MainCanvasArea.CaptureMouse();
-                        e.Handled = true;
-                        return;
-                    }
-
-                    // Check if on element surface - start move
+                    var adornerPoint = MainCanvasArea.TranslatePoint(position, _selectionAdorner);
                     if (_selectionAdorner.IsOnElementSurface(adornerPoint))
                     {
                         _viewModel.StartMove(position);
@@ -226,6 +278,7 @@ namespace EquipmentDesigner.Views
 
         /// <summary>
         /// Handles mouse move on the canvas for drawing preview or edit operations.
+        /// Note: Cursor changes for resize handles are now handled automatically by Thumb.Cursor property.
         /// </summary>
         private void OnCanvasMouseMove(object sender, MouseEventArgs e)
         {
@@ -241,7 +294,9 @@ namespace EquipmentDesigner.Views
                     return;
 
                 case EditModeState.Resizing:
-                    _viewModel.UpdateResize(position, _isShiftPressed);
+                    // Resize is handled exclusively by SelectionAdorner.OnThumbDragDelta
+                    // Do NOT call UpdateResize here to prevent dual invocation bug
+                    // that causes incorrect sizing when mouse events and Thumb events conflict
                     return;
             }
 
@@ -252,12 +307,7 @@ namespace EquipmentDesigner.Views
                 return;
             }
 
-            // Update cursor based on hover position
-            // Only when Selection tool is active AND an element is selected
-            if (_viewModel.IsSelectionToolActive && _selectionAdorner != null)
-            {
-                UpdateResizeCursor(position);
-            }
+            // Note: Cursor updates for resize handles are now automatic via Thumb.Cursor property
         }
 
         /// <summary>
@@ -297,50 +347,6 @@ namespace EquipmentDesigner.Views
         #region Adorner Management
 
         /// <summary>
-        /// Updates the cursor based on what resize handle or edge is being hovered.
-        /// Called only when Selection tool is active and an element is selected.
-        /// </summary>
-        private void UpdateResizeCursor(Point position)
-        {
-            var adornerPoint = MainCanvasArea.TranslatePoint(position, _selectionAdorner.AdornedElement);
-            var handleType = _selectionAdorner.HitTestHandle(adornerPoint);
-
-            if (handleType != ResizeHandleType.None)
-            {
-                // Save base cursor before first override
-                if (!_isShowingResizeCursor)
-                {
-                    _baseCursor = MainCanvasArea.Cursor;
-                }
-
-                MainCanvasArea.Cursor = handleType switch
-                {
-                    // Corner handles - diagonal cursors
-                    ResizeHandleType.TopLeft => Cursors.SizeNWSE,      // ↖↘
-                    ResizeHandleType.BottomRight => Cursors.SizeNWSE, // ↖↘
-                    ResizeHandleType.TopRight => Cursors.SizeNESW,    // ↗↙
-                    ResizeHandleType.BottomLeft => Cursors.SizeNESW,  // ↗↙
-
-                    // Edge handles - straight cursors
-                    ResizeHandleType.Top => Cursors.SizeNS,           // ↕
-                    ResizeHandleType.Bottom => Cursors.SizeNS,        // ↕
-                    ResizeHandleType.Left => Cursors.SizeWE,          // ↔
-                    ResizeHandleType.Right => Cursors.SizeWE,         // ↔
-
-                    // No handle - keep current cursor
-                    _ => MainCanvasArea.Cursor
-                };
-                _isShowingResizeCursor = true;
-            }
-            else if (_isShowingResizeCursor)
-            {
-                // Restore base cursor when leaving resize handle
-                MainCanvasArea.Cursor = _baseCursor;
-                _isShowingResizeCursor = false;
-            }
-        }
-
-        /// <summary>
         /// Updates or creates the selection adorner for the specified element.
         /// </summary>
         private void UpdateSelectionAdorner(DrawingElement element)
@@ -371,7 +377,7 @@ namespace EquipmentDesigner.Views
         }
 
         /// <summary>
-        /// Creates the adorner on the specified container.
+        /// Creates the adorner on the specified container and connects resize events.
         /// </summary>
         private void CreateAdorner(UIElement container, DrawingElement element)
         {
@@ -379,7 +385,40 @@ namespace EquipmentDesigner.Views
             if (_adornerLayer == null) return;
 
             _selectionAdorner = new SelectionAdorner(container, element);
+
+            // Connect adorner resize events to ViewModel
+            _selectionAdorner.ResizeStarted += OnAdornerResizeStarted;
+            _selectionAdorner.ResizeDelta += OnAdornerResizeDelta;
+            _selectionAdorner.ResizeCompleted += OnAdornerResizeCompleted;
+
             _adornerLayer.Add(_selectionAdorner);
+        }
+
+        /// <summary>
+        /// Handles resize start event from adorner Thumb.
+        /// </summary>
+        private void OnAdornerResizeStarted(object sender, ResizeEventArgs e)
+        {
+            if (_viewModel == null) return;
+            _viewModel.StartResize(e.HandleType, e.Position);
+        }
+
+        /// <summary>
+        /// Handles resize delta event from adorner Thumb.
+        /// </summary>
+        private void OnAdornerResizeDelta(object sender, ResizeEventArgs e)
+        {
+            if (_viewModel == null) return;
+            _viewModel.UpdateResize(e.Position, _isShiftPressed);
+        }
+
+        /// <summary>
+        /// Handles resize completed event from adorner Thumb.
+        /// </summary>
+        private void OnAdornerResizeCompleted(object sender, ResizeEventArgs e)
+        {
+            if (_viewModel == null) return;
+            _viewModel.EndResize();
         }
 
         /// <summary>
@@ -389,6 +428,11 @@ namespace EquipmentDesigner.Views
         {
             if (_selectionAdorner != null && _adornerLayer != null)
             {
+                // Disconnect events
+                _selectionAdorner.ResizeStarted -= OnAdornerResizeStarted;
+                _selectionAdorner.ResizeDelta -= OnAdornerResizeDelta;
+                _selectionAdorner.ResizeCompleted -= OnAdornerResizeCompleted;
+
                 _selectionAdorner.Detach();
                 _adornerLayer.Remove(_selectionAdorner);
             }

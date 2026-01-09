@@ -77,7 +77,8 @@
                         CornerRadius="{StaticResource Radius.LG}"
                         Padding="16"
                         Margin="0,0,0,16"
-                        Visibility="{Binding IsAdminModeVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        Visibility="{Binding IsAdminModeVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        MouseRightButtonUp="AdminPanel_MouseRightButtonUp">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>

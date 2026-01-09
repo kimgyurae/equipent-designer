@@ -35,7 +35,7 @@ namespace EquipmentDesigner.Controls
         /// <summary>
         /// Gap between parent menu and sub-menu in pixels.
         /// </summary>
-        public const double SubMenuGap = 8;
+        public const double SubMenuGap = 4;
 
         /// <summary>
         /// Maximum percentage of parent menu height that sub-menu can occupy.
@@ -212,66 +212,74 @@ namespace EquipmentDesigner.Controls
 
         /// <summary>
         /// Gets the working area bounds of the screen containing the specified point.
+        /// Returns bounds in WPF logical pixels (DIU) for correct positioning.
         /// </summary>
-        /// <param name="point">A point in screen coordinates.</param>
-        /// <returns>The screen's working area bounds.</returns>
+        /// <param name="point">A point in WPF logical screen coordinates.</param>
+        /// <returns>The screen's working area bounds in WPF logical pixels.</returns>
         public static Rect GetScreenBounds(Point point)
         {
-            // Use Windows Forms to get accurate screen info
+            // Get DPI scale factors from main window
+            double dpiX = 1.0;
+            double dpiY = 1.0;
+
+            var mainWindow = Application.Current?.MainWindow;
+            if (mainWindow != null)
+            {
+                var source = PresentationSource.FromVisual(mainWindow);
+                if (source?.CompositionTarget != null)
+                {
+                    dpiX = source.CompositionTarget.TransformToDevice.M11;
+                    dpiY = source.CompositionTarget.TransformToDevice.M22;
+                }
+            }
+
+            // Convert logical point to physical for WinForms screen lookup
+            int physicalX = (int)(point.X * dpiX);
+            int physicalY = (int)(point.Y * dpiY);
+
+            // Use Windows Forms to get screen info (returns physical pixels)
             var screen = System.Windows.Forms.Screen.FromPoint(
-                new System.Drawing.Point((int)point.X, (int)point.Y));
+                new System.Drawing.Point(physicalX, physicalY));
 
             var workingArea = screen.WorkingArea;
+
+            // Convert physical pixels back to WPF logical pixels (DIU)
             return new Rect(
-                workingArea.X,
-                workingArea.Y,
-                workingArea.Width,
-                workingArea.Height);
+                workingArea.X / dpiX,
+                workingArea.Y / dpiY,
+                workingArea.Width / dpiX,
+                workingArea.Height / dpiY);
         }
 
         /// <summary>
         /// Transforms a point from element coordinates to screen coordinates.
+        /// Returns coordinates in WPF logical pixels (DIU) for correct positioning.
         /// </summary>
         /// <param name="element">The visual element.</param>
         /// <param name="point">Point in element coordinates.</param>
-        /// <returns>Point in screen coordinates.</returns>
+        /// <returns>Point in WPF logical screen coordinates.</returns>
         public static Point ElementToScreen(Visual element, Point point)
         {
             try
             {
-                var source = PresentationSource.FromVisual(element);
-                if (source?.CompositionTarget != null)
+                // PointToScreen returns physical screen coordinates
+                var physicalPoint = element.PointToScreen(point);
+
+                // Convert physical pixels to WPF logical pixels (DIU)
+                var mainWindow = Application.Current?.MainWindow;
+                if (mainWindow != null)
                 {
-                    // Transform to root visual
-                    var transformToRoot = element.TransformToAncestor(source.RootVisual);
-                    var rootPoint = transformToRoot.Transform(point);
-
-                    // Apply DPI scaling
-                    var matrix = source.CompositionTarget.TransformToDevice;
-                    var devicePoint = matrix.Transform(rootPoint);
-
-                    // Get window position
-                    var hwndSource = source as HwndSource;
-                    if (hwndSource != null)
+                    var source = PresentationSource.FromVisual(mainWindow);
+                    if (source?.CompositionTarget != null)
                     {
-                        var windowPoint = new Point(0, 0);
-                        try
-                        {
-                            windowPoint = hwndSource.RootVisual.PointToScreen(new Point(0, 0));
-                        }
-                        catch
-                        {
-                            // Fallback
-                        }
+                        var dpiX = source.CompositionTarget.TransformToDevice.M11;
+                        var dpiY = source.CompositionTarget.TransformToDevice.M22;
 
-                        return new Point(
-                            windowPoint.X + devicePoint.X / matrix.M11,
-                            windowPoint.Y + devicePoint.Y / matrix.M22);
+                        return new Point(physicalPoint.X / dpiX, physicalPoint.Y / dpiY);
                     }
                 }
 
-                // Fallback to simple transformation
-                return element.PointToScreen(point);
+                return physicalPoint;
             }
             catch
             {

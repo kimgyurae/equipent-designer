@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -273,9 +274,16 @@ namespace EquipmentDesigner.Controls
             _menuContainer.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             var menuSize = _menuContainer.DesiredSize;
 
+            Debug.WriteLine($"[ContextMenu] === ROOT MENU ===");
+            Debug.WriteLine($"[ContextMenu] _openPosition (click point): X={_openPosition.X:F1}, Y={_openPosition.Y:F1}");
+            Debug.WriteLine($"[ContextMenu] menuSize: Width={menuSize.Width:F1}, Height={menuSize.Height:F1}");
+
             // Calculate position
             var posResult = ContextMenuPositionHelper.CalculateRootMenuPosition(
                 _openPosition, menuSize.Width, menuSize.Height);
+
+            Debug.WriteLine($"[ContextMenu] posResult: X={posResult.X:F1}, Y={posResult.Y:F1}");
+            Debug.WriteLine($"[ContextMenu] Offset applied: HorizontalOffset={posResult.X:F1}, VerticalOffset={posResult.Y:F1}");
 
             _rootPopup.HorizontalOffset = posResult.X;
             _rootPopup.VerticalOffset = posResult.Y;
@@ -613,6 +621,12 @@ namespace EquipmentDesigner.Controls
             var parentMenuBounds = ContextMenuPositionHelper.GetElementScreenBounds(
                 GetParentMenuContainer(parentContainer));
 
+            Debug.WriteLine($"[ContextMenu] === SUB MENU (depth={depth}) ===");
+            Debug.WriteLine($"[ContextMenu] parentItem: {parentItem.Header}");
+            Debug.WriteLine($"[ContextMenu] parentItemBounds: X={parentItemBounds.X:F1}, Y={parentItemBounds.Y:F1}, W={parentItemBounds.Width:F1}, H={parentItemBounds.Height:F1}");
+            Debug.WriteLine($"[ContextMenu] parentMenuBounds: X={parentMenuBounds.X:F1}, Y={parentMenuBounds.Y:F1}, W={parentMenuBounds.Width:F1}, H={parentMenuBounds.Height:F1}");
+            Debug.WriteLine($"[ContextMenu] subMenuSize: Width={subMenuSize.Width:F1}, Height={subMenuSize.Height:F1}");
+
             // Calculate position
             var posResult = ContextMenuPositionHelper.CalculateSubMenuPosition(
                 parentItemBounds,
@@ -621,6 +635,9 @@ namespace EquipmentDesigner.Controls
                 subMenuSize.Width,
                 subMenuSize.Height,
                 SubMenuDirection.Right);
+
+            Debug.WriteLine($"[ContextMenu] posResult: X={posResult.X:F1}, Y={posResult.Y:F1}");
+            Debug.WriteLine($"[ContextMenu] Offset applied: HorizontalOffset={posResult.X:F1}, VerticalOffset={posResult.Y:F1}");
 
             subMenuPopup.HorizontalOffset = posResult.X;
             subMenuPopup.VerticalOffset = posResult.Y;

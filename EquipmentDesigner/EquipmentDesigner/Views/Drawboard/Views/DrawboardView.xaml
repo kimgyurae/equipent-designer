@@ -151,7 +151,7 @@
         <!-- Shape Element Styles -->
         <Style x:Key="ShapeElementStyle" TargetType="Shape">
             <Setter Property="Stroke" Value="#333333"/>
-            <Setter Property="StrokeThickness" Value="1.5"/>
+            <Setter Property="StrokeThickness" Value="2.5"/>
             <Setter Property="Fill" Value="#FFFFFF"/>
         </Style>
 

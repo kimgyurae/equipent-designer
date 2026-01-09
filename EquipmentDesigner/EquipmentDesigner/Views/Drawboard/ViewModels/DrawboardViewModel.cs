@@ -778,7 +778,7 @@ namespace EquipmentDesigner.ViewModels
             double newWidth = _originalBounds.Width;
             double newHeight = _originalBounds.Height;
 
-            const double MinSize = 10.0;
+            const double MinSize = 1.0;  // Minimum size to keep stroke visible
 
             switch (_activeResizeHandle)
             {
@@ -854,20 +854,55 @@ namespace EquipmentDesigner.ViewModels
                 newHeight = scaledHeight;
             }
 
-            // Enforce minimum size
-            if (newWidth < MinSize)
+            // Handle flip resize when size becomes zero or negative
+            bool widthFlipped = newWidth <= 0;
+            bool heightFlipped = newHeight <= 0;
+
+            if (widthFlipped || heightFlipped)
             {
-                if (IsLeftHandle(_activeResizeHandle))
-                    newX = _originalBounds.Right - MinSize;
-                newWidth = MinSize;
+                // Flip detected: update pivot point and return
+                // Next frame will calculate from new reference point
+
+                if (widthFlipped)
+                {
+                    // Determine pivot point (the edge that stays fixed)
+                    double pivotX = IsLeftHandle(_activeResizeHandle)
+                        ? _originalBounds.Right
+                        : _originalBounds.Left;
+                    _activeResizeHandle = FlipHorizontalHandle(_activeResizeHandle);
+
+                    // Set new position at pivot with minimum size
+                    newX = pivotX;
+                    newWidth = MinSize;
+                }
+
+                if (heightFlipped)
+                {
+                    // Determine pivot point (the edge that stays fixed)
+                    double pivotY = IsTopHandle(_activeResizeHandle)
+                        ? _originalBounds.Bottom
+                        : _originalBounds.Top;
+                    _activeResizeHandle = FlipVerticalHandle(_activeResizeHandle);
+
+                    newY = pivotY;
+                    newHeight = MinSize;
+                }
+
+                // Update reference bounds for next frame
+                _originalBounds = new Rect(newX, newY, newWidth, newHeight);
+                _editDragStartPoint = currentPoint;
+
+                // Apply minimum size element (flip frame only)
+                _selectedElement.X = newX;
+                _selectedElement.Y = newY;
+                _selectedElement.Width = newWidth;
+                _selectedElement.Height = newHeight;
+                return;  // Exit early - next frame will continue from new reference
             }
 
-            if (newHeight < MinSize)
-            {
-                if (IsTopHandle(_activeResizeHandle))
-                    newY = _originalBounds.Bottom - MinSize;
-                newHeight = MinSize;
-            }
+            // Enforce minimum size (prevent element from disappearing)
+            newWidth = Math.Max(MinSize, newWidth);
+            newHeight = Math.Max(MinSize, newHeight);
 
             _selectedElement.X = newX;
             _selectedElement.Y = newY;
@@ -894,6 +929,34 @@ namespace EquipmentDesigner.ViewModels
 
         private static bool IsTopHandle(ResizeHandleType handle) =>
             handle is ResizeHandleType.TopLeft or ResizeHandleType.TopRight or ResizeHandleType.Top;
+
+        /// <summary>
+        /// Gets the horizontally opposite handle type for flip operations.
+        /// </summary>
+        private static ResizeHandleType FlipHorizontalHandle(ResizeHandleType handle) => handle switch
+        {
+            ResizeHandleType.Left => ResizeHandleType.Right,
+            ResizeHandleType.Right => ResizeHandleType.Left,
+            ResizeHandleType.TopLeft => ResizeHandleType.TopRight,
+            ResizeHandleType.TopRight => ResizeHandleType.TopLeft,
+            ResizeHandleType.BottomLeft => ResizeHandleType.BottomRight,
+            ResizeHandleType.BottomRight => ResizeHandleType.BottomLeft,
+            _ => handle  // Top, Bottom은 수평 flip 영향 없음
+        };
+
+        /// <summary>
+        /// Gets the vertically opposite handle type for flip operations.
+        /// </summary>
+        private static ResizeHandleType FlipVerticalHandle(ResizeHandleType handle) => handle switch
+        {
+            ResizeHandleType.Top => ResizeHandleType.Bottom,
+            ResizeHandleType.Bottom => ResizeHandleType.Top,
+            ResizeHandleType.TopLeft => ResizeHandleType.BottomLeft,
+            ResizeHandleType.TopRight => ResizeHandleType.BottomRight,
+            ResizeHandleType.BottomLeft => ResizeHandleType.TopLeft,
+            ResizeHandleType.BottomRight => ResizeHandleType.TopRight,
+            _ => handle  // Left, Right는 수직 flip 영향 없음
+        };
 
         #endregion
 
