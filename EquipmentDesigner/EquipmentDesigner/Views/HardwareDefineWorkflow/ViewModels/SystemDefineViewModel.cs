@@ -15,7 +15,6 @@ namespace EquipmentDesigner.ViewModels
         private string _parentEquipmentId;
         private string _name = string.Empty;
         private string _displayName = string.Empty;
-        private string _subname = string.Empty;
         private string _description = string.Empty;
         private string _implementationGuidelines = string.Empty;
         private string _process = string.Empty;
@@ -77,21 +76,6 @@ namespace EquipmentDesigner.ViewModels
             set
             {
                 if (SetProperty(ref _displayName, value))
-                {
-                    OnPropertyChanged(nameof(FilledFieldCount));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Subname (optional).
-        /// </summary>
-        public string Subname
-        {
-            get => _subname;
-            set
-            {
-                if (SetProperty(ref _subname, value))
                 {
                     OnPropertyChanged(nameof(FilledFieldCount));
                 }
@@ -179,7 +163,6 @@ namespace EquipmentDesigner.ViewModels
                 if (!string.IsNullOrWhiteSpace(ParentEquipmentId)) count++;
                 if (!string.IsNullOrWhiteSpace(Name)) count++;
                 if (!string.IsNullOrWhiteSpace(DisplayName)) count++;
-                if (!string.IsNullOrWhiteSpace(Subname)) count++;
                 if (!string.IsNullOrWhiteSpace(Description)) count++;
                 if (!string.IsNullOrWhiteSpace(ImplementationGuidelines)) count++;
                 if (!string.IsNullOrWhiteSpace(Process)) count++;
@@ -244,7 +227,6 @@ namespace EquipmentDesigner.ViewModels
             // Reset form for creating another system
             Name = string.Empty;
             DisplayName = string.Empty;
-            Subname = string.Empty;
             Description = string.Empty;
             ImplementationGuidelines = string.Empty;
             Process = string.Empty;
@@ -267,7 +249,6 @@ namespace EquipmentDesigner.ViewModels
                 EquipmentId = ParentEquipmentId,
                 Name = Name,
                 DisplayName = DisplayName,
-                Subname = Subname,
                 Description = Description,
                 ProcessInfo = Process,
                 Commands = Commands.Select(c => c.ToDto()).ToList()
@@ -293,7 +274,6 @@ namespace EquipmentDesigner.ViewModels
                 ParentEquipmentId = dto.EquipmentId,
                 Name = dto.Name ?? string.Empty,
                 DisplayName = dto.DisplayName ?? string.Empty,
-                Subname = dto.Subname ?? string.Empty,
                 Description = dto.Description ?? string.Empty,
                 Process = dto.ProcessInfo ?? string.Empty
             };

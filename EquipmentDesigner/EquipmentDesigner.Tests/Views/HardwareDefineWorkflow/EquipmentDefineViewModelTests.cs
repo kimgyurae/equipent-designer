@@ -32,13 +32,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public void Constructor_Default_InitializesWithEmptySubname()
-        {
-            var viewModel = new EquipmentDefineViewModel();
-            viewModel.Subname.Should().BeEmpty();
-        }
-
-        [Fact]
         public void Constructor_Default_InitializesWithEmptyDescription()
         {
             var viewModel = new EquipmentDefineViewModel();
@@ -112,21 +105,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             };
 
             viewModel.DisplayName = "Display Name";
-            raised.Should().BeTrue();
-        }
-
-        [Fact]
-        public void Subname_WhenSet_RaisesPropertyChanged()
-        {
-            var viewModel = new EquipmentDefineViewModel();
-            var raised = false;
-            viewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(EquipmentDefineViewModel.Subname))
-                    raised = true;
-            };
-
-            viewModel.Subname = "Subname";
             raised.Should().BeTrue();
         }
 
@@ -245,7 +223,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 EquipmentType = "TypeA",
                 Name = "Equipment1",
                 DisplayName = "Equipment One",
-                Subname = "Sub",
                 Description = "Description",
                 Customer = "Customer A",
                 Process = "Process A"
@@ -258,7 +235,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             dto.EquipmentType.Should().Be("TypeA");
             dto.Name.Should().Be("Equipment1");
             dto.DisplayName.Should().Be("Equipment One");
-            dto.Subname.Should().Be("Sub");
             dto.Description.Should().Be("Description");
             dto.Customer.Should().Be("Customer A");
             dto.Process.Should().Be("Process A");
@@ -275,7 +251,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 EquipmentType = "TypeB",
                 Name = "Equipment2",
                 DisplayName = "Equipment Two",
-                Subname = "SubB",
                 Description = "Description B",
                 Customer = "Customer B",
                 Process = "Process B",
@@ -287,7 +262,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.EquipmentType.Should().Be("TypeB");
             viewModel.Name.Should().Be("Equipment2");
             viewModel.DisplayName.Should().Be("Equipment Two");
-            viewModel.Subname.Should().Be("SubB");
             viewModel.Description.Should().Be("Description B");
             viewModel.Customer.Should().Be("Customer B");
             viewModel.Process.Should().Be("Process B");

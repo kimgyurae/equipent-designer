@@ -30,11 +30,6 @@ namespace EquipmentDesigner.Models
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// 부가 이름 (선택)
-        /// </summary>
-        public string Subname { get; set; }
-
-        /// <summary>
         /// 설명 (선택)
         /// </summary>
         public string Description { get; set; }

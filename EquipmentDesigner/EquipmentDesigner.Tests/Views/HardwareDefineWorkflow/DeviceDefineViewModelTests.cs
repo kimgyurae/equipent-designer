@@ -34,13 +34,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public void Constructor_Default_InitializesWithEmptySubname()
-        {
-            var viewModel = new DeviceDefineViewModel();
-            viewModel.Subname.Should().BeEmpty();
-        }
-
-        [Fact]
         public void Constructor_Default_InitializesWithEmptyDescription()
         {
             var viewModel = new DeviceDefineViewModel();
@@ -117,20 +110,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             raised.Should().BeTrue();
         }
 
-        [Fact]
-        public void Subname_WhenSet_RaisesPropertyChanged()
-        {
-            var viewModel = new DeviceDefineViewModel();
-            var raised = false;
-            viewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(DeviceDefineViewModel.Subname))
-                    raised = true;
-            };
-
-            viewModel.Subname = "Subname";
-            raised.Should().BeTrue();
-        }
 
         [Fact]
         public void Description_WhenSet_RaisesPropertyChanged()
@@ -385,7 +364,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 ParentUnitId = "UNIT001",
                 Name = "Device1",
                 DisplayName = "Device One",
-                Subname = "Sub",
                 Description = "Description",
                 ImplementationGuidelines = "Guidelines"
             };
@@ -395,7 +373,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             dto.UnitId.Should().Be("UNIT001");
             dto.Name.Should().Be("Device1");
             dto.DisplayName.Should().Be("Device One");
-            dto.Subname.Should().Be("Sub");
             dto.Description.Should().Be("Description");
         }
 
@@ -439,7 +416,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 UnitId = "UNIT002",
                 Name = "Device2",
                 DisplayName = "Device Two",
-                Subname = "SubB",
                 Description = "Description B",
                 ImplementationInstructions = new System.Collections.Generic.List<string> { "Guideline1", "Guideline2" }
             };
@@ -449,7 +425,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.ParentUnitId.Should().Be("UNIT002");
             viewModel.Name.Should().Be("Device2");
             viewModel.DisplayName.Should().Be("Device Two");
-            viewModel.Subname.Should().Be("SubB");
             viewModel.Description.Should().Be("Description B");
             viewModel.ImplementationGuidelines.Should().Be("Guideline1\nGuideline2");
         }

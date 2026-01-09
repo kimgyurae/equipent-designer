@@ -33,13 +33,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public void Constructor_Default_InitializesWithEmptySubname()
-        {
-            var viewModel = new SystemDefineViewModel();
-            viewModel.Subname.Should().BeEmpty();
-        }
-
-        [Fact]
         public void Constructor_Default_InitializesWithEmptyDescription()
         {
             var viewModel = new SystemDefineViewModel();
@@ -116,20 +109,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             raised.Should().BeTrue();
         }
 
-        [Fact]
-        public void Subname_WhenSet_RaisesPropertyChanged()
-        {
-            var viewModel = new SystemDefineViewModel();
-            var raised = false;
-            viewModel.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(SystemDefineViewModel.Subname))
-                    raised = true;
-            };
-
-            viewModel.Subname = "Subname";
-            raised.Should().BeTrue();
-        }
 
         [Fact]
         public void Description_WhenSet_RaisesPropertyChanged()
@@ -377,7 +356,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 ParentEquipmentId = "EQ001",
                 Name = "System1",
                 DisplayName = "System One",
-                Subname = "Sub",
                 Description = "Description",
                 ImplementationGuidelines = "Guidelines",
                 Process = "Process A"
@@ -388,7 +366,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             dto.EquipmentId.Should().Be("EQ001");
             dto.Name.Should().Be("System1");
             dto.DisplayName.Should().Be("System One");
-            dto.Subname.Should().Be("Sub");
             dto.Description.Should().Be("Description");
             dto.ProcessInfo.Should().Be("Process A");
         }
@@ -417,7 +394,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 EquipmentId = "EQ002",
                 Name = "System2",
                 DisplayName = "System Two",
-                Subname = "SubB",
                 Description = "Description B",
                 ImplementationInstructions = new System.Collections.Generic.List<string> { "Guideline1", "Guideline2" },
                 ProcessInfo = "Process B"
@@ -428,7 +404,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.ParentEquipmentId.Should().Be("EQ002");
             viewModel.Name.Should().Be("System2");
             viewModel.DisplayName.Should().Be("System Two");
-            viewModel.Subname.Should().Be("SubB");
             viewModel.Description.Should().Be("Description B");
             viewModel.ImplementationGuidelines.Should().Be("Guideline1\nGuideline2");
             viewModel.Process.Should().Be("Process B");

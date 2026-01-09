@@ -15,7 +15,6 @@ namespace EquipmentDesigner.ViewModels
         private string _parentUnitId;
         private string _name = string.Empty;
         private string _displayName = string.Empty;
-        private string _subname = string.Empty;
         private string _description = string.Empty;
         private string _implementationGuidelines = string.Empty;
         private Func<bool> _allStepsRequiredFieldsFilledCheck;
@@ -101,21 +100,6 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Subname (optional).
-        /// </summary>
-        public string Subname
-        {
-            get => _subname;
-            set
-            {
-                if (SetProperty(ref _subname, value))
-                {
-                    OnPropertyChanged(nameof(FilledFieldCount));
-                }
-            }
-        }
-
-        /// <summary>
         /// Description (optional).
         /// </summary>
         public string Description
@@ -191,7 +175,6 @@ namespace EquipmentDesigner.ViewModels
                 if (!string.IsNullOrWhiteSpace(ParentUnitId)) count++;
                 if (!string.IsNullOrWhiteSpace(Name)) count++;
                 if (!string.IsNullOrWhiteSpace(DisplayName)) count++;
-                if (!string.IsNullOrWhiteSpace(Subname)) count++;
                 if (!string.IsNullOrWhiteSpace(Description)) count++;
                 if (!string.IsNullOrWhiteSpace(ImplementationGuidelines)) count++;
                 return count;
@@ -337,7 +320,6 @@ namespace EquipmentDesigner.ViewModels
             // Reset form for creating another device
             Name = string.Empty;
             DisplayName = string.Empty;
-            Subname = string.Empty;
             Description = string.Empty;
             ImplementationGuidelines = string.Empty;
             Commands.Clear();
@@ -370,7 +352,6 @@ namespace EquipmentDesigner.ViewModels
                 UnitId = ParentUnitId,
                 Name = Name,
                 DisplayName = DisplayName,
-                Subname = Subname,
                 Description = Description,
                 Commands = Commands.Select(c => c.ToDto()).ToList(),
                 IoInfo = IoConfigurations.Select(io => io.ToDto()).ToList()
@@ -396,7 +377,6 @@ namespace EquipmentDesigner.ViewModels
                 ParentUnitId = dto.UnitId,
                 Name = dto.Name ?? string.Empty,
                 DisplayName = dto.DisplayName ?? string.Empty,
-                Subname = dto.Subname ?? string.Empty,
                 Description = dto.Description ?? string.Empty
             };
 

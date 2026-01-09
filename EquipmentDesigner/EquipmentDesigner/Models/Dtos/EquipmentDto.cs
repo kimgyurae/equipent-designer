@@ -8,6 +8,12 @@ namespace EquipmentDesigner.Models
     /// </summary>
     public class EquipmentDto
     {
+
+        /// <summary>
+        /// 버전 정보 (예: v1.0.0)
+        /// </summary>
+        public string Version { get; set; } = "v1.0.0";
+
         /// <summary>
         /// 고유 식별자
         /// </summary>
@@ -29,7 +35,7 @@ namespace EquipmentDesigner.Models
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// 부가 이름 (선택)
+        /// 부명칭 (선택)
         /// </summary>
         public string Subname { get; set; }
 
@@ -37,11 +43,6 @@ namespace EquipmentDesigner.Models
         /// 설명 (선택)
         /// </summary>
         public string Description { get; set; }
-
-        /// <summary>
-        /// 버전 정보 (예: v1.0.0)
-        /// </summary>
-        public string Version { get; set; } = "v1.0.0";
 
         /// <summary>
         /// 고객사 (선택)

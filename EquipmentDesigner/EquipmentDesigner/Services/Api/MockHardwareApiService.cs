@@ -13,7 +13,7 @@ namespace EquipmentDesigner.Services
     public class MockHardwareApiService : IHardwareApiService
     {
         private readonly IUploadedWorkflowRepository _repository;
-        private static readonly TimeSpan SimulatedDelay = TimeSpan.FromMilliseconds(1000);
+        private static readonly TimeSpan SimulatedDelay = TimeSpan.FromMilliseconds(400);
 
     
         public MockHardwareApiService(IUploadedWorkflowRepository repository)
