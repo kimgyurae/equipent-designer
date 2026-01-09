@@ -3,6 +3,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:EquipmentDesigner.Controls">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../Themes/Tokens/Colors.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
     <!-- ============================================================
          Context Menu Styles
          Figma Design: https://www.figma.com/design/BWmKqBOfrI3vj1uyI6gqt2
