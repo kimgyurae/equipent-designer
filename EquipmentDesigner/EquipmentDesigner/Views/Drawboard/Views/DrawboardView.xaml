@@ -69,11 +69,6 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                    <Setter Property="Background" Value="{StaticResource Brush.Status.Info.Background}"/>
-                </DataTrigger>
-            </Style.Triggers>
         </Style>
 
         <!-- Floating Panel Style -->
@@ -291,7 +286,7 @@
     <Grid>
         <!-- Main Canvas Area (white background) with cursor behavior -->
         <Border x:Name="MainCanvasArea"
-                Background="{StaticResource Brush.Surface.Primary}"
+                Background="{StaticResource Brush.Background.Tertiary}"
                 Grid.ColumnSpan="4"
                 Focusable="True"
                 converters:DrawboardCursorBehavior.CursorType="{Binding CurrentCursorType}"
@@ -303,9 +298,9 @@
                           VerticalScrollBarVisibility="Auto"
                           Focusable="False">
                 <Grid x:Name="ZoomableGrid"
-                      Width="3000"
-                      Height="2000"
-                      Background="Transparent"
+                      Width="{Binding CanvasWidth}"
+                      Height="{Binding CanvasHeight}"
+                      Background="{StaticResource Brush.Surface.Primary}"
                       Focusable="True"
                       PreviewMouseLeftButtonDown="OnCanvasPreviewMouseLeftButtonDown"
                       PreviewMouseRightButtonUp="OnCanvasPreviewMouseRightButtonUp"

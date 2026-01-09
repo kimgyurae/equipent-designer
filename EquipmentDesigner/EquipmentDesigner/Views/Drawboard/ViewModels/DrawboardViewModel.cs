@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
 using EquipmentDesigner.Controls;
 using EquipmentDesigner.Models;
@@ -52,9 +53,26 @@ namespace EquipmentDesigner.ViewModels
         private bool _wasVerticallyFlipped;
         private bool _wasHorizontallyFlipped;
 
+        /// <summary>
+        /// Canvas width based on largest connected monitor size (10x).
+        /// </summary>
+        public double CanvasWidth { get; }
+
+        /// <summary>
+        /// Canvas height based on largest connected monitor size (10x).
+        /// </summary>
+        public double CanvasHeight { get; }
+
         public DrawboardViewModel(bool showBackButton = true)
         {
             _showBackButton = showBackButton;
+
+            // Canvas size = Largest connected monitor size × 10
+            var largestScreen = Screen.AllScreens
+                .OrderByDescending(s => s.Bounds.Width * s.Bounds.Height)
+                .First();
+            CanvasWidth = largestScreen.Bounds.Width * 10;
+            CanvasHeight = largestScreen.Bounds.Height * 10;
 
             BackToHardwareDefineCommand = new RelayCommand(ExecuteBackToHardwareDefine);
             SelectToolCommand = new RelayCommand(ExecuteSelectTool);
@@ -854,6 +872,18 @@ namespace EquipmentDesigner.ViewModels
             bool horizontalFlip = rawWidth < 0;
             bool verticalFlip = rawHeight < 0;
 
+            // DIAGNOSTIC LOG - Part 1: Input state
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] ===================");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] _initialHandle: {_initialHandle}");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] currentPoint: ({currentPoint.X:F1}, {currentPoint.Y:F1})");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] _trueOriginalStartPoint: ({_trueOriginalStartPoint.X:F1}, {_trueOriginalStartPoint.Y:F1})");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] _trueOriginalBounds: L={_trueOriginalBounds.Left:F1}, T={_trueOriginalBounds.Top:F1}, R={_trueOriginalBounds.Right:F1}, B={_trueOriginalBounds.Bottom:F1}");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] totalDelta: ({totalDeltaX:F1}, {totalDeltaY:F1})");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] edges: L={left:F1}, T={top:F1}, R={right:F1}, B={bottom:F1}");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] rawDimensions: W={rawWidth:F1}, H={rawHeight:F1}");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] flips: H={horizontalFlip}, V={verticalFlip}");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] IsTopHandle: {IsTopHandle(_initialHandle)}, IsLeftHandle: {IsLeftHandle(_initialHandle)}");
+
             // Normalize: ensure positive dimensions and correct position
             double newX, newY, newWidth, newHeight;
 
@@ -864,8 +894,17 @@ namespace EquipmentDesigner.ViewModels
             }
             else
             {
-                newX = left;
                 newWidth = Math.Max(MinSize, rawWidth);
+                // FIX: When width is clamped to MinSize, anchor the opposite edge to prevent drift
+                if (rawWidth < MinSize && IsLeftHandle(_initialHandle))
+                {
+                    // Left handle being dragged - anchor right edge
+                    newX = right - newWidth;
+                }
+                else
+                {
+                    newX = left;
+                }
             }
 
             if (verticalFlip)
@@ -875,28 +914,44 @@ namespace EquipmentDesigner.ViewModels
             }
             else
             {
-                newY = top;
                 newHeight = Math.Max(MinSize, rawHeight);
+                // FIX: When height is clamped to MinSize, anchor the opposite edge to prevent drift
+                if (rawHeight < MinSize && IsTopHandle(_initialHandle))
+                {
+                    // Top handle being dragged - anchor bottom edge
+                    newY = bottom - newHeight;
+                }
+                else
+                {
+                    newY = top;
+                }
             }
+
+            // DIAGNOSTIC LOG - Part 2: Calculated results
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] anchorCondition: rawH<Min={rawHeight < MinSize}, rawW<Min={rawWidth < MinSize}");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] result: X={newX:F1}, Y={newY:F1}, W={newWidth:F1}, H={newHeight:F1}");
 
             // Detect flip TRANSITIONS (not-flipped -> flipped)
             bool justFlippedHorizontally = horizontalFlip && !_wasHorizontallyFlipped;
             bool justFlippedVertically = verticalFlip && !_wasVerticallyFlipped;
 
-            // Detect UNFLIP transitions (flipped -> not-flipped)
-            bool justUnflippedHorizontally = !horizontalFlip && _wasHorizontallyFlipped;
-            bool justUnflippedVertically = !verticalFlip && _wasVerticallyFlipped;
+            // FIX: Removed unflip reset - unflip happens naturally via another flip
+            // when user drags back past the edge. The immediate unflip after flip
+            // was causing the drift bug (handle kept switching back and forth).
 
-            // Reset reference points on ANY flip state change
-            if (justFlippedHorizontally || justFlippedVertically || 
-                justUnflippedHorizontally || justUnflippedVertically)
+            // DIAGNOSTIC LOG - Part 3: Flip state
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] justFlipped: H={justFlippedHorizontally}, V={justFlippedVertically}");
+            System.Diagnostics.Debug.WriteLine($"[RESIZE] _was: H={_wasHorizontallyFlipped}, V={_wasVerticallyFlipped}");
+
+            // Reset reference points ONLY on flip (not unflip)
+            if (justFlippedHorizontally || justFlippedVertically)
             {
                 // Reset to current calculated state
                 _trueOriginalBounds = new Rect(newX, newY, newWidth, newHeight);
                 _trueOriginalStartPoint = currentPoint;
                 _initialHandle = GetFlippedHandle(_initialHandle, 
-                    justFlippedHorizontally || justUnflippedHorizontally, 
-                    justFlippedVertically || justUnflippedVertically);
+                    justFlippedHorizontally, 
+                    justFlippedVertically);
             }
 
             // Update flip state tracking
