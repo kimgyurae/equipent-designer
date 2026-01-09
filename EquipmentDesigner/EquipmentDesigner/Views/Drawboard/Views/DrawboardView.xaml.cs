@@ -22,6 +22,16 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private const double ScrollZoomFactor = 1.1;
 
+        /// <summary>
+        /// Linear zoom step for low zoom levels (10-100 range).
+        /// </summary>
+        private const int LinearZoomStep = 10;
+
+        /// <summary>
+        /// Threshold below which linear zoom is used instead of exponential.
+        /// </summary>
+        private const int LinearZoomThreshold = 100;
+
         private SelectionAdorner _selectionAdorner;
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
@@ -109,17 +119,40 @@ namespace EquipmentDesigner.Views
                 (CanvasScrollViewer.VerticalOffset + mouseViewport.Y) / oldScale
             );
 
-            // 3. Apply exponential zoom level change (Figma/Excalidraw style)
+            // 3. Apply zoom level change (linear for 10-100, exponential for >100)
             int oldZoom = _viewModel.ZoomLevel;
             if (e.Delta > 0)
             {
-                double newZoom = _viewModel.ZoomLevel * ScrollZoomFactor;
-                _viewModel.ZoomLevel = (int)Math.Round(Math.Min(newZoom, 3000));
+                // Zoom In
+                int newZoom;
+                if (_viewModel.ZoomLevel < LinearZoomThreshold)
+                {
+                    // Linear scaling for 10-100 range
+                    newZoom = Math.Min(_viewModel.ZoomLevel + LinearZoomStep, 3000);
+                }
+                else
+                {
+                    // Exponential scaling for >100
+                    newZoom = (int)Math.Round(Math.Min(_viewModel.ZoomLevel * ScrollZoomFactor, 3000));
+                }
+                _viewModel.ZoomLevel = newZoom;
             }
             else
             {
-                double newZoom = _viewModel.ZoomLevel / ScrollZoomFactor;
-                _viewModel.ZoomLevel = (int)Math.Round(Math.Max(newZoom, 10));
+                // Zoom Out
+                int newZoom;
+                if (_viewModel.ZoomLevel <= LinearZoomThreshold)
+                {
+                    // Linear scaling for 10-100 range
+                    newZoom = Math.Max(_viewModel.ZoomLevel - LinearZoomStep, 10);
+                }
+                else
+                {
+                    // Exponential scaling for >100
+                    double expZoom = _viewModel.ZoomLevel / ScrollZoomFactor;
+                    newZoom = (int)Math.Round(Math.Max(expZoom, 10));
+                }
+                _viewModel.ZoomLevel = newZoom;
             }
 
             // If zoom level didn't change, exit
