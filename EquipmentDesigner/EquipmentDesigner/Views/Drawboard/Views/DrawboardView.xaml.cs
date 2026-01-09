@@ -19,6 +19,8 @@ namespace EquipmentDesigner.Views
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
         private DrawboardViewModel _viewModel;
+        private Cursor _baseCursor;
+        private bool _isShowingResizeCursor;
 
         public DrawboardView()
         {
@@ -157,8 +159,10 @@ namespace EquipmentDesigner.Views
             }
             else
             {
-                // Clicked on different element - select it
+                // Clicked on different element - select it and start move immediately
                 _viewModel.SelectElement(hitElement);
+                _viewModel.StartMove(position);
+                MainCanvasArea.CaptureMouse();
                 MainCanvasArea.Focus();
                 e.Handled = true;
             }
@@ -245,6 +249,14 @@ namespace EquipmentDesigner.Views
             if (_viewModel.IsDrawing)
             {
                 _viewModel.UpdateDrawing(position);
+                return;
+            }
+
+            // Update cursor based on hover position
+            // Only when Selection tool is active AND an element is selected
+            if (_viewModel.IsSelectionToolActive && _selectionAdorner != null)
+            {
+                UpdateResizeCursor(position);
             }
         }
 
@@ -283,6 +295,50 @@ namespace EquipmentDesigner.Views
         #endregion
 
         #region Adorner Management
+
+        /// <summary>
+        /// Updates the cursor based on what resize handle or edge is being hovered.
+        /// Called only when Selection tool is active and an element is selected.
+        /// </summary>
+        private void UpdateResizeCursor(Point position)
+        {
+            var adornerPoint = MainCanvasArea.TranslatePoint(position, _selectionAdorner.AdornedElement);
+            var handleType = _selectionAdorner.HitTestHandle(adornerPoint);
+
+            if (handleType != ResizeHandleType.None)
+            {
+                // Save base cursor before first override
+                if (!_isShowingResizeCursor)
+                {
+                    _baseCursor = MainCanvasArea.Cursor;
+                }
+
+                MainCanvasArea.Cursor = handleType switch
+                {
+                    // Corner handles - diagonal cursors
+                    ResizeHandleType.TopLeft => Cursors.SizeNWSE,      // ↖↘
+                    ResizeHandleType.BottomRight => Cursors.SizeNWSE, // ↖↘
+                    ResizeHandleType.TopRight => Cursors.SizeNESW,    // ↗↙
+                    ResizeHandleType.BottomLeft => Cursors.SizeNESW,  // ↗↙
+
+                    // Edge handles - straight cursors
+                    ResizeHandleType.Top => Cursors.SizeNS,           // ↕
+                    ResizeHandleType.Bottom => Cursors.SizeNS,        // ↕
+                    ResizeHandleType.Left => Cursors.SizeWE,          // ↔
+                    ResizeHandleType.Right => Cursors.SizeWE,         // ↔
+
+                    // No handle - keep current cursor
+                    _ => MainCanvasArea.Cursor
+                };
+                _isShowingResizeCursor = true;
+            }
+            else if (_isShowingResizeCursor)
+            {
+                // Restore base cursor when leaving resize handle
+                MainCanvasArea.Cursor = _baseCursor;
+                _isShowingResizeCursor = false;
+            }
+        }
 
         /// <summary>
         /// Updates or creates the selection adorner for the specified element.

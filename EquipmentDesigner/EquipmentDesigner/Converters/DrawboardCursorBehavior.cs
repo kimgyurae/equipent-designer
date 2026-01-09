@@ -139,7 +139,7 @@ namespace EquipmentDesigner.Converters
                 _eraserCursor = CursorHelper.CreateCursor(bitmap, hotspot, hotspot);
                 return _eraserCursor;
             }
-            catch
+            catch (Exception e)
             {
                 // Fallback to built-in cursor
                 return Cursors.Cross;
@@ -357,6 +357,7 @@ namespace EquipmentDesigner.Converters
 
     /// <summary>
     /// Helper class for creating custom cursors from bitmaps.
+    /// Uses WPF native APIs only (no System.Drawing dependency).
     /// </summary>
     internal static class CursorHelper
     {
@@ -370,6 +371,22 @@ namespace EquipmentDesigner.Converters
             public IntPtr hbmColor;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BitmapInfoHeader
+        {
+            public uint biSize;
+            public int biWidth;
+            public int biHeight;
+            public ushort biPlanes;
+            public ushort biBitCount;
+            public uint biCompression;
+            public uint biSizeImage;
+            public int biXPelsPerMeter;
+            public int biYPelsPerMeter;
+            public uint biClrUsed;
+            public uint biClrImportant;
+        }
+
         [DllImport("user32.dll")]
         private static extern IntPtr CreateIconIndirect(ref IconInfo icon);
 
@@ -379,46 +396,90 @@ namespace EquipmentDesigner.Converters
         [DllImport("gdi32.dll")]
         private static extern bool DeleteObject(IntPtr hObject);
 
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateBitmap(int nWidth, int nHeight, uint cPlanes, uint cBitsPerPel, IntPtr lpvBits);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateDIBSection(IntPtr hdc, ref BitmapInfoHeader pbmi, uint iUsage, out IntPtr ppvBits, IntPtr hSection, uint dwOffset);
+
+        private const uint BI_RGB = 0;
+        private const uint DIB_RGB_COLORS = 0;
+
         public static Cursor CreateCursor(BitmapSource bitmapSource, int xHotspot, int yHotspot)
         {
-            // Convert BitmapSource to HBitmap
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
-
-            using (var stream = new System.IO.MemoryStream())
+            // Ensure BGRA32 format for consistent pixel handling
+            var source = bitmapSource;
+            if (bitmapSource.Format != PixelFormats.Bgra32)
             {
-                encoder.Save(stream);
-                stream.Position = 0;
+                source = new FormatConvertedBitmap(bitmapSource, PixelFormats.Bgra32, null, 0);
+            }
 
-                using (var bitmap = new System.Drawing.Bitmap(stream))
+            int width = source.PixelWidth;
+            int height = source.PixelHeight;
+            int stride = width * 4; // 4 bytes per pixel (BGRA32)
+
+            // Copy pixel data from BitmapSource
+            byte[] pixels = new byte[height * stride];
+            source.CopyPixels(pixels, stride, 0);
+
+            // Create color bitmap using CreateDIBSection (WPF native, no System.Drawing)
+            var bmi = new BitmapInfoHeader
+            {
+                biSize = (uint)Marshal.SizeOf<BitmapInfoHeader>(),
+                biWidth = width,
+                biHeight = -height, // Negative for top-down DIB
+                biPlanes = 1,
+                biBitCount = 32,
+                biCompression = BI_RGB,
+                biSizeImage = 0,
+                biXPelsPerMeter = 0,
+                biYPelsPerMeter = 0,
+                biClrUsed = 0,
+                biClrImportant = 0
+            };
+
+            IntPtr ppvBits;
+            IntPtr hBitmap = CreateDIBSection(IntPtr.Zero, ref bmi, DIB_RGB_COLORS, out ppvBits, IntPtr.Zero, 0);
+
+            if (hBitmap == IntPtr.Zero || ppvBits == IntPtr.Zero)
+            {
+                return Cursors.Arrow;
+            }
+
+            // Copy pixel data to the DIB section
+            Marshal.Copy(pixels, 0, ppvBits, pixels.Length);
+
+            // Create a monochrome mask bitmap (all zeros = fully opaque using color bitmap's alpha)
+            IntPtr hMask = CreateBitmap(width, height, 1, 1, IntPtr.Zero);
+
+            if (hMask == IntPtr.Zero)
+            {
+                DeleteObject(hBitmap);
+                return Cursors.Arrow;
+            }
+
+            try
+            {
+                var iconInfo = new IconInfo
                 {
-                    var hBitmap = bitmap.GetHbitmap();
-                    var hMask = bitmap.GetHbitmap(); // Using same bitmap as mask for simplicity
+                    fIcon = false, // Cursor, not icon
+                    xHotspot = xHotspot,
+                    yHotspot = yHotspot,
+                    hbmMask = hMask,
+                    hbmColor = hBitmap
+                };
 
-                    try
-                    {
-                        var iconInfo = new IconInfo
-                        {
-                            fIcon = false, // Cursor, not icon
-                            xHotspot = xHotspot,
-                            yHotspot = yHotspot,
-                            hbmMask = hMask,
-                            hbmColor = hBitmap
-                        };
+                var cursorHandle = CreateIconIndirect(ref iconInfo);
 
-                        var cursorHandle = CreateIconIndirect(ref iconInfo);
-
-                        if (cursorHandle != IntPtr.Zero)
-                        {
-                            return CursorInteropHelper.Create(new SafeIconHandle(cursorHandle));
-                        }
-                    }
-                    finally
-                    {
-                        DeleteObject(hBitmap);
-                        DeleteObject(hMask);
-                    }
+                if (cursorHandle != IntPtr.Zero)
+                {
+                    return CursorInteropHelper.Create(new SafeIconHandle(cursorHandle));
                 }
+            }
+            finally
+            {
+                DeleteObject(hBitmap);
+                DeleteObject(hMask);
             }
 
             return Cursors.Arrow;
