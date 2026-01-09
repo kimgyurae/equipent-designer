@@ -128,7 +128,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "test-workflow-1",
-                StartType = HardwareLayer.Equipment
+                HardwareType = HardwareLayer.Equipment
             });
 
             // Act
@@ -185,14 +185,14 @@ namespace EquipmentDesigner.Tests.Services.Storage
             originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-001",
-                StartType = HardwareLayer.Equipment,
+                HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now
             });
             originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-002",
-                StartType = HardwareLayer.System,
+                HardwareType = HardwareLayer.System,
                 State = ComponentState.Ready,
                 LastModifiedAt = DateTime.Now
             });
@@ -204,7 +204,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             // Assert
             loaded.WorkflowSessions.Should().HaveCount(2);
             loaded.WorkflowSessions[0].WorkflowId.Should().Be("wf-001");
-            loaded.WorkflowSessions[0].StartType.Should().Be(HardwareLayer.Equipment);
+            loaded.WorkflowSessions[0].HardwareType.Should().Be(HardwareLayer.Equipment);
             loaded.WorkflowSessions[1].WorkflowId.Should().Be("wf-002");
             loaded.WorkflowSessions[1].State.Should().Be(ComponentState.Ready);
         }
@@ -217,7 +217,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var session = new WorkflowSessionDto
             {
                 WorkflowId = "wf-tree",
-                StartType = HardwareLayer.Equipment,
+                HardwareType = HardwareLayer.Equipment,
                 TreeNodes = new System.Collections.Generic.List<TreeNodeDataDto>
                 {
                     new TreeNodeDataDto

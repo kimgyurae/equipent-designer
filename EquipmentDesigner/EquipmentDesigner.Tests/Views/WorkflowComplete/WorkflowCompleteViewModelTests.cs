@@ -19,7 +19,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             return new WorkflowSessionDto
             {
                 WorkflowId = "test-workflow-id",
-                StartType = HardwareLayer.Equipment,
+                HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Draft,
                 HardwareLayer = HardwareLayer.Equipment,
                 LastModifiedAt = DateTime.Now,
@@ -113,7 +113,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var sessionDto = CreateValidSessionDto();
-            sessionDto.StartType = HardwareLayer.System;
+            sessionDto.HardwareType = HardwareLayer.System;
 
             // Act
             var viewModel = new WorkflowCompleteViewModel(sessionDto);

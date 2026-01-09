@@ -614,7 +614,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
             savedWorkflow.TreeNodes.Should().NotBeEmpty();
-            savedWorkflow.StartType.Should().Be(HardwareLayer.Equipment);
+            savedWorkflow.HardwareType.Should().Be(HardwareLayer.Equipment);
         }
 
         [Fact]
@@ -638,7 +638,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
-            savedWorkflow.StartType.Should().Be(HardwareLayer.System);
+            savedWorkflow.HardwareType.Should().Be(HardwareLayer.System);
         }
 
         [Fact]
@@ -660,7 +660,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.WorkflowId == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
-            savedWorkflow.StartType.Should().Be(HardwareLayer.Device);
+            savedWorkflow.HardwareType.Should().Be(HardwareLayer.Device);
         }
 
         [Fact]
@@ -994,7 +994,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var uploadedData = await uploadedRepo.LoadAsync();
             
             uploadedData.WorkflowSessions.Should().HaveCount(1);
-            uploadedData.WorkflowSessions[0].StartType.Should().Be(HardwareLayer.Equipment);
+            uploadedData.WorkflowSessions[0].HardwareType.Should().Be(HardwareLayer.Equipment);
             uploadedData.WorkflowSessions[0].TreeNodes.Should().NotBeNullOrEmpty();
         }
 
@@ -1070,7 +1070,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             workflowData.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = viewModel.WorkflowId,
-                StartType = HardwareLayer.Device,
+                HardwareType = HardwareLayer.Device,
                 State = ComponentState.Ready
             });
             await workflowRepo.SaveAsync(workflowData);
@@ -1109,7 +1109,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             workflowData.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = viewModel.WorkflowId,
-                StartType = HardwareLayer.Device,
+                HardwareType = HardwareLayer.Device,
                 State = ComponentState.Ready
             });
             await workflowRepo.SaveAsync(workflowData);
@@ -1171,7 +1171,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
             session.Should().NotBeNull();
-            session.StartType.Should().Be(HardwareLayer.Equipment);
+            session.HardwareType.Should().Be(HardwareLayer.Equipment);
             session.State.Should().Be(ComponentState.Draft);
         }
 

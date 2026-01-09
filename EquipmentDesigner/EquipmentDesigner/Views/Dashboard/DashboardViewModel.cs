@@ -169,7 +169,7 @@ namespace EquipmentDesigner.ViewModels
                         IncompleteWorkflows.Add(new WorkflowItem
                         {
                             WorkflowId = session.WorkflowId,
-                            StartedFrom = session.StartType.ToString(),
+                            StartedFrom = session.HardwareType.ToString(),
                             ComponentState = session.State,
                             Date = session.LastModifiedAt.ToString("yyyy. M. d.")
                         });
@@ -220,10 +220,10 @@ namespace EquipmentDesigner.ViewModels
                         description ?? "",
                         version,
                         session.State,
-                        session.StartType);
+                        session.HardwareType);
 
                     // Add to correct collection based on StartType
-                    switch (session.StartType)
+                    switch (session.HardwareType)
                     {
                         case HardwareLayer.Equipment:
                             Equipments.Add(componentItem);

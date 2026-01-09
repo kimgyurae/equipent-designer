@@ -879,9 +879,8 @@ namespace EquipmentDesigner.ViewModels
             return new WorkflowSessionDto
             {
                 WorkflowId = WorkflowId,
-                StartType = StartType,
+                HardwareType = StartType,
                 State = ComponentState.Draft,
-                HardwareLayer = StartType,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
             };
@@ -925,7 +924,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(dto.StartType, dto.WorkflowId);
+            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.WorkflowId);
 
             // Rebuild tree from TreeNodes
             if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)

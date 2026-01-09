@@ -45,7 +45,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             return new WorkflowSessionDto
             {
                 WorkflowId = workflowId,
-                StartType = startType,
+                HardwareType = startType,
                 State = state,
                 TreeNodes = new List<TreeNodeDataDto> { rootNode }
             };

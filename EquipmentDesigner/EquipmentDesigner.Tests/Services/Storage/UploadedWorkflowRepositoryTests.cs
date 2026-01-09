@@ -127,7 +127,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var session = new WorkflowSessionDto
             {
                 WorkflowId = "wf-tree",
-                StartType = HardwareLayer.Equipment,
+                HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Uploaded,
                 TreeNodes = new System.Collections.Generic.List<TreeNodeDataDto>
                 {
@@ -216,7 +216,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "test-workflow-1",
-                StartType = HardwareLayer.Equipment,
+                HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Uploaded
             });
 
@@ -243,14 +243,14 @@ namespace EquipmentDesigner.Tests.Services.Storage
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-001",
-                StartType = HardwareLayer.Equipment,
+                HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Uploaded,
                 LastModifiedAt = DateTime.Now
             });
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
                 WorkflowId = "wf-002",
-                StartType = HardwareLayer.System,
+                HardwareType = HardwareLayer.System,
                 State = ComponentState.Validated,
                 LastModifiedAt = DateTime.Now
             });

@@ -16,10 +16,9 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// 워크플로우 시작 레이어 (Equipment, System, Unit, Device)
         /// </summary>
-        public HardwareLayer StartType { get; set; }
+        public HardwareLayer HardwareType { get; set; }
 
         public ComponentState State { get; set; }
-        public HardwareLayer HardwareLayer { get; set; }
         public DateTime LastModifiedAt { get; set; }
 
         /// 트리 구조의 모든 노드 데이터.

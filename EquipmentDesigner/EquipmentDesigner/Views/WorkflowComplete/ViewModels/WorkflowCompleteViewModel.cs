@@ -119,7 +119,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Gets the start type of the workflow.
         /// </summary>
-        public HardwareLayer StartType => _sessionDto?.StartType ?? HardwareLayer.Equipment;
+        public HardwareLayer StartType => _sessionDto?.HardwareType ?? HardwareLayer.Equipment;
 
         /// <summary>
         /// Gets the current session state.
