@@ -872,18 +872,6 @@ namespace EquipmentDesigner.ViewModels
             bool horizontalFlip = rawWidth < 0;
             bool verticalFlip = rawHeight < 0;
 
-            // DIAGNOSTIC LOG - Part 1: Input state
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] ===================");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] _initialHandle: {_initialHandle}");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] currentPoint: ({currentPoint.X:F1}, {currentPoint.Y:F1})");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] _trueOriginalStartPoint: ({_trueOriginalStartPoint.X:F1}, {_trueOriginalStartPoint.Y:F1})");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] _trueOriginalBounds: L={_trueOriginalBounds.Left:F1}, T={_trueOriginalBounds.Top:F1}, R={_trueOriginalBounds.Right:F1}, B={_trueOriginalBounds.Bottom:F1}");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] totalDelta: ({totalDeltaX:F1}, {totalDeltaY:F1})");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] edges: L={left:F1}, T={top:F1}, R={right:F1}, B={bottom:F1}");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] rawDimensions: W={rawWidth:F1}, H={rawHeight:F1}");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] flips: H={horizontalFlip}, V={verticalFlip}");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] IsTopHandle: {IsTopHandle(_initialHandle)}, IsLeftHandle: {IsLeftHandle(_initialHandle)}");
-
             // Normalize: ensure positive dimensions and correct position
             double newX, newY, newWidth, newHeight;
 
@@ -927,10 +915,6 @@ namespace EquipmentDesigner.ViewModels
                 }
             }
 
-            // DIAGNOSTIC LOG - Part 2: Calculated results
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] anchorCondition: rawH<Min={rawHeight < MinSize}, rawW<Min={rawWidth < MinSize}");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] result: X={newX:F1}, Y={newY:F1}, W={newWidth:F1}, H={newHeight:F1}");
-
             // Detect flip TRANSITIONS (not-flipped -> flipped)
             bool justFlippedHorizontally = horizontalFlip && !_wasHorizontallyFlipped;
             bool justFlippedVertically = verticalFlip && !_wasVerticallyFlipped;
@@ -938,10 +922,6 @@ namespace EquipmentDesigner.ViewModels
             // FIX: Removed unflip reset - unflip happens naturally via another flip
             // when user drags back past the edge. The immediate unflip after flip
             // was causing the drift bug (handle kept switching back and forth).
-
-            // DIAGNOSTIC LOG - Part 3: Flip state
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] justFlipped: H={justFlippedHorizontally}, V={justFlippedVertically}");
-            System.Diagnostics.Debug.WriteLine($"[RESIZE] _was: H={_wasHorizontallyFlipped}, V={_wasVerticallyFlipped}");
 
             // Reset reference points ONLY on flip (not unflip)
             if (justFlippedHorizontally || justFlippedVertically)

@@ -40,6 +40,11 @@ namespace EquipmentDesigner.Models
         public string Description { get; set; }
 
         /// <summary>
+        /// 버전 정보 (예: v1.0.0)
+        /// </summary>
+        public string Version { get; set; } = "v1.0.0";
+
+        /// <summary>
         /// Device 타입 (예: Generic, Sensor, Actuator 등)
         /// </summary>
         public string DeviceType { get; set; }

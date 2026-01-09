@@ -8,6 +8,8 @@ namespace EquipmentDesigner.Models
     /// </summary>
     public class TreeNodeDataDto
     {
+
+        public string Version = "0.0.1";
         /// <summary>
         /// Unique identifier for this node.
         /// </summary>

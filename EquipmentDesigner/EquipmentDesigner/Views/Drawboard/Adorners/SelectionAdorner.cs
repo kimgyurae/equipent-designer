@@ -195,18 +195,14 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
 
         private void OnThumbDragDelta(ResizeHandleType handleType, DragDeltaEventArgs e)
         {
-            // Accumulate deltas separately to minimize floating-point error propagation
-            // e.HorizontalChange and e.VerticalChange are incremental since last DragDelta
-            _cumulativeHorizontal += e.HorizontalChange;
-            _cumulativeVertical += e.VerticalChange;
+            // Use absolute mouse position to avoid feedback loop caused by Thumb repositioning during resize.
+            // When element size changes, ArrangeOverride repositions the Thumb, and e.VerticalChange/HorizontalChange
+            // would include this Thumb movement, causing exponential size growth after flip.
+            var canvas = FindCanvasParent();
+            if (canvas == null) return;
 
-            // Calculate current position from fixed initial point + accumulated deltas
-            // This prevents error accumulation from repeated _dragStartPoint updates
-            var currentPoint = new Point(
-                _initialDragStartPoint.X + _cumulativeHorizontal,
-                _initialDragStartPoint.Y + _cumulativeVertical);
-
-            ResizeDelta?.Invoke(this, new ResizeEventArgs(handleType, currentPoint));
+            var mousePosition = Mouse.GetPosition(canvas);
+            ResizeDelta?.Invoke(this, new ResizeEventArgs(handleType, mousePosition));
         }
 
         private void OnThumbDragCompleted(ResizeHandleType handleType, DragCompletedEventArgs e)

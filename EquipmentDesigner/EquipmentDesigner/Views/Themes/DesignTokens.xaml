@@ -38,6 +38,9 @@
         
         <!-- Context Menu Styles -->
         <ResourceDictionary Source="../ReusableComponents/ContextMenu/ContextMenuStyles.xaml"/>
+        
+        <!-- ScrollBar Styles -->
+        <ResourceDictionary Source="../ReusableComponents/ScrollBar/ScrollBarStyles.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>

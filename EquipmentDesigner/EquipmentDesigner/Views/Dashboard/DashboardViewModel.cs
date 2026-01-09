@@ -213,11 +213,12 @@ namespace EquipmentDesigner.ViewModels
                     var rootNode = session.TreeNodes?.FirstOrDefault();
                     if (rootNode == null) continue;
 
-                    var (name, description) = ExtractComponentInfo(rootNode);
+                    var (name, description, version) = ExtractComponentInfo(rootNode);
                     var componentItem = CreateComponentItem(
                         session.WorkflowId,  // Use WorkflowId as ID for navigation
                         name ?? "Unnamed",
                         description ?? "",
+                        version,
                         session.State,
                         session.StartType);
 
@@ -258,22 +259,22 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Extracts name and description from a tree node based on its hardware layer.
         /// </summary>
-        private (string name, string description) ExtractComponentInfo(TreeNodeDataDto node)
+        private (string name, string description, string version) ExtractComponentInfo(TreeNodeDataDto node)
         {
             return node.HardwareLayer switch
             {
-                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description),
-                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description),
-                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description),
-                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description),
-                _ => (null, null)
+                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description, node.EquipmentData?.Version),
+                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description, node.SystemData?.Version),
+                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description, node.UnitData?.Version),
+                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description, node.DeviceData?.Version),
+                _ => (null, null, null)
             };
         }
 
         /// <summary>
         /// Creates a ComponentItem with the given state.
         /// </summary>
-        private ComponentItem CreateComponentItem(string id, string name, string description, ComponentState state, HardwareLayer hardwareLayer)
+        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareLayer hardwareLayer)
         {
             return new ComponentItem
             {
@@ -281,6 +282,7 @@ namespace EquipmentDesigner.ViewModels
                 HardwareLayer = hardwareLayer,
                 Name = name,
                 Description = description,
+                Version = version ?? "v1.0.0",
                 Status = state.ToString(),
                 ComponentState = state
             };
@@ -574,6 +576,7 @@ namespace EquipmentDesigner.ViewModels
         public HardwareLayer HardwareLayer { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public string Version { get; set; }
         public string Status { get; set; }
         public ComponentState ComponentState { get; set; }
     }
