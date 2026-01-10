@@ -31,9 +31,6 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
 
         // Drag state tracking - fixed start point for consistent coordinate calculation
         private Point _dragStartPoint;
-        private Point _initialDragStartPoint;  // Fixed reference point (never changes during drag)
-        private double _cumulativeHorizontal;   // Accumulated horizontal movement
-        private double _cumulativeVertical;     // Accumulated vertical movement
 
         /// <summary>
         /// Raised when a resize operation begins.
@@ -184,11 +181,6 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
                     adornerPosition.X + handlePosition.X,
                     adornerPosition.Y + handlePosition.Y);
             }
-
-            // Initialize cumulative tracking variables
-            _initialDragStartPoint = _dragStartPoint;
-            _cumulativeHorizontal = 0;
-            _cumulativeVertical = 0;
 
             ResizeStarted?.Invoke(this, new ResizeEventArgs(handleType, _dragStartPoint));
         }

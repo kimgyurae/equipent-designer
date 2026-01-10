@@ -168,7 +168,7 @@ namespace EquipmentDesigner.ViewModels
                     {
                         IncompleteWorkflows.Add(new WorkflowItem
                         {
-                            WorkflowId = session.WorkflowId,
+                            WorkflowId = session.Id,
                             StartedFrom = session.HardwareType.ToString(),
                             ComponentState = session.State,
                             Date = session.LastModifiedAt.ToString("yyyy. M. d.")
@@ -213,15 +213,16 @@ namespace EquipmentDesigner.ViewModels
                     var rootNode = session.TreeNodes?.FirstOrDefault();
                     if (rootNode == null) continue;
 
-                    var (name, description, version, equipmentType) = ExtractComponentInfo(rootNode);
+                    var (name, description, version, equipmentType, hardwareKey) = ExtractComponentInfo(rootNode);
                     var componentItem = CreateComponentItem(
-                        session.WorkflowId,  // Use WorkflowId as ID for navigation
+                        session.Id,  // Use WorkflowId as ID for navigation
                         name ?? "Unnamed",
                         description ?? "",
                         version,
                         session.State,
                         session.HardwareType,
-                        equipmentType);
+                        equipmentType,
+                        hardwareKey);
 
                     // Add to correct collection based on StartType
                     switch (session.HardwareType)
@@ -260,22 +261,22 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Extracts name and description from a tree node based on its hardware layer.
         /// </summary>
-        private (string name, string description, string version, string equipmentType) ExtractComponentInfo(TreeNodeDataDto node)
+        private (string name, string description, string version, string equipmentType, string hardwareKey) ExtractComponentInfo(TreeNodeDataDto node)
         {
             return node.HardwareLayer switch
             {
-                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description, node.EquipmentData?.Version, node.EquipmentData?.EquipmentType),
-                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description, node.SystemData?.Version, null),
-                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description, node.UnitData?.Version, null),
-                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description, node.DeviceData?.Version, null),
-                _ => (null, null, null, null)
+                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description, node.EquipmentData?.Version, node.EquipmentData?.EquipmentType, node.EquipmentData?.HardwareKey ?? node.EquipmentData?.Name),
+                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description, node.SystemData?.Version, null, node.SystemData?.HardwareKey ?? node.SystemData?.Name),
+                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description, node.UnitData?.Version, null, node.UnitData?.HardwareKey ?? node.UnitData?.Name),
+                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description, node.DeviceData?.Version, null, node.DeviceData?.HardwareKey ?? node.DeviceData?.Name),
+                _ => (null, null, null, null, null)
             };
         }
 
         /// <summary>
         /// Creates a ComponentItem with the given state.
         /// </summary>
-        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareLayer hardwareLayer, string equipmentType)
+        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareLayer hardwareLayer, string equipmentType, string hardwareKey)
         {
             return new ComponentItem
             {
@@ -286,7 +287,8 @@ namespace EquipmentDesigner.ViewModels
                 Version = version ?? "v1.0.0",
                 Status = state.ToString(),
                 ComponentState = state,
-                EquipmentType = equipmentType ?? string.Empty
+                EquipmentType = equipmentType ?? string.Empty,
+                HardwareKey = hardwareKey
             };
         }
 
@@ -510,7 +512,7 @@ namespace EquipmentDesigner.ViewModels
                 // Remove from WorkflowSessions
                 if (dataStore?.WorkflowSessions != null)
                 {
-                    var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == workflowId);
+                    var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.Id == workflowId);
                     if (sessionToRemove != null)
                     {
                         dataStore.WorkflowSessions.Remove(sessionToRemove);
@@ -582,5 +584,10 @@ namespace EquipmentDesigner.ViewModels
         public string Status { get; set; }
         public ComponentState ComponentState { get; set; }
         public string EquipmentType { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 하드웨어 고유 식별 키 - 버전 선택 다이얼로그 호출 시 사용
+        /// </summary>
+        public string HardwareKey { get; set; }
     }
 }

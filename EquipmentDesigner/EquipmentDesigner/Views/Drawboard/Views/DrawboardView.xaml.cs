@@ -8,6 +8,8 @@ using System.Windows.Media;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
 using EquipmentDesigner.Views.Drawboard.Adorners;
+using EquipmentDesigner.Views.Drawboard.UMLEngine;
+using EquipmentDesigner.Views.Drawboard.UMLEngine.Contexts;
 
 namespace EquipmentDesigner.Views
 {
@@ -16,22 +18,6 @@ namespace EquipmentDesigner.Views
     /// </summary>
     public partial class DrawboardView : UserControl
     {
-        /// <summary>
-        /// Exponential zoom factor for mouse scroll (Figma/Excalidraw style).
-        /// Each scroll step multiplies/divides by this factor (~10% change per step).
-        /// </summary>
-        private const double ScrollZoomFactor = 1.1;
-
-        /// <summary>
-        /// Linear zoom step for low zoom levels (10-100 range).
-        /// </summary>
-        private const int LinearZoomStep = 10;
-
-        /// <summary>
-        /// Threshold below which linear zoom is used instead of exponential.
-        /// </summary>
-        private const int LinearZoomThreshold = 100;
-
         private SelectionAdorner _selectionAdorner;
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
@@ -102,77 +88,39 @@ namespace EquipmentDesigner.Views
 
         /// <summary>
         /// Handles Ctrl+Mouse Wheel for zoom control with focus on mouse position.
-        /// Uses exponential scaling for consistent zoom feel across all zoom levels.
+        /// Uses ZoomControlEngine for calculation.
         /// </summary>
         private void OnCanvasPreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (Keyboard.Modifiers != ModifierKeys.Control) return;
             if (_viewModel == null) return;
 
-            // 1. Get mouse position relative to viewport (before zoom)
-            Point mouseViewport = e.GetPosition(CanvasScrollViewer);
+            // Create zoom context from current viewport state
+            var context = ZoomControlEngine.CreateZoomContext(
+                currentZoomLevel: _viewModel.ZoomLevel,
+                mousePosition: e.GetPosition(CanvasScrollViewer),
+                scrollOffset: new Point(CanvasScrollViewer.HorizontalOffset, CanvasScrollViewer.VerticalOffset),
+                viewportSize: new Size(CanvasScrollViewer.ViewportWidth, CanvasScrollViewer.ViewportHeight));
 
-            // 2. Calculate content coordinates at mouse position
-            double oldScale = _viewModel.ZoomScale;
-            Point mouseContent = new Point(
-                (CanvasScrollViewer.HorizontalOffset + mouseViewport.X) / oldScale,
-                (CanvasScrollViewer.VerticalOffset + mouseViewport.Y) / oldScale
-            );
-
-            // 3. Apply zoom level change (linear for 10-100, exponential for >100)
-            int oldZoom = _viewModel.ZoomLevel;
-            if (e.Delta > 0)
-            {
-                // Zoom In
-                int newZoom;
-                if (_viewModel.ZoomLevel < LinearZoomThreshold)
-                {
-                    // Linear scaling for 10-100 range
-                    newZoom = Math.Min(_viewModel.ZoomLevel + LinearZoomStep, 3000);
-                }
-                else
-                {
-                    // Exponential scaling for >100
-                    newZoom = (int)Math.Round(Math.Min(_viewModel.ZoomLevel * ScrollZoomFactor, 3000));
-                }
-                _viewModel.ZoomLevel = newZoom;
-            }
-            else
-            {
-                // Zoom Out
-                int newZoom;
-                if (_viewModel.ZoomLevel <= LinearZoomThreshold)
-                {
-                    // Linear scaling for 10-100 range
-                    newZoom = Math.Max(_viewModel.ZoomLevel - LinearZoomStep, 10);
-                }
-                else
-                {
-                    // Exponential scaling for >100
-                    double expZoom = _viewModel.ZoomLevel / ScrollZoomFactor;
-                    newZoom = (int)Math.Round(Math.Max(expZoom, 10));
-                }
-                _viewModel.ZoomLevel = newZoom;
-            }
+            // Calculate zoom result
+            var result = ZoomControlEngine.CalculateMouseWheelZoom(context, zoomIn: e.Delta > 0);
 
             // If zoom level didn't change, exit
-            if (_viewModel.ZoomLevel == oldZoom)
+            if (!result.ZoomChanged)
             {
                 e.Handled = true;
                 return;
             }
 
-            // 4. Calculate new scroll offset after zoom
-            double newScale = _viewModel.ZoomScale;
-            double newHOffset = mouseContent.X * newScale - mouseViewport.X;
-            double newVOffset = mouseContent.Y * newScale - mouseViewport.Y;
+            // Apply zoom level
+            _viewModel.ZoomLevel = result.NewZoomLevel;
 
-            // 5. Force layout update to ensure ScrollViewer extent is recalculated
+            // Force layout update to ensure ScrollViewer extent is recalculated
             CanvasScrollViewer.UpdateLayout();
 
-            // 6. Apply scroll offset synchronously (no Dispatcher needed after UpdateLayout)
-            CanvasScrollViewer.ScrollToHorizontalOffset(Math.Max(0, newHOffset));
-            CanvasScrollViewer.ScrollToVerticalOffset(Math.Max(0, newVOffset));
+            // Apply scroll offset
+            CanvasScrollViewer.ScrollToHorizontalOffset(result.NewScrollOffset.X);
+            CanvasScrollViewer.ScrollToVerticalOffset(result.NewScrollOffset.Y);
 
             e.Handled = true;
         }
@@ -195,45 +143,34 @@ namespace EquipmentDesigner.Views
 
         /// <summary>
         /// Applies zoom while maintaining viewport center position.
+        /// Uses ZoomControlEngine for calculation.
         /// </summary>
         private void ZoomAtViewportCenter(bool zoomIn)
         {
             if (_viewModel == null) return;
 
-            // 1. Calculate viewport center position
-            Point viewportCenter = new Point(
-                CanvasScrollViewer.ViewportWidth / 2,
-                CanvasScrollViewer.ViewportHeight / 2
-            );
+            // Create zoom context from current viewport state
+            var context = ZoomControlEngine.CreateZoomContext(
+                currentZoomLevel: _viewModel.ZoomLevel,
+                mousePosition: new Point(0, 0), // Not used for viewport center zoom
+                scrollOffset: new Point(CanvasScrollViewer.HorizontalOffset, CanvasScrollViewer.VerticalOffset),
+                viewportSize: new Size(CanvasScrollViewer.ViewportWidth, CanvasScrollViewer.ViewportHeight));
 
-            // 2. Calculate content coordinates at viewport center
-            double oldScale = _viewModel.ZoomScale;
-            Point contentCenter = new Point(
-                (CanvasScrollViewer.HorizontalOffset + viewportCenter.X) / oldScale,
-                (CanvasScrollViewer.VerticalOffset + viewportCenter.Y) / oldScale
-            );
-
-            // 3. Apply zoom level change
-            int oldZoom = _viewModel.ZoomLevel;
-            if (zoomIn)
-                _viewModel.ZoomLevel = Math.Min(_viewModel.ZoomLevel + 10, 3000);
-            else
-                _viewModel.ZoomLevel = Math.Max(_viewModel.ZoomLevel - 10, 10);
+            // Calculate zoom result
+            var result = ZoomControlEngine.CalculateViewportCenterZoom(context, zoomIn);
 
             // If zoom level didn't change, exit
-            if (_viewModel.ZoomLevel == oldZoom) return;
+            if (!result.ZoomChanged) return;
 
-            // 4. Calculate new scroll offset after zoom
-            double newScale = _viewModel.ZoomScale;
-            double newHOffset = contentCenter.X * newScale - viewportCenter.X;
-            double newVOffset = contentCenter.Y * newScale - viewportCenter.Y;
+            // Apply zoom level
+            _viewModel.ZoomLevel = result.NewZoomLevel;
 
-            // 5. Force layout update to ensure ScrollViewer extent is recalculated
+            // Force layout update to ensure ScrollViewer extent is recalculated
             CanvasScrollViewer.UpdateLayout();
 
-            // 6. Apply scroll offset synchronously (no Dispatcher needed after UpdateLayout)
-            CanvasScrollViewer.ScrollToHorizontalOffset(Math.Max(0, newHOffset));
-            CanvasScrollViewer.ScrollToVerticalOffset(Math.Max(0, newVOffset));
+            // Apply scroll offset
+            CanvasScrollViewer.ScrollToHorizontalOffset(result.NewScrollOffset.X);
+            CanvasScrollViewer.ScrollToVerticalOffset(result.NewScrollOffset.Y);
         }
 
         /// <summary>

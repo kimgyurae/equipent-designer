@@ -12,6 +12,7 @@ using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.ProcessEditor;
 using EquipmentDesigner.Resources;
 using EquipmentDesigner.Services;
+using EquipmentDesigner.Views.Drawboard.UMLEngine;
 
 namespace EquipmentDesigner.ViewModels
 {
@@ -179,7 +180,7 @@ namespace EquipmentDesigner.ViewModels
             get => _zoomLevel;
             set
             {
-                if (SetProperty(ref _zoomLevel, Math.Clamp(value, 10, 3000)))
+                if (SetProperty(ref _zoomLevel, ZoomControlEngine.ClampZoomLevel(value)))
                 {
                     OnPropertyChanged(nameof(ZoomScale));
                 }
@@ -189,7 +190,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Zoom scale factor for canvas transform (ZoomLevel / 100.0).
         /// </summary>
-        public double ZoomScale => ZoomLevel / 100.0;
+        public double ZoomScale => ZoomControlEngine.CalculateZoomScale(ZoomLevel);
 
         /// <summary>
         /// Whether undo operation is available.
@@ -547,12 +548,12 @@ namespace EquipmentDesigner.ViewModels
 
         private void ZoomIn()
         {
-            ZoomLevel = Math.Min(ZoomLevel + 10, 3000);
+            ZoomLevel = ZoomControlEngine.CalculateLinearZoomIn(ZoomLevel);
         }
 
         private void ZoomOut()
         {
-            ZoomLevel = Math.Max(ZoomLevel - 10, 10);
+            ZoomLevel = ZoomControlEngine.CalculateLinearZoomOut(ZoomLevel);
         }
 
         private void Undo()
