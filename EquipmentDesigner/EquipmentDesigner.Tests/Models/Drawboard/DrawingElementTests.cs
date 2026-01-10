@@ -160,20 +160,6 @@ namespace EquipmentDesigner.Tests.Models.Drawboard
 
         #endregion
 
-        #region BackgroundColor Tests
-
-        [Fact]
-        public void DrawingElement_StoresBackgroundColor_AsHexString()
-        {
-            // Arrange & Act
-            var element = new TestDrawingElement { BackgroundColor = "#E2E8F0" };
-
-            // Assert
-            element.BackgroundColor.Should().Be("#E2E8F0");
-        }
-
-        #endregion
-
         #region Clone Tests
 
         [Fact]
@@ -189,7 +175,6 @@ namespace EquipmentDesigner.Tests.Models.Drawboard
                 ZIndex = 3,
                 IsSelected = true,
                 IsLocked = true,
-                BackgroundColor = "#E2E8F0"
             };
 
             // Act
@@ -205,7 +190,6 @@ namespace EquipmentDesigner.Tests.Models.Drawboard
             clone.ZIndex.Should().Be(original.ZIndex);
             clone.IsSelected.Should().Be(original.IsSelected);
             clone.IsLocked.Should().Be(original.IsLocked);
-            clone.BackgroundColor.Should().Be(original.BackgroundColor);
         }
 
         #endregion
@@ -214,9 +198,9 @@ namespace EquipmentDesigner.Tests.Models.Drawboard
     /// <summary>
     /// Concrete implementation for testing abstract DrawingElement
     /// </summary>
-    internal class TestDrawingElement : EquipmentDesigner.Models.Drawboard.DrawingElement
+    internal class TestDrawingElement : EquipmentDesigner.Models.DrawingElement
     {
-        public override EquipmentDesigner.Models.Drawboard.DrawingShapeType ShapeType
-            => EquipmentDesigner.Models.Drawboard.DrawingShapeType.Action;
+        public override EquipmentDesigner.Models.DrawingShapeType ShapeType
+            => EquipmentDesigner.Models.DrawingShapeType.Action;
     }
 }

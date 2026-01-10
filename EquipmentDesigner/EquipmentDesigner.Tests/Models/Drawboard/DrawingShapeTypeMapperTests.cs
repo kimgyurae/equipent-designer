@@ -1,5 +1,4 @@
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models.Drawboard;
 using FluentAssertions;
 using Xunit;
 

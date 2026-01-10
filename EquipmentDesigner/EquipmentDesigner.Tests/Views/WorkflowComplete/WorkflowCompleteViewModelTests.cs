@@ -21,7 +21,6 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
                 WorkflowId = "test-workflow-id",
                 HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Draft,
-                HardwareLayer = HardwareLayer.Equipment,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = new List<TreeNodeDataDto>
                 {

@@ -213,14 +213,15 @@ namespace EquipmentDesigner.ViewModels
                     var rootNode = session.TreeNodes?.FirstOrDefault();
                     if (rootNode == null) continue;
 
-                    var (name, description, version) = ExtractComponentInfo(rootNode);
+                    var (name, description, version, equipmentType) = ExtractComponentInfo(rootNode);
                     var componentItem = CreateComponentItem(
                         session.WorkflowId,  // Use WorkflowId as ID for navigation
                         name ?? "Unnamed",
                         description ?? "",
                         version,
                         session.State,
-                        session.HardwareType);
+                        session.HardwareType,
+                        equipmentType);
 
                     // Add to correct collection based on StartType
                     switch (session.HardwareType)
@@ -259,22 +260,22 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Extracts name and description from a tree node based on its hardware layer.
         /// </summary>
-        private (string name, string description, string version) ExtractComponentInfo(TreeNodeDataDto node)
+        private (string name, string description, string version, string equipmentType) ExtractComponentInfo(TreeNodeDataDto node)
         {
             return node.HardwareLayer switch
             {
-                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description, node.EquipmentData?.Version),
-                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description, node.SystemData?.Version),
-                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description, node.UnitData?.Version),
-                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description, node.DeviceData?.Version),
-                _ => (null, null, null)
+                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description, node.EquipmentData?.Version, node.EquipmentData?.EquipmentType),
+                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description, node.SystemData?.Version, null),
+                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description, node.UnitData?.Version, null),
+                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description, node.DeviceData?.Version, null),
+                _ => (null, null, null, null)
             };
         }
 
         /// <summary>
         /// Creates a ComponentItem with the given state.
         /// </summary>
-        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareLayer hardwareLayer)
+        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareLayer hardwareLayer, string equipmentType)
         {
             return new ComponentItem
             {
@@ -284,7 +285,8 @@ namespace EquipmentDesigner.ViewModels
                 Description = description,
                 Version = version ?? "v1.0.0",
                 Status = state.ToString(),
-                ComponentState = state
+                ComponentState = state,
+                EquipmentType = equipmentType ?? string.Empty
             };
         }
 
@@ -579,5 +581,6 @@ namespace EquipmentDesigner.ViewModels
         public string Version { get; set; }
         public string Status { get; set; }
         public ComponentState ComponentState { get; set; }
+        public string EquipmentType { get; set; } = string.Empty;
     }
 }

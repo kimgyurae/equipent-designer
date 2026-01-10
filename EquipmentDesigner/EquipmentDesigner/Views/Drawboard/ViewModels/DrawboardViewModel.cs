@@ -941,8 +941,8 @@ namespace EquipmentDesigner.ViewModels
             // Update active handle for cursor display (UX feedback)
             ActiveResizeHandle = GetFlippedHandle(_initialHandle, horizontalFlip, verticalFlip);
 
-            // Maintain aspect ratio if Shift is held (corner handles only)
-            if (maintainAspectRatio && IsCornerHandle(_initialHandle))
+            // Maintain aspect ratio if Shift is held (all handles)
+            if (maintainAspectRatio)
             {
                 ApplyAspectRatioConstraint(ref newX, ref newY, ref newWidth, ref newHeight, MinSize);
             }
@@ -1014,23 +1014,72 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Applies aspect ratio constraint to the given dimensions.
+        /// Supports both corner handles (anchor opposite corner) and side handles (anchor opposite edge, center complementary axis).
+        /// Uses _originalAspectRatio (stored at drag start) to maintain consistent ratio across flips.
         /// </summary>
         private void ApplyAspectRatioConstraint(ref double newX, ref double newY,
             ref double newWidth, ref double newHeight, double minSize)
         {
-            double scaleX = newWidth / _trueOriginalBounds.Width;
-            double scaleY = newHeight / _trueOriginalBounds.Height;
-            double scale = Math.Max(scaleX, scaleY);
+            // Use _originalAspectRatio directly instead of calculating from _trueOriginalBounds
+            // This ensures consistent aspect ratio even after flips when _trueOriginalBounds resets
+            double aspectRatio = _originalAspectRatio;
 
-            if (scale <= 0)
-                scale = minSize / Math.Min(_trueOriginalBounds.Width, _trueOriginalBounds.Height);
+            // Ensure valid aspect ratio
+            if (aspectRatio <= 0 || double.IsNaN(aspectRatio) || double.IsInfinity(aspectRatio))
+                aspectRatio = 1.0;
 
-            double scaledWidth = _trueOriginalBounds.Width * scale;
-            double scaledHeight = _trueOriginalBounds.Height * scale;
+            double scaledWidth, scaledHeight;
 
-            // Adjust position based on which corner is anchored (opposite of active handle)
+            // For side handles, use the primary axis scale; for corners, use max
+            bool isSideHandle = ActiveResizeHandle is ResizeHandleType.Top or ResizeHandleType.Bottom
+                                                   or ResizeHandleType.Left or ResizeHandleType.Right;
+
+            if (isSideHandle)
+            {
+                // Side handles: use the primary axis dimension to calculate the secondary axis
+                bool isVerticalPrimary = ActiveResizeHandle is ResizeHandleType.Top or ResizeHandleType.Bottom;
+
+                if (isVerticalPrimary)
+                {
+                    // Top/Bottom: height is primary, calculate width from aspect ratio
+                    scaledHeight = Math.Max(minSize, newHeight);
+                    scaledWidth = scaledHeight * aspectRatio;
+                }
+                else
+                {
+                    // Left/Right: width is primary, calculate height from aspect ratio
+                    scaledWidth = Math.Max(minSize, newWidth);
+                    scaledHeight = scaledWidth / aspectRatio;
+                }
+            }
+            else
+            {
+                // Corner handles: use the larger dimension to ensure element grows in larger direction
+                // Calculate what each dimension would be if the other was used as primary
+                double widthBasedHeight = newWidth / aspectRatio;
+                double heightBasedWidth = newHeight * aspectRatio;
+
+                // Use the dimension that results in the larger overall size
+                if (newWidth >= heightBasedWidth)
+                {
+                    scaledWidth = Math.Max(minSize, newWidth);
+                    scaledHeight = scaledWidth / aspectRatio;
+                }
+                else
+                {
+                    scaledHeight = Math.Max(minSize, newHeight);
+                    scaledWidth = scaledHeight * aspectRatio;
+                }
+            }
+
+            // Ensure minimum size is respected
+            scaledWidth = Math.Max(minSize, scaledWidth);
+            scaledHeight = Math.Max(minSize, scaledHeight);
+
+            // Adjust position based on which edge/corner is anchored (opposite of active handle)
             switch (ActiveResizeHandle)
             {
+                // Corner handles - anchor opposite corner
                 case ResizeHandleType.TopLeft:
                     newX = (newX + newWidth) - scaledWidth;
                     newY = (newY + newHeight) - scaledHeight;
@@ -1043,6 +1092,26 @@ namespace EquipmentDesigner.ViewModels
                     break;
                 case ResizeHandleType.BottomRight:
                     // top-left anchor - no position adjustment needed
+                    break;
+
+                // Side handles - anchor opposite edge, center complementary axis
+                case ResizeHandleType.Top:
+                    // Anchor bottom edge, center width horizontally
+                    newY = (newY + newHeight) - scaledHeight;
+                    newX = newX + (newWidth - scaledWidth) / 2;
+                    break;
+                case ResizeHandleType.Bottom:
+                    // Anchor top edge (no Y adjustment), center width horizontally
+                    newX = newX + (newWidth - scaledWidth) / 2;
+                    break;
+                case ResizeHandleType.Left:
+                    // Anchor right edge, center height vertically
+                    newX = (newX + newWidth) - scaledWidth;
+                    newY = newY + (newHeight - scaledHeight) / 2;
+                    break;
+                case ResizeHandleType.Right:
+                    // Anchor left edge (no X adjustment), center height vertically
+                    newY = newY + (newHeight - scaledHeight) / 2;
                     break;
             }
 

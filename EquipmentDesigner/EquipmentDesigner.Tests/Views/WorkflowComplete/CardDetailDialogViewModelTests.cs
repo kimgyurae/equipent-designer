@@ -49,7 +49,6 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
                     Id = "sys-001",
                     Name = "Test System",
                     DisplayName = "Control System",
-                    Subname = "CS-001",
                     Description = "Main control system",
                     ProcessInfo = "Temperature Control Process",
                     Commands = new List<CommandDto>
@@ -71,7 +70,6 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
                     Id = "unit-001",
                     Name = "Test Unit",
                     DisplayName = "Processing Unit",
-                    Subname = "PU-001",
                     Description = "Main processing unit",
                     ProcessInfo = "Batch Processing",
                     Commands = new List<CommandDto>
@@ -93,7 +91,6 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
                     Id = "dev-001",
                     Name = "Test Device",
                     DisplayName = "Temperature Sensor",
-                    Subname = "TS-001",
                     Description = "Main temperature sensor",
                     DeviceType = "Sensor",
                     IoInfo = new List<IoInfoDto>
@@ -283,19 +280,6 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
 
             // Assert
             viewModel.DisplayName.Should().Be("Primary Reactor A1");
-        }
-
-        [Fact]
-        public void Subname_ExtractsFromAppropriateLayerDto()
-        {
-            // Arrange
-            var nodeDto = CreateEquipmentNodeDto();
-
-            // Act
-            var viewModel = new CardDetailDialogViewModel(nodeDto);
-
-            // Assert
-            viewModel.Subname.Should().Be("PRX-001");
         }
 
         [Fact]

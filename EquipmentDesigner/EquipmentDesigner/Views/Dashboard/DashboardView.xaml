@@ -18,6 +18,7 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:ComponentStateToBackgroundConverter x:Key="ComponentStateToBackgroundConverter"/>
         <converters:ComponentStateToForegroundConverter x:Key="ComponentStateToForegroundConverter"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
     </UserControl.Resources>
 
     <Grid>
@@ -473,7 +474,7 @@
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding CreateDeviceCommand}"/>
                             </Border.InputBindings>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Data="M12 20c2.1217 0 4.1566-.8429 5.6569-2.3431C19.1571 16.1566 20 14.1217 20 12c0-2.1217-.8429-4.15656-2.3431-5.65685C16.1566 4.84285 14.1217 4 12 4c-2.12173 0-4.15656.84285-5.65685 2.34315C4.84285 7.84344 4 9.87827 4 12c0 2.1217.84285 4.1566 2.34315 5.6569C7.84344 19.1571 9.87827 20 12 20z M12 14c.5304 0 1.0391-.2107 1.4142-.5858.3751-.3751.5858-.8838.5858-1.4142 0-.5304-.2107-1.0391-.5858-1.4142C13.0391 10.2107 12.5304 10 12 10c-.5304 0-1.0391.2107-1.4142.5858C10.2107 10.9609 10 11.4696 10 12c0 .5304.2107 1.0391.5858 1.4142C10.9609 13.7893 11.4696 14 12 14z M12 2v2 M12 22v-2 M17 20.6601l-1-1.73 M11 10.27L7 3.33997 M20.66 17l-1.73-1 M3.34003 7l1.73 1 M14 12h8 M2 12h2 M20.66 7l-1.73 1 M3.34003 17l1.73-1 M17 3.33997l-1 1.73 M11 13.73l-4 6.93"
+                                <Path Data="M12 20c2.1217 0 4.1566-.8429 5.6569-2.3431C19.1571 16.1566 20 14.1217 20 12c0-2.1217-.8429-4.15656-2.3431-5.65685C16.1566 4.84285 14.1217 4 12 4c-2.12173 0-4.15656.84285-5.65685 2.34315C7.84344 7.84344 4 9.87827 4 12c0 2.1217.84285 4.1566 2.34315 5.6569C7.84344 19.1571 9.87827 20 12 20z M12 14c.5304 0 1.0391-.2107 1.4142-.5858.3751-.3751.5858-.8838.5858-1.4142 0-.5304-.2107-1.0391-.5858-1.4142C13.0391 10.2107 12.5304 10 12 10c-.5304 0-1.0391.2107-1.4142.5858C10.2107 10.9609 10 11.4696 10 12c0 .5304.2107 1.0391.5858 1.4142C10.9609 13.7893 11.4696 14 12 14z M12 2v2 M12 22v-2 M17 20.6601l-1-1.73 M11 10.27L7 3.33997 M20.66 17l-1.73-1 M3.34003 7l1.73 1 M14 12h8 M2 12h2 M20.66 7l-1.73 1 M3.34003 17l1.73-1 M17 3.33997l-1 1.73 M11 13.73l-4 6.93"
                                       Fill="Transparent"
                                       Stroke="{StaticResource Brush.Text.Primary}"
                                       StrokeThickness="2"
@@ -588,12 +589,17 @@
                                                                Foreground="{StaticResource Brush.Text.Secondary}"
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,8,0,0"/>
-                                                    <!-- Status Chip -->
-                                                    <controls:StateChip Text="{Binding Status}"
-                                                                        ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
-                                                                        ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
-                                                                        Margin="0,16,0,0"
-                                                                        HorizontalAlignment="Left"/>
+                                                    <!-- Status and Type Chips -->
+                                                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                                        <controls:StateChip Text="{Binding Status}"
+                                                                            ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                            ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"/>
+                                                        <controls:StateChip Text="{Binding EquipmentType}"
+                                                                            ChipBackground="{StaticResource Brush.Status.Neutral.Background}"
+                                                                            ChipForeground="{StaticResource Brush.Text.Secondary}"
+                                                                            Margin="8,0,0,0"
+                                                                            Visibility="{Binding EquipmentType, Converter={StaticResource StringToVisibilityConverter}}"/>
+                                                    </StackPanel>
                                                 </StackPanel>
                                             </Border>
                                         </DataTemplate>

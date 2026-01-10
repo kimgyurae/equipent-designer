@@ -114,16 +114,6 @@ namespace EquipmentDesigner.ViewModels
         );
 
         /// <summary>
-        /// Gets the subname of the hardware component.
-        /// </summary>
-        public string Subname => GetCommonProperty(
-            e => e?.Subname,
-            s => s?.Subname,
-            u => u?.Subname,
-            d => d?.Subname
-        );
-
-        /// <summary>
         /// Gets the description of the hardware component.
         /// </summary>
         public string Description => GetCommonProperty(
