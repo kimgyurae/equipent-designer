@@ -552,8 +552,17 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             }
             else
             {
-                newGroupX = left;
                 newGroupWidth = Math.Max(MinSize, rawWidth);
+                // When width is clamped to MinSize, anchor the opposite edge to prevent drift
+                if (rawWidth < MinSize && IsLeftHandle(context.InitialHandle))
+                {
+                    // Left handle being dragged - anchor right edge
+                    newGroupX = right - newGroupWidth;
+                }
+                else
+                {
+                    newGroupX = left;
+                }
             }
 
             if (verticalFlip)
@@ -563,13 +572,28 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             }
             else
             {
-                newGroupY = top;
                 newGroupHeight = Math.Max(MinSize, rawHeight);
+                // When height is clamped to MinSize, anchor the opposite edge to prevent drift
+                if (rawHeight < MinSize && IsTopHandle(context.InitialHandle))
+                {
+                    // Top handle being dragged - anchor bottom edge
+                    newGroupY = bottom - newGroupHeight;
+                }
+                else
+                {
+                    newGroupY = top;
+                }
             }
 
-            // Detect flip TRANSITIONS
+            // Detect flip TRANSITIONS (both flip and unflip)
             bool justFlippedHorizontally = horizontalFlip && !context.WasHorizontallyFlipped;
             bool justFlippedVertically = verticalFlip && !context.WasVerticallyFlipped;
+            bool justUnflippedHorizontally = !horizontalFlip && context.WasHorizontallyFlipped;
+            bool justUnflippedVertically = !verticalFlip && context.WasVerticallyFlipped;
+
+            // Reference frame needs reset on any flip state transition
+            bool needsReferenceReset = justFlippedHorizontally || justFlippedVertically
+                                    || justUnflippedHorizontally || justUnflippedVertically;
 
             // Prepare updated context
             GroupResizeContext updatedContext;
@@ -578,17 +602,27 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             // Calculate transforms for all elements
             var newGroupBounds = new Rect(newGroupX, newGroupY, newGroupWidth, newGroupHeight);
 
-            // Reset reference points on flip transition
-            if (justFlippedHorizontally || justFlippedVertically)
+            // Reset reference points on flip/unflip transition
+            if (needsReferenceReset)
             {
-                currentInitialHandle = GetFlippedHandle(
-                    context.InitialHandle,
-                    justFlippedHorizontally,
-                    justFlippedVertically);
+                // Only change handle on actual flip (not unflip)
+                if (justFlippedHorizontally || justFlippedVertically)
+                {
+                    currentInitialHandle = GetFlippedHandle(
+                        context.InitialHandle,
+                        justFlippedHorizontally,
+                        justFlippedVertically);
+                }
 
-                // Create new snapshots with current element positions
-                var newSnapshots = context.ElementSnapshots
-                    .Select(s => new ElementSnapshot(s.Element))
+                // Calculate transforms FIRST, then use them for snapshots
+                // This ensures snapshots reflect the calculated positions, not stale live bounds
+                var flipTransforms = CalculateElementTransformsForFlip(
+                    context.ElementSnapshots,
+                    context.OriginalGroupBounds,
+                    newGroupBounds);
+
+                var newSnapshots = flipTransforms
+                    .Select(t => new ElementSnapshot(t.Element, new Rect(t.NewX, t.NewY, t.NewWidth, t.NewHeight)))
                     .ToList();
 
                 updatedContext = context.WithFlipUpdate(
@@ -612,8 +646,20 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             }
 
             // Calculate scale factors
-            double scaleX = newGroupWidth / Math.Max(MinSize, context.OriginalGroupBounds.Width);
-            double scaleY = newGroupHeight / Math.Max(MinSize, context.OriginalGroupBounds.Height);
+            double scaleX, scaleY;
+
+            if (needsReferenceReset)
+            {
+                // On flip/unflip frame, scale is 1.0 because we just reset the reference frame
+                // The new snapshots already contain the calculated positions
+                scaleX = 1.0;
+                scaleY = 1.0;
+            }
+            else
+            {
+                scaleX = newGroupWidth / Math.Max(MinSize, context.OriginalGroupBounds.Width);
+                scaleY = newGroupHeight / Math.Max(MinSize, context.OriginalGroupBounds.Height);
+            }
 
             // For edge handles, only scale in that axis
             bool isHorizontalEdge = context.InitialHandle is ResizeHandleType.Top or ResizeHandleType.Bottom;
@@ -629,12 +675,31 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             }
 
             // Maintain aspect ratio if Shift is held
-            if (maintainAspectRatio && !isHorizontalEdge && !isVerticalEdge)
+            if (maintainAspectRatio)
             {
-                // Use the larger scale factor
-                double scale = Math.Max(Math.Abs(scaleX), Math.Abs(scaleY));
-                scaleX = scale;
-                scaleY = scale;
+                double scale;
+
+                if (isHorizontalEdge)
+                {
+                    // Top/Bottom: height is primary, use scaleY for both axes
+                    scale = scaleY;
+                    scaleX = scale;
+                    scaleY = scale;
+                }
+                else if (isVerticalEdge)
+                {
+                    // Left/Right: width is primary, use scaleX for both axes
+                    scale = scaleX;
+                    scaleX = scale;
+                    scaleY = scale;
+                }
+                else
+                {
+                    // Corner handles: use the larger scale factor
+                    scale = Math.Max(Math.Abs(scaleX), Math.Abs(scaleY));
+                    scaleX = scale;
+                    scaleY = scale;
+                }
 
                 // Recalculate group dimensions with uniform scale
                 newGroupWidth = context.OriginalGroupBounds.Width * scaleX;
@@ -700,7 +765,55 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 case ResizeHandleType.BottomRight:
                     // Top-left anchor, no adjustment needed
                     break;
+                case ResizeHandleType.Top:
+                    // Anchor bottom edge, distribute width change from center
+                    newY = originalBounds.Bottom - newHeight;
+                    newX = originalBounds.Left - (newWidth - originalBounds.Width) / 2;
+                    break;
+                case ResizeHandleType.Bottom:
+                    // Anchor top edge, distribute width change from center
+                    newX = originalBounds.Left - (newWidth - originalBounds.Width) / 2;
+                    break;
+                case ResizeHandleType.Left:
+                    // Anchor right edge, distribute height change from center
+                    newX = originalBounds.Right - newWidth;
+                    newY = originalBounds.Top - (newHeight - originalBounds.Height) / 2;
+                    break;
+                case ResizeHandleType.Right:
+                    // Anchor left edge, distribute height change from center
+                    newY = originalBounds.Top - (newHeight - originalBounds.Height) / 2;
+                    break;
             }
+        }
+
+        /// <summary>
+        /// Calculates element transforms for flip transition.
+        /// Used to create accurate snapshots when flip occurs.
+        /// </summary>
+        private static List<ElementTransform> CalculateElementTransformsForFlip(
+            IReadOnlyList<ElementSnapshot> snapshots,
+            Rect originalGroupBounds,
+            Rect newGroupBounds)
+        {
+            double scaleX = newGroupBounds.Width / Math.Max(MinSize, originalGroupBounds.Width);
+            double scaleY = newGroupBounds.Height / Math.Max(MinSize, originalGroupBounds.Height);
+
+            var transforms = new List<ElementTransform>(snapshots.Count);
+            foreach (var snapshot in snapshots)
+            {
+                var origBounds = snapshot.OriginalBounds;
+
+                double newWidth = Math.Max(MinSize, origBounds.Width * scaleX);
+                double newHeight = Math.Max(MinSize, origBounds.Height * scaleY);
+
+                double relativeX = (origBounds.X - originalGroupBounds.X) * scaleX;
+                double relativeY = (origBounds.Y - originalGroupBounds.Y) * scaleY;
+                double newX = newGroupBounds.X + relativeX;
+                double newY = newGroupBounds.Y + relativeY;
+
+                transforms.Add(new ElementTransform(snapshot.Element, newX, newY, newWidth, newHeight));
+            }
+            return transforms;
         }
 
         #endregion

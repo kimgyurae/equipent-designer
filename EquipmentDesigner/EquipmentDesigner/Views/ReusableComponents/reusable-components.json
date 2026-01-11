@@ -39,6 +39,10 @@
         {
             "path": "EllipsisButton.xaml",
             "description": "Reusable ellipsis (three dots) button for 'more options' actions. Exposes Click routed event for parent component binding. Used in context menu triggers and overflow menus."
+        },
+        {
+            "path": "DefaultWhiteCard.xaml",
+            "description": "Reusable white card with hover effects. Features blue border (Brush.Border.Focus) and shadow on hover. Customizable CornerRadius (default: 10), CardPadding (default: 24), Command, and CommandParameter. Background is white (Brush.Surface.Primary), normal border is gray (Brush.Border.Primary). Designed for clickable card UIs like hardware type selection."
         }
     ]
 }

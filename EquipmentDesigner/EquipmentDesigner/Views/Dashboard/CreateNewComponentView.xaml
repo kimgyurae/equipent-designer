@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:services="clr-namespace:EquipmentDesigner.Services"
+             xmlns:controls="clr-namespace:EquipmentDesigner.Controls"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -13,228 +14,197 @@
              d:DesignHeight="600" d:DesignWidth="1200">
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <!-- Top Bar with Back Button -->
-        <Border Grid.Row="0"
-                Background="{StaticResource Brush.Surface.Primary}"
-                BorderBrush="{StaticResource Brush.Border.Primary}"
-                BorderThickness="0,0,0,1"
-                Padding="24,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Back Button and Header -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="{StaticResource Spacing.Padding.2XL}">
+                <!-- Header Section -->
+                <StackPanel Margin="0,0,0,32">
+                    <!-- Back Button -->
                     <Button Command="{Binding NavigateBackCommand}"
                             Background="Transparent"
                             BorderThickness="0"
                             Cursor="Hand"
-                            Padding="8"
-                            Margin="0,0,16,0"
-                            VerticalAlignment="Center">
-                        <Path Data="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                              Fill="{StaticResource Brush.Text.Primary}"
-                              Width="20" Height="20"
-                              Stretch="Uniform"/>
+                            Padding="0"
+                            HorizontalAlignment="Left"
+                            Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                                  Fill="{StaticResource Brush.Status.Info}"
+                                  Width="16" Height="16"
+                                  Stretch="Uniform"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,8,0"/>
+                            <TextBlock Text="{lex:Loc Key=Common_Back}"
+                                       Style="{StaticResource Typography.Body}"
+                                       Foreground="{StaticResource Brush.Status.Info}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
                     </Button>
-                    <StackPanel>
-                        <TextBlock Text="{lex:Loc Key=Dashboard_CreateNewComponent}"
-                                Style="{StaticResource Typography.H3}"
-                                Foreground="{StaticResource Brush.Text.Primary}"/>
-                        <TextBlock Text="{lex:Loc Key=CreateNewComponent_Subtitle}"
-                                Style="{StaticResource Typography.Body.Large}"
-                                Foreground="{StaticResource Brush.Text.Secondary}"
-                                Margin="0,8,0,0"/>
-                    </StackPanel>
+
+                    <!-- Title -->
+                    <TextBlock Text="{lex:Loc Key=CreateNewComponent_SelectHardwareType}"
+                               Style="{StaticResource Typography.H3}"
+                               Foreground="{StaticResource Brush.Text.Primary}"/>
+
+                    <!-- Subtitle -->
+                    <TextBlock Text="{lex:Loc Key=CreateNewComponent_SelectHardwareType_Description}"
+                               Style="{StaticResource Typography.Body.Large}"
+                               Foreground="{StaticResource Brush.Text.Secondary}"
+                               Margin="0,8,0,0"/>
                 </StackPanel>
 
-                <!-- Language Selector -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{lex:Loc Key=Language}"
-                            Style="{StaticResource Typography.Body}"
-                            Foreground="{StaticResource Brush.Text.Secondary}"
-                            VerticalAlignment="Center"
-                            Margin="0,0,12,0"/>
-                    <ComboBox Style="{StaticResource LanguageSelectorComboBox}"
-                                ItemsSource="{Binding Source={x:Static services:LanguageService.Instance}, Path=AvailableLanguages}"
-                                SelectedItem="{Binding Source={x:Static services:LanguageService.Instance}, Path=SelectedLanguage, Mode=TwoWay}"
-                                DisplayMemberPath="DisplayName"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- Main Content -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Margin="{StaticResource Spacing.Padding.2XL}">
-                <!-- Create New Component Section -->
+                <!-- Hardware Type Cards Section -->
                 <UniformGrid Rows="1" Columns="4">
-                    <!-- Equipment Button -->
-                    <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                            BorderThickness="{StaticResource Border.Thin}"
-                            CornerRadius="{StaticResource Radius.LG}"
-                            Margin="0,0,16,0"
-                            Cursor="Hand"
-                            Height="96">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
+                    <!-- Equipment Card -->
+                    <controls:DefaultWhiteCard Command="{Binding CreateEquipmentCommand}"
+                                               Margin="0,0,12,0">
+                        <controls:DefaultWhiteCard.CardContent>
+                            <StackPanel HorizontalAlignment="Center">
+                                <!-- Icon Circle -->
+                                <Border Background="{StaticResource Brush.Status.Info.Background}"
+                                        Width="80" Height="80"
+                                        CornerRadius="{StaticResource Radius.Full}"
+                                        HorizontalAlignment="Center">
+                                    <Path Data="M21 8.00002C20.9996 7.6493 20.9071 7.30483 20.7315 7.00119C20.556 6.69754 20.3037 6.44539 20 6.27002L13 2.27002C12.696 2.09449 12.3511 2.00208 12 2.00208C11.6489 2.00208 11.304 2.09449 11 2.27002L4 6.27002C3.69626 6.44539 3.44398 6.69754 3.26846 7.00119C3.09294 7.30483 3.00036 7.6493 3 8.00002V16C3.00036 16.3508 3.09294 16.6952 3.26846 16.9989C3.44398 17.3025 3.69626 17.5547 4 17.73L11 21.73C11.304 21.9056 11.6489 21.998 12 21.998C12.3511 21.998 12.696 21.9056 13 21.73L20 17.73C20.3037 17.5547 20.556 17.3025 20.7315 16.9989C20.9996 16.6952 21 16.3508 21 16V8.00002Z
+                                            M3.3 7L12 12L20.7 7
+                                            M12 22V12"
+                                          Stroke="{StaticResource Brush.Status.Info}"
+                                          StrokeThickness="2"
+                                          Fill="Transparent"
+                                          Width="48" Height="48"
+                                          Stretch="Uniform"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{lex:Loc Key=Dashboard_Equipment}"
+                                           Style="{StaticResource Typography.H4}"
+                                           Foreground="{StaticResource Brush.Text.Primary}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,16,0,0"/>
+                                <TextBlock Text="{lex:Loc Key=CreateNewComponent_Equipment_Description}"
+                                           Style="{StaticResource Typography.Body}"
+                                           Foreground="{StaticResource Brush.Text.Secondary}"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </controls:DefaultWhiteCard.CardContent>
+                    </controls:DefaultWhiteCard>
 
-                        <Border.InputBindings>
-                            <MouseBinding MouseAction="LeftClick" Command="{Binding CreateEquipmentCommand}"/>
-                        </Border.InputBindings>
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Path Data="M21 8.00002C20.9996 7.6493 20.9071 7.30483 20.7315 7.00119C20.556 6.69754 20.3037 6.44539 20 6.27002L13 2.27002C12.696 2.09449 12.3511 2.00208 12 2.00208C11.6489 2.00208 11.304 2.09449 11 2.27002L4 6.27002C3.69626 6.44539 3.44398 6.69754 3.26846 7.00119C3.09294 7.30483 3.00036 7.6493 3 8.00002V16C3.00036 16.3508 3.09294 16.6952 3.26846 16.9989C3.44398 17.3025 3.69626 17.5547 4 17.73L11 21.73C11.304 21.9056 11.6489 21.998 12 21.998C12.3511 21.998 12.696 21.9056 13 21.73L20 17.73C20.3037 17.5547 20.556 17.3025 20.7315 16.9989C20.9996 16.6952 21 16.3508 21 16V8.00002Z
-                                        M3.3 7L12 12L20.7 7
-                                        M12 22V12"
-                                  Stroke="{StaticResource Brush.Text.Primary}"
-                                  StrokeThickness="2"
-                                  Fill="Transparent"
-                                  Width="24" Height="24"
-                                  Stretch="Uniform"
-                                  HorizontalAlignment="Center"/>
-                            <TextBlock Text="{lex:Loc Key=Dashboard_Equipment}"
-                                       Style="{StaticResource Typography.Body.Large}"
-                                       Foreground="{StaticResource Brush.Text.Primary}"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,12,0,0"/>
-                        </StackPanel>
-                    </Border>
+                    <!-- System Card -->
+                    <controls:DefaultWhiteCard Command="{Binding CreateSystemCommand}"
+                                               Margin="12,0,12,0">
+                        <controls:DefaultWhiteCard.CardContent>
+                            <StackPanel HorizontalAlignment="Center">
+                                <!-- Icon Circle -->
+                                <Border Background="{StaticResource Brush.Status.Info.Background}"
+                                        Width="80" Height="80"
+                                        CornerRadius="{StaticResource Radius.Full}"
+                                        HorizontalAlignment="Center">
+                                    <Path Data="M12 2L2 7l10 5 10-5M2 17l10 5 10-5M2 12l10 5 10-5"
+                                          Stroke="{StaticResource Brush.Status.Info}"
+                                          StrokeThickness="2"
+                                          Fill="Transparent"
+                                          Width="48" Height="48"
+                                          Stretch="Uniform"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{lex:Loc Key=Dashboard_System}"
+                                           Style="{StaticResource Typography.H4}"
+                                           Foreground="{StaticResource Brush.Text.Primary}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,16,0,0"/>
+                                <TextBlock Text="{lex:Loc Key=CreateNewComponent_System_Description}"
+                                           Style="{StaticResource Typography.Body}"
+                                           Foreground="{StaticResource Brush.Text.Secondary}"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </controls:DefaultWhiteCard.CardContent>
+                    </controls:DefaultWhiteCard>
 
-                    <!-- System Button -->
-                    <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                            BorderThickness="{StaticResource Border.Thin}"
-                            CornerRadius="{StaticResource Radius.LG}"
-                            Margin="0,0,16,0"
-                            Cursor="Hand"
-                            Height="96">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
+                    <!-- Unit Card -->
+                    <controls:DefaultWhiteCard Command="{Binding CreateUnitCommand}"
+                                               Margin="12,0,12,0">
+                        <controls:DefaultWhiteCard.CardContent>
+                            <StackPanel HorizontalAlignment="Center">
+                                <!-- Icon Circle -->
+                                <Border Background="{StaticResource Brush.Status.Info.Background}"
+                                        Width="80" Height="80"
+                                        CornerRadius="{StaticResource Radius.Full}"
+                                        HorizontalAlignment="Center">
+                                    <Path Stroke="{StaticResource Brush.Status.Info}"
+                                          StrokeThickness="2"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          StrokeLineJoin="Round"
+                                          Data="M12 8V4H8
+                                                M18 8H6c-1.10457 0-2 .89543-2 2v8c0 1.1046.89543 2 2 2h12c1.1046 0 2-.8954 2-2v-8c0-1.10457-.8954-2-2-2z
+                                                M2 14h2
+                                                M20 14h2
+                                                M15 13v2
+                                                M9 13v2"
+                                          Stretch="Uniform"
+                                          Width="48" Height="48"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{lex:Loc Key=Dashboard_Unit}"
+                                           Style="{StaticResource Typography.H4}"
+                                           Foreground="{StaticResource Brush.Text.Primary}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,16,0,0"/>
+                                <TextBlock Text="{lex:Loc Key=CreateNewComponent_Unit_Description}"
+                                           Style="{StaticResource Typography.Body}"
+                                           Foreground="{StaticResource Brush.Text.Secondary}"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </controls:DefaultWhiteCard.CardContent>
+                    </controls:DefaultWhiteCard>
 
-                        <Border.InputBindings>
-                            <MouseBinding MouseAction="LeftClick" Command="{Binding CreateSystemCommand}"/>
-                        </Border.InputBindings>
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Path Data="M12 2L2 7l10 5 10-5M2 17l10 5 10-5M2 12l10 5 10-5"
-                                  Stroke="{StaticResource Brush.Text.Primary}"
-                                  StrokeThickness="2"
-                                  Fill="Transparent"
-                                  Width="24" Height="24"
-                                  Stretch="Uniform"
-                                  HorizontalAlignment="Center"/>
-                            <TextBlock Text="{lex:Loc Key=Dashboard_System}"
-                                       Style="{StaticResource Typography.Body.Large}"
-                                       Foreground="{StaticResource Brush.Text.Primary}"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,12,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Unit Button -->
-                    <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                            BorderThickness="{StaticResource Border.Thin}"
-                            CornerRadius="{StaticResource Radius.LG}"
-                            Margin="0,0,16,0"
-                            Cursor="Hand"
-                            Height="96">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-
-                        <Border.InputBindings>
-                            <MouseBinding MouseAction="LeftClick" Command="{Binding CreateUnitCommand}"/>
-                        </Border.InputBindings>
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Path Stroke="{StaticResource Brush.Text.Primary}"
-                                  StrokeThickness="2"
-                                  StrokeStartLineCap="Round"
-                                  StrokeEndLineCap="Round"
-                                  StrokeLineJoin="Round"
-                                  Data="M12 8V4H8
-                                        M18 8H6c-1.10457 0-2 .89543-2 2v8c0 1.1046.89543 2 2 2h12c1.1046 0 2-.8954 2-2v-8c0-1.10457-.8954-2-2-2z
-                                        M2 14h2
-                                        M20 14h2
-                                        M15 13v2
-                                        M9 13v2"
-                                  Stretch="Uniform"
-                                  Width="24" Height="24"
-                                  HorizontalAlignment="Center"/>
-                            <TextBlock Text="{lex:Loc Key=Dashboard_Unit}"
-                                       Style="{StaticResource Typography.Body.Large}"
-                                       Foreground="{StaticResource Brush.Text.Primary}"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,12,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Device Button -->
-                    <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                            BorderThickness="{StaticResource Border.Thin}"
-                            CornerRadius="{StaticResource Radius.LG}"
-                            Margin="0,0,16,0"
-                            Cursor="Hand"
-                            Height="96">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-
-                        <Border.InputBindings>
-                            <MouseBinding MouseAction="LeftClick" Command="{Binding CreateDeviceCommand}"/>
-                        </Border.InputBindings>
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Path Data="M12 20c2.1217 0 4.1566-.8429 5.6569-2.3431C19.1571 16.1566 20 14.1217 20 12c0-2.1217-.8429-4.15656-2.3431-5.65685C16.1566 4.84285 14.1217 4 12 4c-2.12173 0-4.15656.84285-5.65685 2.34315C7.84344 7.84344 4 9.87827 4 12c0 2.1217.84285 4.1566 2.34315 5.6569C7.84344 19.1571 9.87827 20 12 20z M12 14c.5304 0 1.0391-.2107 1.4142-.5858.3751-.3751.5858-.8838.5858-1.4142 0-.5304-.2107-1.0391-.5858-1.4142C13.0391 10.2107 12.5304 10 12 10c-.5304 0-1.0391.2107-1.4142.5858C10.2107 10.9609 10 11.4696 10 12c0 .5304.2107 1.0391.5858 1.4142C10.9609 13.7893 11.4696 14 12 14z M12 2v2 M12 22v-2 M17 20.6601l-1-1.73 M11 10.27L7 3.33997 M20.66 17l-1.73-1 M3.34003 7l1.73 1 M14 12h8 M2 12h2 M20.66 7l-1.73 1 M3.34003 17l1.73-1 M17 3.33997l-1 1.73 M11 13.73l-4 6.93"
-                                  Fill="Transparent"
-                                  Stroke="{StaticResource Brush.Text.Primary}"
-                                  StrokeThickness="2"
-                                  StrokeStartLineCap="Round"
-                                  StrokeEndLineCap="Round"
-                                  StrokeLineJoin="Round"
-                                  Width="24" Height="24"
-                                  Stretch="Uniform"
-                                  HorizontalAlignment="Center"/>
-                            <TextBlock Text="{lex:Loc Key=Dashboard_Device}"
-                                       Style="{StaticResource Typography.Body.Large}"
-                                       Foreground="{StaticResource Brush.Text.Primary}"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,12,0,0"/>
-                        </StackPanel>
-                    </Border>
+                    <!-- Device Card -->
+                    <controls:DefaultWhiteCard Command="{Binding CreateDeviceCommand}"
+                                               Margin="12,0,0,0">
+                        <controls:DefaultWhiteCard.CardContent>
+                            <StackPanel HorizontalAlignment="Center">
+                                <!-- Icon Circle -->
+                                <Border Background="{StaticResource Brush.Status.Info.Background}"
+                                        Width="80" Height="80"
+                                        CornerRadius="{StaticResource Radius.Full}"
+                                        HorizontalAlignment="Center">
+                                    <Path Data="M12 20C14.1217 20 16.1566 19.1571 17.6569 17.6569C19.1571 16.1566 20 14.1217 20 12C20 9.87827 19.1571 7.84344 17.6569 6.34315C16.1566 4.84285 14.1217 4 12 4C9.87827 4 7.84344 4.84285 6.34315 6.34315C4.84285 7.84344 4 9.87827 4 12C4 14.1217 4.84285 16.1566 6.34315 17.6569C7.84344 19.1571 9.87827 20 12 20Z M12 14C12.5304 14 13.0391 13.7893 13.4142 13.4142C13.7893 13.0391 14 12.5304 14 12C14 11.4696 13.7893 10.9609 13.4142 10.5858C13.0391 10.2107 12.5304 10 12 10C11.4696 10 10.9609 10.2107 10.5858 10.5858C10.2107 10.9609 10 11.4696 10 12C10 12.5304 10.2107 13.0391 10.5858 13.4142C10.9609 13.7893 11.4696 14 12 14Z M12 2V4 M12 22V20 M17 20.6601L16 18.9301 M11 10.27L7 3.33997 M20.66 17L18.93 16 M3.34003 7L5.07003 8 M14 12H22 M2 12H4 M20.66 7L18.93 8 M3.34003 17L5.07003 16 M17 3.33997L16 5.06997 M11 13.73L7 20.66"
+                                          Fill="Transparent"
+                                          Stroke="{StaticResource Brush.Status.Info}"
+                                          StrokeThickness="2"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          StrokeLineJoin="Round"
+                                          Width="48" Height="48"
+                                          Stretch="Uniform"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="{lex:Loc Key=Dashboard_Device}"
+                                           Style="{StaticResource Typography.H4}"
+                                           Foreground="{StaticResource Brush.Text.Primary}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,16,0,0"/>
+                                <TextBlock Text="{lex:Loc Key=CreateNewComponent_Device_Description}"
+                                           Style="{StaticResource Typography.Body}"
+                                           Foreground="{StaticResource Brush.Text.Secondary}"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </controls:DefaultWhiteCard.CardContent>
+                    </controls:DefaultWhiteCard>
                 </UniformGrid>
             </StackPanel>
         </ScrollViewer>

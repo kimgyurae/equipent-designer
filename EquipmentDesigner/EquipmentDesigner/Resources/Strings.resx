@@ -195,6 +195,48 @@
   <data name="Dashboard_ComponentLists_Description" xml:space="preserve">
     <value>View and manage all components</value>
   </data>
+  <data name="Dashboard_StartFromScratch" xml:space="preserve">
+    <value>Start from Scratch</value>
+  </data>
+  <data name="Dashboard_StartFromScratch_Description" xml:space="preserve">
+    <value>Define new hardware (Equipment, System, Unit, Device).</value>
+  </data>
+  <data name="Dashboard_StartFromExistingHardwares" xml:space="preserve">
+    <value>Start from Existing Hardwares</value>
+  </data>
+  <data name="Dashboard_StartFromExistingHardwares_Description" xml:space="preserve">
+    <value>Copy, modify, or create a new version from registered hardwares.</value>
+  </data>
+  <data name="CreateNewComponent_SelectHardwareType" xml:space="preserve">
+    <value>Select Hardware Type</value>
+  </data>
+  <data name="CreateNewComponent_SelectHardwareType_Description" xml:space="preserve">
+    <value>Choose the type of hardware component you want to define</value>
+  </data>
+  <data name="CreateNewComponent_Equipment_Description" xml:space="preserve">
+    <value>Define the entire equipment. Equipment can consist of one or more Systems. You can define operation processes for each state.</value>
+  </data>
+  <data name="CreateNewComponent_System_Description" xml:space="preserve">
+    <value>Define a system. A system can consist of one or more Units. You can define operation processes for each state.</value>
+  </data>
+  <data name="CreateNewComponent_Unit_Description" xml:space="preserve">
+    <value>Define a unit. A unit can consist of one or more Devices. You can define operation processes for each state.</value>
+  </data>
+  <data name="CreateNewComponent_Device_Description" xml:space="preserve">
+    <value>Define a device. Each device is the smallest hardware unit controllable via IO such as motors or lamps. Devices cannot have processes, only commands.</value>
+  </data>
+  <data name="ComponentList_SelectExistingHardware" xml:space="preserve">
+    <value>Select Existing Hardware</value>
+  </data>
+  <data name="ComponentList_SelectExistingHardware_Description" xml:space="preserve">
+    <value>Choose an existing hardware component to copy, modify, or create a new version</value>
+  </data>
+  <data name="Common_Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Common_Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
   <data name="CreateNewComponent_Subtitle" xml:space="preserve">
     <value>Select the type of component you want to create</value>
   </data>
