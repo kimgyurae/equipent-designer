@@ -22,7 +22,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
         {
             var rootNode = new TreeNodeDataDto
             {
-                NodeId = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid().ToString(),
                 HardwareLayer = startType
             };
 
@@ -44,7 +44,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
 
             return new WorkflowSessionDto
             {
-                WorkflowId = workflowId,
+                Id = workflowId,
                 HardwareType = startType,
                 State = state,
                 TreeNodes = new List<TreeNodeDataDto> { rootNode }
@@ -532,6 +532,64 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
         {
             var viewModel = new DashboardViewModel();
             viewModel.ViewComponentCommand.Should().NotBeNull();
+        }
+
+        #endregion
+
+        #region Navigation Commands for New Views
+
+        [Fact]
+        public void Constructor_Default_NavigateToCreateNewComponentCommandIsNotNull()
+        {
+            var viewModel = new DashboardViewModel();
+            viewModel.NavigateToCreateNewComponentCommand.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void Constructor_Default_NavigateToComponentListCommandIsNotNull()
+        {
+            var viewModel = new DashboardViewModel();
+            viewModel.NavigateToComponentListCommand.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void NavigateToCreateNewComponentCommand_CanExecute_ReturnsTrue()
+        {
+            var viewModel = new DashboardViewModel();
+            viewModel.NavigateToCreateNewComponentCommand.CanExecute(null).Should().BeTrue();
+        }
+
+        [Fact]
+        public void NavigateToComponentListCommand_CanExecute_ReturnsTrue()
+        {
+            var viewModel = new DashboardViewModel();
+            viewModel.NavigateToComponentListCommand.CanExecute(null).Should().BeTrue();
+        }
+
+        [Fact]
+        public void NavigateToCreateNewComponentCommand_Execute_TriggersNavigationToCreateNewComponentView()
+        {
+            var viewModel = new DashboardViewModel();
+            NavigationTarget capturedTarget = null;
+            NavigationService.Instance.NavigationRequested += target => capturedTarget = target;
+
+            viewModel.NavigateToCreateNewComponentCommand.Execute(null);
+
+            capturedTarget.Should().NotBeNull();
+            capturedTarget.TargetType.Should().Be(NavigationTargetType.CreateNewComponent);
+        }
+
+        [Fact]
+        public void NavigateToComponentListCommand_Execute_TriggersNavigationToComponentListView()
+        {
+            var viewModel = new DashboardViewModel();
+            NavigationTarget capturedTarget = null;
+            NavigationService.Instance.NavigationRequested += target => capturedTarget = target;
+
+            viewModel.NavigateToComponentListCommand.Execute(null);
+
+            capturedTarget.Should().NotBeNull();
+            capturedTarget.TargetType.Should().Be(NavigationTargetType.ComponentList);
         }
 
         #endregion

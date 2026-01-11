@@ -23,6 +23,26 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// An element is being resized via a resize handle.
         /// </summary>
-        Resizing
+        Resizing,
+
+        /// <summary>
+        /// Multiple elements are selected and ready for group editing.
+        /// </summary>
+        MultiSelected,
+
+        /// <summary>
+        /// A rubberband (drag) selection is in progress.
+        /// </summary>
+        RubberbandSelecting,
+
+        /// <summary>
+        /// Multiple elements are being moved together.
+        /// </summary>
+        MultiMoving,
+
+        /// <summary>
+        /// Multiple elements are being resized together proportionally.
+        /// </summary>
+        MultiResizing
     }
 }

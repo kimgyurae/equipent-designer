@@ -67,8 +67,8 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-1" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-2" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-1" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-2" });
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -107,9 +107,9 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-1", State = ComponentState.Uploaded });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-2", State = ComponentState.Validated });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-3", State = ComponentState.Draft });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-1", State = ComponentState.Uploaded });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-2", State = ComponentState.Validated });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-3", State = ComponentState.Draft });
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -129,7 +129,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-1", State = ComponentState.Draft });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-1", State = ComponentState.Draft });
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -151,7 +151,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-target" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-target" });
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -160,7 +160,7 @@ namespace EquipmentDesigner.Tests.Services.Api
 
             // Assert
             response.Success.Should().BeTrue();
-            response.Data.WorkflowId.Should().Be("wf-target");
+            response.Data.Id.Should().Be("wf-target");
         }
 
         [Fact]
@@ -218,7 +218,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
             var service = new MockHardwareApiService(repository);
-            var session = new WorkflowSessionDto { WorkflowId = "new-wf", State = ComponentState.Uploaded };
+            var session = new WorkflowSessionDto { Id = "new-wf", State = ComponentState.Uploaded };
 
             // Act
             var response = await service.SaveSessionAsync(session);
@@ -227,7 +227,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             response.Success.Should().BeTrue();
             var allSessions = await service.GetAllSessionsAsync();
             allSessions.Data.Should().HaveCount(1);
-            allSessions.Data.First().WorkflowId.Should().Be("new-wf");
+            allSessions.Data.First().Id.Should().Be("new-wf");
         }
 
         [Fact]
@@ -238,7 +238,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "existing-wf",
+                Id = "existing-wf",
                 State = ComponentState.Uploaded
             });
             await repository.SaveAsync(dataStore);
@@ -247,7 +247,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Act
             var updatedSession = new WorkflowSessionDto
             {
-                WorkflowId = "existing-wf",
+                Id = "existing-wf",
                 State = ComponentState.Validated
             };
             var response = await service.SaveSessionAsync(updatedSession);
@@ -265,7 +265,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var repository = new MemoryUploadedWorkflowRepository();
             var service = new MockHardwareApiService(repository);
             var beforeSave = DateTime.Now;
-            var session = new WorkflowSessionDto { WorkflowId = "new-wf" };
+            var session = new WorkflowSessionDto { Id = "new-wf" };
 
             // Act
             var response = await service.SaveSessionAsync(session);
@@ -296,7 +296,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
             var service = new MockHardwareApiService(repository);
-            var session = new WorkflowSessionDto { WorkflowId = null };
+            var session = new WorkflowSessionDto { Id = null };
 
             // Act
             var response = await service.SaveSessionAsync(session);
@@ -318,7 +318,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "wf-1",
+                Id = "wf-1",
                 State = ComponentState.Uploaded
             });
             await repository.SaveAsync(dataStore);
@@ -341,7 +341,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "wf-1",
+                Id = "wf-1",
                 State = ComponentState.Uploaded,
                 LastModifiedAt = originalTime
             });
@@ -396,7 +396,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-to-delete" });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-to-delete" });
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 

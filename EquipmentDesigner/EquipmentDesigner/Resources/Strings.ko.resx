@@ -189,6 +189,18 @@
   <data name="Dashboard_ComponentLists" xml:space="preserve">
     <value>컴포넌트 목록</value>
   </data>
+  <data name="Dashboard_CreateNewComponent_Description" xml:space="preserve">
+    <value>Equipment, System, Unit, Device 생성</value>
+  </data>
+  <data name="Dashboard_ComponentLists_Description" xml:space="preserve">
+    <value>모든 컴포넌트 보기 및 관리</value>
+  </data>
+  <data name="CreateNewComponent_Subtitle" xml:space="preserve">
+    <value>생성할 컴포넌트 유형을 선택하세요</value>
+  </data>
+  <data name="ComponentList_Subtitle" xml:space="preserve">
+    <value>모든 하드웨어 컴포넌트를 보고 관리합니다</value>
+  </data>
   <data name="Workflow_HardwareDefinition" xml:space="preserve">
     <value>하드웨어 정의</value>
   </data>
@@ -671,5 +683,11 @@
   </data>
   <data name="Toast_ProcessEditorAlreadyOpen_Description" xml:space="preserve">
     <value>프로세스 편집 창은 한 번에 하나만 열 수 있습니다. 기존 창을 먼저 닫아주세요.</value>
+  </data>
+  <data name="Toast_CopyWorkflowFailed_Title" xml:space="preserve">
+    <value>복사 실패</value>
+  </data>
+  <data name="Toast_CopyWorkflowFailed_Description" xml:space="preserve">
+    <value>워크플로우 복사에 실패했습니다. 다시 시도해주세요.</value>
   </data>
 </root>

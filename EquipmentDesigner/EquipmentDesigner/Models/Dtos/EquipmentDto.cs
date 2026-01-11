@@ -6,13 +6,20 @@ namespace EquipmentDesigner.Models
     /// <summary>
     /// Equipment DTO - 최상위 설비 정의
     /// </summary>
-    public class EquipmentDto
+    public class EquipmentDto: IIdentifiable
     {
 
         /// <summary>
         /// 버전 정보 (예: v1.0.0)
         /// </summary>
         public string Version { get; set; } = "v1.0.0";
+
+        /// <summary>
+        /// 하드웨어 고유 식별 키 - 같은 하드웨어의 모든 버전이 동일한 키를 공유
+        /// 예: "AutoAssembler", "ConveyorSystem-Type1"
+        /// null인 경우 Name을 기본값으로 사용 (하위 호환성)
+        /// </summary>
+        public string HardwareKey { get; set; }
 
         /// <summary>
         /// 고유 식별자

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Views.Drawboard.UMLEngine.Contexts;
@@ -406,6 +408,299 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
 
             newWidth = scaledWidth;
             newHeight = scaledHeight;
+        }
+
+        #endregion
+
+        #region Group Operations
+
+        /// <summary>
+        /// Computes the bounding box that contains all element bounds.
+        /// </summary>
+        public static Rect ComputeGroupBounds(IEnumerable<DrawingElement> elements)
+        {
+            var elementList = elements.ToList();
+            if (elementList.Count == 0)
+                return Rect.Empty;
+
+            double minX = double.MaxValue;
+            double minY = double.MaxValue;
+            double maxX = double.MinValue;
+            double maxY = double.MinValue;
+
+            foreach (var element in elementList)
+            {
+                minX = Math.Min(minX, element.X);
+                minY = Math.Min(minY, element.Y);
+                maxX = Math.Max(maxX, element.X + element.Width);
+                maxY = Math.Max(maxY, element.Y + element.Height);
+            }
+
+            return new Rect(minX, minY, maxX - minX, maxY - minY);
+        }
+
+        /// <summary>
+        /// Calculates new positions for multiple elements during group move.
+        /// </summary>
+        public static IReadOnlyList<MoveResult> CalculateGroupMove(
+            IReadOnlyList<Rect> originalBounds,
+            Point dragStartPoint,
+            Point currentPoint)
+        {
+            double deltaX = currentPoint.X - dragStartPoint.X;
+            double deltaY = currentPoint.Y - dragStartPoint.Y;
+
+            var results = new List<MoveResult>(originalBounds.Count);
+            foreach (var bounds in originalBounds)
+            {
+                results.Add(new MoveResult(bounds.X + deltaX, bounds.Y + deltaY));
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Creates context for group resize operation.
+        /// </summary>
+        public static GroupResizeContext CreateGroupResizeContext(
+            IEnumerable<DrawingElement> elements,
+            ResizeHandleType handle,
+            Point startPoint)
+        {
+            var elementList = elements.ToList();
+            var snapshots = elementList.Select(e => new ElementSnapshot(e)).ToList();
+            var groupBounds = ComputeGroupBounds(elementList);
+            double aspectRatio = groupBounds.Width / Math.Max(1, groupBounds.Height);
+
+            return new GroupResizeContext(
+                groupBounds,
+                startPoint,
+                handle,
+                snapshots,
+                aspectRatio,
+                wasVerticallyFlipped: false,
+                wasHorizontallyFlipped: false);
+        }
+
+        /// <summary>
+        /// Calculates resize transformations for all elements in a group.
+        /// Applies proportional scaling based on group bounding box changes.
+        /// </summary>
+        public static GroupResizeResult CalculateGroupResize(
+            GroupResizeContext context,
+            Point currentPoint,
+            bool maintainAspectRatio)
+        {
+            // ABSOLUTE delta from original start point
+            double totalDeltaX = currentPoint.X - context.OriginalStartPoint.X;
+            double totalDeltaY = currentPoint.Y - context.OriginalStartPoint.Y;
+
+            // Start from original group bounds
+            double left = context.OriginalGroupBounds.Left;
+            double top = context.OriginalGroupBounds.Top;
+            double right = context.OriginalGroupBounds.Right;
+            double bottom = context.OriginalGroupBounds.Bottom;
+
+            // Apply delta based on initial handle type
+            switch (context.InitialHandle)
+            {
+                case ResizeHandleType.TopLeft:
+                    left += totalDeltaX;
+                    top += totalDeltaY;
+                    break;
+                case ResizeHandleType.TopRight:
+                    right += totalDeltaX;
+                    top += totalDeltaY;
+                    break;
+                case ResizeHandleType.BottomLeft:
+                    left += totalDeltaX;
+                    bottom += totalDeltaY;
+                    break;
+                case ResizeHandleType.BottomRight:
+                    right += totalDeltaX;
+                    bottom += totalDeltaY;
+                    break;
+                case ResizeHandleType.Top:
+                    top += totalDeltaY;
+                    break;
+                case ResizeHandleType.Bottom:
+                    bottom += totalDeltaY;
+                    break;
+                case ResizeHandleType.Left:
+                    left += totalDeltaX;
+                    break;
+                case ResizeHandleType.Right:
+                    right += totalDeltaX;
+                    break;
+            }
+
+            // Calculate raw dimensions (may be negative if flipped)
+            double rawWidth = right - left;
+            double rawHeight = bottom - top;
+
+            // Detect flips via negative dimensions
+            bool horizontalFlip = rawWidth < 0;
+            bool verticalFlip = rawHeight < 0;
+
+            // Normalize to positive dimensions
+            double newGroupX, newGroupY, newGroupWidth, newGroupHeight;
+
+            if (horizontalFlip)
+            {
+                newGroupX = right;
+                newGroupWidth = Math.Max(MinSize, -rawWidth);
+            }
+            else
+            {
+                newGroupX = left;
+                newGroupWidth = Math.Max(MinSize, rawWidth);
+            }
+
+            if (verticalFlip)
+            {
+                newGroupY = bottom;
+                newGroupHeight = Math.Max(MinSize, -rawHeight);
+            }
+            else
+            {
+                newGroupY = top;
+                newGroupHeight = Math.Max(MinSize, rawHeight);
+            }
+
+            // Detect flip TRANSITIONS
+            bool justFlippedHorizontally = horizontalFlip && !context.WasHorizontallyFlipped;
+            bool justFlippedVertically = verticalFlip && !context.WasVerticallyFlipped;
+
+            // Prepare updated context
+            GroupResizeContext updatedContext;
+            ResizeHandleType currentInitialHandle = context.InitialHandle;
+
+            // Calculate transforms for all elements
+            var newGroupBounds = new Rect(newGroupX, newGroupY, newGroupWidth, newGroupHeight);
+
+            // Reset reference points on flip transition
+            if (justFlippedHorizontally || justFlippedVertically)
+            {
+                currentInitialHandle = GetFlippedHandle(
+                    context.InitialHandle,
+                    justFlippedHorizontally,
+                    justFlippedVertically);
+
+                // Create new snapshots with current element positions
+                var newSnapshots = context.ElementSnapshots
+                    .Select(s => new ElementSnapshot(s.Element))
+                    .ToList();
+
+                updatedContext = context.WithFlipUpdate(
+                    newGroupBounds,
+                    currentPoint,
+                    currentInitialHandle,
+                    newSnapshots,
+                    verticalFlip,
+                    horizontalFlip);
+            }
+            else
+            {
+                updatedContext = new GroupResizeContext(
+                    context.OriginalGroupBounds,
+                    context.OriginalStartPoint,
+                    context.InitialHandle,
+                    context.ElementSnapshots,
+                    context.OriginalAspectRatio,
+                    horizontalFlip,
+                    verticalFlip);
+            }
+
+            // Calculate scale factors
+            double scaleX = newGroupWidth / Math.Max(MinSize, context.OriginalGroupBounds.Width);
+            double scaleY = newGroupHeight / Math.Max(MinSize, context.OriginalGroupBounds.Height);
+
+            // For edge handles, only scale in that axis
+            bool isHorizontalEdge = context.InitialHandle is ResizeHandleType.Top or ResizeHandleType.Bottom;
+            bool isVerticalEdge = context.InitialHandle is ResizeHandleType.Left or ResizeHandleType.Right;
+
+            if (isHorizontalEdge)
+            {
+                scaleX = 1.0;
+            }
+            else if (isVerticalEdge)
+            {
+                scaleY = 1.0;
+            }
+
+            // Maintain aspect ratio if Shift is held
+            if (maintainAspectRatio && !isHorizontalEdge && !isVerticalEdge)
+            {
+                // Use the larger scale factor
+                double scale = Math.Max(Math.Abs(scaleX), Math.Abs(scaleY));
+                scaleX = scale;
+                scaleY = scale;
+
+                // Recalculate group dimensions with uniform scale
+                newGroupWidth = context.OriginalGroupBounds.Width * scaleX;
+                newGroupHeight = context.OriginalGroupBounds.Height * scaleY;
+
+                // Adjust position based on anchor point (opposite corner/edge)
+                var activeHandle = GetFlippedHandle(currentInitialHandle, horizontalFlip, verticalFlip);
+                AdjustGroupPositionForAspectRatio(
+                    ref newGroupX, ref newGroupY,
+                    context.OriginalGroupBounds,
+                    newGroupWidth, newGroupHeight,
+                    activeHandle);
+
+                newGroupBounds = new Rect(newGroupX, newGroupY, newGroupWidth, newGroupHeight);
+            }
+
+            // Calculate element transforms
+            var transforms = new List<ElementTransform>(context.ElementSnapshots.Count);
+            foreach (var snapshot in context.ElementSnapshots)
+            {
+                var origBounds = snapshot.OriginalBounds;
+                var origGroupBounds = context.OriginalGroupBounds;
+
+                // Calculate new size
+                double newWidth = Math.Max(MinSize, origBounds.Width * scaleX);
+                double newHeight = Math.Max(MinSize, origBounds.Height * scaleY);
+
+                // Calculate new position relative to new group origin
+                double relativeX = (origBounds.X - origGroupBounds.X) * scaleX;
+                double relativeY = (origBounds.Y - origGroupBounds.Y) * scaleY;
+                double newX = newGroupX + relativeX;
+                double newY = newGroupY + relativeY;
+
+                transforms.Add(new ElementTransform(snapshot.Element, newX, newY, newWidth, newHeight));
+            }
+
+            var activeHandleResult = GetFlippedHandle(currentInitialHandle, horizontalFlip, verticalFlip);
+
+            return new GroupResizeResult(transforms, activeHandleResult, updatedContext, newGroupBounds);
+        }
+
+        /// <summary>
+        /// Adjusts group position when maintaining aspect ratio.
+        /// </summary>
+        private static void AdjustGroupPositionForAspectRatio(
+            ref double newX, ref double newY,
+            Rect originalBounds,
+            double newWidth, double newHeight,
+            ResizeHandleType activeHandle)
+        {
+            switch (activeHandle)
+            {
+                case ResizeHandleType.TopLeft:
+                    newX = originalBounds.Right - newWidth;
+                    newY = originalBounds.Bottom - newHeight;
+                    break;
+                case ResizeHandleType.TopRight:
+                    newY = originalBounds.Bottom - newHeight;
+                    break;
+                case ResizeHandleType.BottomLeft:
+                    newX = originalBounds.Right - newWidth;
+                    break;
+                case ResizeHandleType.BottomRight:
+                    // Top-left anchor, no adjustment needed
+                    break;
+            }
         }
 
         #endregion

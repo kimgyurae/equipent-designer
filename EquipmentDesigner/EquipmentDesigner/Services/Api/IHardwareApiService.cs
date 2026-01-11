@@ -52,5 +52,23 @@ namespace EquipmentDesigner.Services
         /// <param name="workflowId">The workflow ID to delete.</param>
         /// <returns>API response indicating success or failure.</returns>
         Task<ApiResponse<bool>> DeleteSessionAsync(string workflowId);
+
+        /// <summary>
+        /// 특정 하드웨어 키의 모든 버전 히스토리를 조회합니다.
+        /// </summary>
+        /// <param name="hardwareKey">하드웨어 고유 식별 키</param>
+        /// <param name="hardwareLayer">하드웨어 레이어 (Equipment, System, Unit, Device)</param>
+        /// <returns>버전 히스토리 정보</returns>
+        Task<ApiResponse<HardwareVersionHistoryDto>> GetVersionHistoryAsync(
+            string hardwareKey,
+            HardwareLayer hardwareLayer);
+
+        /// <summary>
+        /// 특정 레이어의 모든 고유 하드웨어 키 목록을 조회합니다.
+        /// (Dashboard에서 그룹화된 표시에 활용 가능)
+        /// </summary>
+        /// <param name="hardwareLayer">하드웨어 레이어</param>
+        /// <returns>고유 하드웨어 키 목록</returns>
+        Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareLayer hardwareLayer);
     }
 }

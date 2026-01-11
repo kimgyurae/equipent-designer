@@ -13,6 +13,8 @@ using EquipmentDesigner.Models.ProcessEditor;
 using EquipmentDesigner.Resources;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Views.Drawboard.UMLEngine;
+using EquipmentDesigner.Views.Drawboard.UMLEngine.Contexts;
+using EquipmentDesigner.Views.Drawboard.UMLEngine.Results;
 
 namespace EquipmentDesigner.ViewModels
 {
@@ -53,6 +55,17 @@ namespace EquipmentDesigner.ViewModels
         // Flip state tracking for reference point reset
         private bool _wasVerticallyFlipped;
         private bool _wasHorizontallyFlipped;
+
+        // Multi-selection state
+        private readonly ObservableCollection<DrawingElement> _selectedElements = new ObservableCollection<DrawingElement>();
+        private GroupResizeContext _groupResizeContext;
+        private List<Rect> _originalElementBounds;
+        private Point _groupDragStartPoint;
+
+        // Rubberband selection state
+        private bool _isRubberbandSelecting;
+        private Point _rubberbandStartPoint;
+        private Rect _rubberbandRect;
 
         /// <summary>
         /// Canvas width based on largest connected monitor size (10x).
@@ -267,6 +280,39 @@ namespace EquipmentDesigner.ViewModels
         {
             get => _activeResizeHandle;
             private set => SetProperty(ref _activeResizeHandle, value);
+        }
+
+        /// <summary>
+        /// Collection of all selected elements.
+        /// </summary>
+        public ObservableCollection<DrawingElement> SelectedElements => _selectedElements;
+
+        /// <summary>
+        /// True if multiple elements are selected.
+        /// </summary>
+        public bool IsMultiSelectionMode => _selectedElements.Count > 1;
+
+        /// <summary>
+        /// Computed bounding box of all selected elements.
+        /// </summary>
+        public Rect GroupBounds => DrawingElementEditingEngine.ComputeGroupBounds(_selectedElements);
+
+        /// <summary>
+        /// Current rubberband selection rectangle.
+        /// </summary>
+        public Rect RubberbandRect
+        {
+            get => _rubberbandRect;
+            private set => SetProperty(ref _rubberbandRect, value);
+        }
+
+        /// <summary>
+        /// True if rubberband selection is in progress.
+        /// </summary>
+        public bool IsRubberbandSelecting
+        {
+            get => _isRubberbandSelecting;
+            private set => SetProperty(ref _isRubberbandSelecting, value);
         }
 
         #endregion
@@ -1118,6 +1164,298 @@ namespace EquipmentDesigner.ViewModels
 
             newWidth = scaledWidth;
             newHeight = scaledHeight;
+        }
+
+        #endregion
+
+        #region Multi-Selection Methods
+
+        /// <summary>
+        /// Adds or removes element from selection (Shift+Click toggle).
+        /// </summary>
+        public void ToggleSelection(DrawingElement element)
+        {
+            if (element == null || element.IsLocked) return;
+
+            if (_selectedElements.Contains(element))
+            {
+                // Remove from selection
+                element.IsSelected = false;
+                _selectedElements.Remove(element);
+
+                // Update state based on remaining selection
+                if (_selectedElements.Count == 0)
+                {
+                    SelectedElement = null;
+                    EditModeState = EditModeState.None;
+                }
+                else if (_selectedElements.Count == 1)
+                {
+                    SelectedElement = _selectedElements[0];
+                    EditModeState = EditModeState.Selected;
+                }
+            }
+            else
+            {
+                // Add to selection
+                element.IsSelected = true;
+                _selectedElements.Add(element);
+
+                if (_selectedElements.Count == 1)
+                {
+                    SelectedElement = element;
+                    EditModeState = EditModeState.Selected;
+                }
+                else
+                {
+                    SelectedElement = null;
+                    EditModeState = EditModeState.MultiSelected;
+                }
+            }
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Adds element to current selection without clearing.
+        /// </summary>
+        public void AddToSelection(DrawingElement element)
+        {
+            if (element == null || element.IsLocked) return;
+            if (_selectedElements.Contains(element)) return;
+
+            element.IsSelected = true;
+            _selectedElements.Add(element);
+
+            if (_selectedElements.Count == 1)
+            {
+                SelectedElement = element;
+                EditModeState = EditModeState.Selected;
+            }
+            else
+            {
+                SelectedElement = null;
+                EditModeState = EditModeState.MultiSelected;
+            }
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Clears all selections.
+        /// </summary>
+        public void ClearAllSelections()
+        {
+            foreach (var element in _selectedElements)
+            {
+                element.IsSelected = false;
+            }
+            _selectedElements.Clear();
+
+            if (_selectedElement != null)
+            {
+                _selectedElement.IsSelected = false;
+                SelectedElement = null;
+            }
+
+            EditModeState = EditModeState.None;
+            ActiveResizeHandle = ResizeHandleType.None;
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Finds all elements fully contained within the given rectangle.
+        /// </summary>
+        public IEnumerable<DrawingElement> FindElementsInRect(Rect selectionRect)
+        {
+            return Elements.Where(e => selectionRect.Contains(e.Bounds));
+        }
+
+        #endregion
+
+        #region Rubberband Selection
+
+        /// <summary>
+        /// Starts rubberband selection from empty space.
+        /// </summary>
+        public void StartRubberbandSelection(Point startPoint)
+        {
+            _rubberbandStartPoint = startPoint;
+            RubberbandRect = new Rect(startPoint, new Size(0, 0));
+            IsRubberbandSelecting = true;
+            EditModeState = EditModeState.RubberbandSelecting;
+        }
+
+        /// <summary>
+        /// Updates rubberband rectangle during drag.
+        /// </summary>
+        public void UpdateRubberbandSelection(Point currentPoint)
+        {
+            if (!_isRubberbandSelecting) return;
+
+            double x = Math.Min(_rubberbandStartPoint.X, currentPoint.X);
+            double y = Math.Min(_rubberbandStartPoint.Y, currentPoint.Y);
+            double width = Math.Abs(currentPoint.X - _rubberbandStartPoint.X);
+            double height = Math.Abs(currentPoint.Y - _rubberbandStartPoint.Y);
+
+            RubberbandRect = new Rect(x, y, width, height);
+        }
+
+        /// <summary>
+        /// Finishes rubberband selection and selects contained elements.
+        /// </summary>
+        public void FinishRubberbandSelection()
+        {
+            if (!_isRubberbandSelecting) return;
+
+            // Find elements fully contained in the rubberband
+            var containedElements = FindElementsInRect(_rubberbandRect).ToList();
+
+            // Clear rubberband state
+            IsRubberbandSelecting = false;
+            RubberbandRect = Rect.Empty;
+
+            if (containedElements.Count == 0)
+            {
+                EditModeState = EditModeState.None;
+                return;
+            }
+
+            // Select all contained elements
+            _selectedElements.Clear();
+            foreach (var element in containedElements)
+            {
+                element.IsSelected = true;
+                _selectedElements.Add(element);
+            }
+
+            if (_selectedElements.Count == 1)
+            {
+                SelectedElement = _selectedElements[0];
+                EditModeState = EditModeState.Selected;
+            }
+            else
+            {
+                SelectedElement = null;
+                EditModeState = EditModeState.MultiSelected;
+            }
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Cancels rubberband selection.
+        /// </summary>
+        public void CancelRubberbandSelection()
+        {
+            IsRubberbandSelecting = false;
+            RubberbandRect = Rect.Empty;
+            EditModeState = EditModeState.None;
+        }
+
+        #endregion
+
+        #region Multi-Element Move Operations
+
+        /// <summary>
+        /// Starts moving all selected elements.
+        /// </summary>
+        public void StartMultiMove(Point startPoint)
+        {
+            if (_selectedElements.Count < 2) return;
+
+            _groupDragStartPoint = startPoint;
+            _originalElementBounds = _selectedElements.Select(e => e.Bounds).ToList();
+            EditModeState = EditModeState.MultiMoving;
+        }
+
+        /// <summary>
+        /// Updates positions of all selected elements.
+        /// </summary>
+        public void UpdateMultiMove(Point currentPoint)
+        {
+            if (EditModeState != EditModeState.MultiMoving) return;
+
+            var results = DrawingElementEditingEngine.CalculateGroupMove(
+                _originalElementBounds,
+                _groupDragStartPoint,
+                currentPoint);
+
+            for (int i = 0; i < _selectedElements.Count && i < results.Count; i++)
+            {
+                _selectedElements[i].X = results[i].NewX;
+                _selectedElements[i].Y = results[i].NewY;
+            }
+
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Ends multi-element move operation.
+        /// </summary>
+        public void EndMultiMove()
+        {
+            if (EditModeState != EditModeState.MultiMoving) return;
+            EditModeState = EditModeState.MultiSelected;
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        #endregion
+
+        #region Multi-Element Resize Operations
+
+        /// <summary>
+        /// Starts resizing all selected elements proportionally.
+        /// </summary>
+        public void StartMultiResize(ResizeHandleType handle, Point startPoint)
+        {
+            if (_selectedElements.Count < 2 || handle == ResizeHandleType.None) return;
+
+            _groupResizeContext = DrawingElementEditingEngine.CreateGroupResizeContext(
+                _selectedElements,
+                handle,
+                startPoint);
+
+            ActiveResizeHandle = handle;
+            EditModeState = EditModeState.MultiResizing;
+        }
+
+        /// <summary>
+        /// Updates sizes and positions of all selected elements.
+        /// </summary>
+        public void UpdateMultiResize(Point currentPoint, bool maintainAspectRatio)
+        {
+            if (EditModeState != EditModeState.MultiResizing) return;
+
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                _groupResizeContext,
+                currentPoint,
+                maintainAspectRatio);
+
+            // Apply transforms
+            result.ApplyAll();
+
+            // Update context for next calculation
+            _groupResizeContext = result.UpdatedContext;
+            ActiveResizeHandle = result.ActiveHandle;
+
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Ends multi-element resize operation.
+        /// </summary>
+        public void EndMultiResize()
+        {
+            if (EditModeState != EditModeState.MultiResizing) return;
+            EditModeState = EditModeState.MultiSelected;
+            ActiveResizeHandle = ResizeHandleType.None;
+            OnPropertyChanged(nameof(GroupBounds));
         }
 
         #endregion

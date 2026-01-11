@@ -18,7 +18,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             return new WorkflowSessionDto
             {
-                WorkflowId = "test-workflow-id",
+                Id = "test-workflow-id",
                 HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now,
@@ -26,28 +26,28 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
                 {
                     new TreeNodeDataDto
                     {
-                        NodeId = "equipment-1",
+                        Id = "equipment-1",
                         HardwareLayer = HardwareLayer.Equipment,
                         EquipmentData = new EquipmentDto { Name = "Test Equipment", Description = "Equipment Description" },
                         Children = new List<TreeNodeDataDto>
                         {
                             new TreeNodeDataDto
                             {
-                                NodeId = "system-1",
+                                Id = "system-1",
                                 HardwareLayer = HardwareLayer.System,
                                 SystemData = new SystemDto { Name = "Test System", Description = "System Description" },
                                 Children = new List<TreeNodeDataDto>
                                 {
                                     new TreeNodeDataDto
                                     {
-                                        NodeId = "unit-1",
+                                        Id = "unit-1",
                                         HardwareLayer = HardwareLayer.Unit,
                                         UnitData = new UnitDto { Name = "Test Unit", Description = "Unit Description" },
                                         Children = new List<TreeNodeDataDto>
                                         {
                                             new TreeNodeDataDto
                                             {
-                                                NodeId = "device-1",
+                                                Id = "device-1",
                                                 HardwareLayer = HardwareLayer.Device,
                                                 DeviceData = new DeviceDto { Name = "Test Device", Description = "Device Description" },
                                                 Children = new List<TreeNodeDataDto>()
@@ -98,7 +98,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var sessionDto = CreateValidSessionDto();
-            sessionDto.WorkflowId = "unique-workflow-123";
+            sessionDto.Id = "unique-workflow-123";
 
             // Act
             var viewModel = new WorkflowCompleteViewModel(sessionDto);

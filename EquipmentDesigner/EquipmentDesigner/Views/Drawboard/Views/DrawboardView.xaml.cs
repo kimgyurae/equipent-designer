@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -19,6 +21,7 @@ namespace EquipmentDesigner.Views
     public partial class DrawboardView : UserControl
     {
         private SelectionAdorner _selectionAdorner;
+        private MultiSelectionAdorner _multiSelectionAdorner;
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
         private DrawboardViewModel _viewModel;
@@ -71,17 +74,53 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(DrawboardViewModel.SelectedElement))
+            if (e.PropertyName == nameof(DrawboardViewModel.SelectedElement) ||
+                e.PropertyName == nameof(DrawboardViewModel.IsMultiSelectionMode))
             {
-                if (_viewModel?.SelectedElement != null)
-                {
-                    UpdateSelectionAdorner(_viewModel.SelectedElement);
-                }
-                else
-                {
-                    RemoveSelectionAdorner();
-                }
+                UpdateAdorners();
             }
+            else if (e.PropertyName == nameof(DrawboardViewModel.IsRubberbandSelecting))
+            {
+                UpdateRubberbandVisibility();
+            }
+        }
+
+        /// <summary>
+        /// Updates adorners based on current selection state.
+        /// </summary>
+        private void UpdateAdorners()
+        {
+            if (_viewModel == null) return;
+
+            if (_viewModel.IsMultiSelectionMode)
+            {
+                // Multi-selection mode: use MultiSelectionAdorner
+                RemoveSelectionAdorner();
+                UpdateMultiSelectionAdorner();
+            }
+            else if (_viewModel.SelectedElement != null)
+            {
+                // Single selection mode: use SelectionAdorner
+                RemoveMultiSelectionAdorner();
+                UpdateSelectionAdorner(_viewModel.SelectedElement);
+            }
+            else
+            {
+                // No selection: remove all adorners
+                RemoveSelectionAdorner();
+                RemoveMultiSelectionAdorner();
+            }
+        }
+
+        /// <summary>
+        /// Updates the rubberband rectangle visibility.
+        /// </summary>
+        private void UpdateRubberbandVisibility()
+        {
+            if (_viewModel == null) return;
+            RubberbandRect.Visibility = _viewModel.IsRubberbandSelecting
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         #region Selection Event Handlers
@@ -277,6 +316,7 @@ namespace EquipmentDesigner.Views
 
         /// <summary>
         /// Common logic for handling selection clicks.
+        /// Supports Shift+Click for multi-selection and rubberband selection.
         /// Note: Resize operations are now handled directly by Thumb drag events in SelectionAdorner.
         /// </summary>
         private void HandleSelectionClick(Point position, MouseButtonEventArgs e)
@@ -285,13 +325,56 @@ namespace EquipmentDesigner.Views
 
             if (hitElement == null)
             {
-                // Clicked on empty space - clear selection
-                _viewModel.ClearSelection();
+                // Clicked on empty space
+                if (!_isShiftPressed)
+                {
+                    // Clear selection and start rubberband selection
+                    _viewModel.ClearAllSelections();
+                }
+                // Start rubberband selection (works with or without Shift)
+                _viewModel.StartRubberbandSelection(position);
+                UpdateRubberbandVisibility();
+                ZoomableGrid.CaptureMouse();
+                e.Handled = true;
                 return;
             }
 
-            // Check if we clicked on already selected element
-            if (hitElement == _viewModel.SelectedElement)
+            // Shift+Click: Toggle selection (add/remove from multi-selection)
+            if (_isShiftPressed)
+            {
+                _viewModel.ToggleSelection(hitElement);
+                ZoomableGrid.Focus();
+                e.Handled = true;
+                return;
+            }
+
+            // Check if we clicked on already selected element (single or multi-selection)
+            if (_viewModel.IsMultiSelectionMode)
+            {
+                // In multi-selection mode, check if clicked on any selected element
+                if (_viewModel.SelectedElements.Contains(hitElement))
+                {
+                    // Check if on group surface - start multi-move
+                    if (_multiSelectionAdorner != null && _multiSelectionAdorner.IsOnGroupSurface(position))
+                    {
+                        _viewModel.StartMultiMove(position);
+                        ZoomableGrid.CaptureMouse();
+                        e.Handled = true;
+                        return;
+                    }
+                }
+                else
+                {
+                    // Clicked on non-selected element - clear and select new one
+                    _viewModel.ClearAllSelections();
+                    _viewModel.SelectElement(hitElement);
+                    _viewModel.StartMove(position);
+                    ZoomableGrid.CaptureMouse();
+                    ZoomableGrid.Focus();
+                    e.Handled = true;
+                }
+            }
+            else if (hitElement == _viewModel.SelectedElement)
             {
                 // Check if on element surface - start move
                 if (_selectionAdorner != null)
@@ -330,7 +413,22 @@ namespace EquipmentDesigner.Views
             }
             else if (e.Key == Key.Delete)
             {
-                if (_viewModel.SelectedElement != null)
+                // Delete all selected elements (multi-selection or single)
+                if (_viewModel.IsMultiSelectionMode)
+                {
+                    // Delete all elements in multi-selection
+                    var elementsToDelete = _viewModel.SelectedElements.ToArray();
+                    _viewModel.ClearAllSelections();
+                    foreach (var element in elementsToDelete)
+                    {
+                        if (!element.IsLocked)
+                        {
+                            _viewModel.Elements.Remove(element);
+                        }
+                    }
+                    e.Handled = true;
+                }
+                else if (_viewModel.SelectedElement != null)
                 {
                     _viewModel.DeleteSelectedElement();
                     e.Handled = true;
@@ -395,6 +493,18 @@ namespace EquipmentDesigner.Views
                     // Do NOT call UpdateResize here to prevent dual invocation bug
                     // that causes incorrect sizing when mouse events and Thumb events conflict
                     return;
+
+                case EditModeState.RubberbandSelecting:
+                    _viewModel.UpdateRubberbandSelection(position);
+                    return;
+
+                case EditModeState.MultiMoving:
+                    _viewModel.UpdateMultiMove(position);
+                    return;
+
+                case EditModeState.MultiResizing:
+                    // Multi-resize is handled by MultiSelectionAdorner.OnThumbDragDelta
+                    return;
             }
 
             // Handle drawing preview
@@ -425,6 +535,25 @@ namespace EquipmentDesigner.Views
 
                 case EditModeState.Resizing:
                     _viewModel.EndResize();
+                    ((UIElement)sender).ReleaseMouseCapture();
+                    e.Handled = true;
+                    return;
+
+                case EditModeState.RubberbandSelecting:
+                    _viewModel.FinishRubberbandSelection();
+                    UpdateRubberbandVisibility();
+                    ((UIElement)sender).ReleaseMouseCapture();
+                    e.Handled = true;
+                    return;
+
+                case EditModeState.MultiMoving:
+                    _viewModel.EndMultiMove();
+                    ((UIElement)sender).ReleaseMouseCapture();
+                    e.Handled = true;
+                    return;
+
+                case EditModeState.MultiResizing:
+                    _viewModel.EndMultiResize();
                     ((UIElement)sender).ReleaseMouseCapture();
                     e.Handled = true;
                     return;
@@ -536,6 +665,84 @@ namespace EquipmentDesigner.Views
 
             _selectionAdorner = null;
             _adornerLayer = null;
+        }
+
+        /// <summary>
+        /// Updates or creates the multi-selection adorner for the selected elements.
+        /// </summary>
+        private void UpdateMultiSelectionAdorner()
+        {
+            if (_viewModel == null || _viewModel.SelectedElements.Count < 2)
+            {
+                RemoveMultiSelectionAdorner();
+                return;
+            }
+
+            // If adorner already exists, just update its bounds
+            if (_multiSelectionAdorner != null)
+            {
+                _multiSelectionAdorner.UpdateGroupBounds();
+                return;
+            }
+
+            // Create new adorner attached to ZoomableGrid
+            _adornerLayer = AdornerLayer.GetAdornerLayer(ZoomableGrid);
+            if (_adornerLayer == null) return;
+
+            _multiSelectionAdorner = new MultiSelectionAdorner(ZoomableGrid, _viewModel.SelectedElements);
+
+            // Connect adorner resize events to ViewModel
+            _multiSelectionAdorner.ResizeStarted += OnMultiAdornerResizeStarted;
+            _multiSelectionAdorner.ResizeDelta += OnMultiAdornerResizeDelta;
+            _multiSelectionAdorner.ResizeCompleted += OnMultiAdornerResizeCompleted;
+
+            _adornerLayer.Add(_multiSelectionAdorner);
+        }
+
+        /// <summary>
+        /// Handles resize start event from multi-selection adorner Thumb.
+        /// </summary>
+        private void OnMultiAdornerResizeStarted(object sender, ResizeEventArgs e)
+        {
+            if (_viewModel == null) return;
+            _viewModel.StartMultiResize(e.HandleType, e.Position);
+        }
+
+        /// <summary>
+        /// Handles resize delta event from multi-selection adorner Thumb.
+        /// </summary>
+        private void OnMultiAdornerResizeDelta(object sender, ResizeEventArgs e)
+        {
+            if (_viewModel == null) return;
+            _viewModel.UpdateMultiResize(e.Position, _isShiftPressed);
+        }
+
+        /// <summary>
+        /// Handles resize completed event from multi-selection adorner Thumb.
+        /// </summary>
+        private void OnMultiAdornerResizeCompleted(object sender, ResizeEventArgs e)
+        {
+            if (_viewModel == null) return;
+            _viewModel.EndMultiResize();
+        }
+
+        /// <summary>
+        /// Removes the current multi-selection adorner.
+        /// </summary>
+        private void RemoveMultiSelectionAdorner()
+        {
+            if (_multiSelectionAdorner != null && _adornerLayer != null)
+            {
+                // Disconnect events
+                _multiSelectionAdorner.ResizeStarted -= OnMultiAdornerResizeStarted;
+                _multiSelectionAdorner.ResizeDelta -= OnMultiAdornerResizeDelta;
+                _multiSelectionAdorner.ResizeCompleted -= OnMultiAdornerResizeCompleted;
+
+                _multiSelectionAdorner.Detach();
+                _adornerLayer.Remove(_multiSelectionAdorner);
+            }
+
+            _multiSelectionAdorner = null;
         }
 
         /// <summary>

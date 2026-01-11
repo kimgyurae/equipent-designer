@@ -126,6 +126,28 @@ namespace EquipmentDesigner.Services
         {
             NavigateBackFromShowDashboardRequested?.Invoke();
         }
+
+        /// <summary>
+        /// Navigate to the Create New Component view.
+        /// </summary>
+        public void NavigateToCreateNewComponent()
+        {
+            NavigationRequested?.Invoke(new NavigationTarget
+            {
+                TargetType = NavigationTargetType.CreateNewComponent
+            });
+        }
+
+        /// <summary>
+        /// Navigate to the Component List view.
+        /// </summary>
+        public void NavigateToComponentList()
+        {
+            NavigationRequested?.Invoke(new NavigationTarget
+            {
+                TargetType = NavigationTargetType.ComponentList
+            });
+        }
     }
 
     /// <summary>
@@ -170,6 +192,8 @@ namespace EquipmentDesigner.Services
         Dashboard,
         HardwareDefineWorkflow,
         WorkflowComplete,
-        Drawboard
+        Drawboard,
+        CreateNewComponent,
+        ComponentList
     }
 }

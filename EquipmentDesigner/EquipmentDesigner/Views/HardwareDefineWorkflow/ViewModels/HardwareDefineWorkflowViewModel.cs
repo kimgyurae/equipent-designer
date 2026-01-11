@@ -484,9 +484,7 @@ namespace EquipmentDesigner.ViewModels
                             break;
 
                         case EditModeSelection.CreateCopy:
-                            // TODO: Implement copy creation logic
-                            // For now, behave the same as DirectEdit
-                            EnableEditModeDirectly();
+                            EnableEditModeWithCopyAsync();
                             break;
                     }
                 }
@@ -533,11 +531,208 @@ namespace EquipmentDesigner.ViewModels
             }
         }
 
+        /// <summary>
+        /// Creates a copy of the current workflow and navigates to edit it.
+        /// Original data remains unchanged.
+        /// </summary>
+        private async void EnableEditModeWithCopyAsync()
+        {
+            try
+            {
+                // 1. Create WorkflowSessionDto from current state
+                var sessionDto = ToWorkflowSessionDto();
+
+                // 2. Create a copy with new ID and regenerated node IDs
+                var copiedSession = CreateCopySession(sessionDto);
+
+                // 3. Save to WorkflowRepository
+                var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
+                var workflowData = await workflowRepo.LoadAsync();
+                workflowData.WorkflowSessions.Add(copiedSession);
+                await workflowRepo.SaveAsync(workflowData);
+
+                // 4. Navigate to the copied workflow
+                NavigationService.Instance.ResumeWorkflow(copiedSession.Id);
+            }
+            catch (Exception)
+            {
+                // Show error toast
+                ToastService.Instance.ShowError(
+                    Strings.Toast_CopyWorkflowFailed_Title,
+                    Strings.Toast_CopyWorkflowFailed_Description);
+            }
+        }
+
+        /// <summary>
+        /// Recursively regenerates all node IDs in a TreeNodeDataDto tree.
+        /// </summary>
+        /// <param name="nodeDto">The root node to regenerate IDs for.</param>
+        public static void RegenerateTreeNodeIds(TreeNodeDataDto nodeDto)
+        {
+            nodeDto.Id = Guid.NewGuid().ToString();
+            foreach (var child in nodeDto.Children)
+            {
+                RegenerateTreeNodeIds(child);
+            }
+        }
+
+        /// <summary>
+        /// Applies copy suffix to the root node's name.
+        /// Uses the existing GenerateCopyName logic from HardwareTreeNodeViewModel.
+        /// </summary>
+        /// <param name="nodeDto">The root node to apply copy suffix to.</param>
+        public static void ApplyCopySuffixToRootNode(TreeNodeDataDto nodeDto)
+        {
+            switch (nodeDto.HardwareLayer)
+            {
+                case HardwareLayer.Equipment when nodeDto.EquipmentData != null:
+                    nodeDto.EquipmentData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.EquipmentData.Name);
+                    break;
+                case HardwareLayer.System when nodeDto.SystemData != null:
+                    nodeDto.SystemData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.SystemData.Name);
+                    break;
+                case HardwareLayer.Unit when nodeDto.UnitData != null:
+                    nodeDto.UnitData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.UnitData.Name);
+                    break;
+                case HardwareLayer.Device when nodeDto.DeviceData != null:
+                    nodeDto.DeviceData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.DeviceData.Name);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Creates a copy of a workflow session with new IDs and copy suffix applied.
+        /// The copied session is set to Draft state.
+        /// </summary>
+        /// <param name="originalSession">The original session to copy.</param>
+        /// <returns>A new WorkflowSessionDto with regenerated IDs and copy suffix.</returns>
+        public static WorkflowSessionDto CreateCopySession(WorkflowSessionDto originalSession)
+        {
+            // Create a deep copy by creating a new DTO
+            var copiedSession = new WorkflowSessionDto
+            {
+                Id = Guid.NewGuid().ToString(),
+                HardwareType = originalSession.HardwareType,
+                State = ComponentState.Draft,
+                LastModifiedAt = DateTime.Now,
+                TreeNodes = originalSession.TreeNodes.Select(DeepCopyTreeNode).ToList()
+            };
+
+            // Regenerate all tree node IDs
+            foreach (var rootNode in copiedSession.TreeNodes)
+            {
+                RegenerateTreeNodeIds(rootNode);
+            }
+
+            // Apply copy suffix to root node names only
+            foreach (var rootNode in copiedSession.TreeNodes)
+            {
+                ApplyCopySuffixToRootNode(rootNode);
+            }
+
+            return copiedSession;
+        }
+
+        /// <summary>
+        /// Creates a deep copy of a TreeNodeDataDto including all children.
+        /// </summary>
+        private static TreeNodeDataDto DeepCopyTreeNode(TreeNodeDataDto original)
+        {
+            return new TreeNodeDataDto
+            {
+                Id = original.Id,
+                HardwareLayer = original.HardwareLayer,
+                EquipmentData = original.EquipmentData != null ? CopyEquipmentDto(original.EquipmentData) : null,
+                SystemData = original.SystemData != null ? CopySystemDto(original.SystemData) : null,
+                UnitData = original.UnitData != null ? CopyUnitDto(original.UnitData) : null,
+                DeviceData = original.DeviceData != null ? CopyDeviceDto(original.DeviceData) : null,
+                Children = original.Children.Select(DeepCopyTreeNode).ToList()
+            };
+        }
+
+        private static EquipmentDto CopyEquipmentDto(EquipmentDto original)
+        {
+            return new EquipmentDto
+            {
+                Name = original.Name,
+                EquipmentType = original.EquipmentType,
+                DisplayName = original.DisplayName,
+                Description = original.Description,
+                Customer = original.Customer,
+                Process = original.Process
+            };
+        }
+
+        private static SystemDto CopySystemDto(SystemDto original)
+        {
+            return new SystemDto
+            {
+                Name = original.Name,
+                DisplayName = original.DisplayName,
+                Description = original.Description,
+                ImplementationInstructions = original.ImplementationInstructions?.ToList() ?? new List<string>(),
+                Commands = original.Commands?.Select(CopyCommandDto).ToList() ?? new List<CommandDto>()
+            };
+        }
+
+        private static UnitDto CopyUnitDto(UnitDto original)
+        {
+            return new UnitDto
+            {
+                Name = original.Name,
+                DisplayName = original.DisplayName,
+                Description = original.Description,
+                ImplementationInstructions = original.ImplementationInstructions?.ToList() ?? new List<string>(),
+                Commands = original.Commands?.Select(CopyCommandDto).ToList() ?? new List<CommandDto>()
+            };
+        }
+
+        private static DeviceDto CopyDeviceDto(DeviceDto original)
+        {
+            return new DeviceDto
+            {
+                Name = original.Name,
+                DisplayName = original.DisplayName,
+                Description = original.Description,
+                DeviceType = original.DeviceType,
+                ImplementationInstructions = original.ImplementationInstructions?.ToList() ?? new List<string>(),
+                Commands = original.Commands?.Select(CopyCommandDto).ToList() ?? new List<CommandDto>(),
+                IoInfo = original.IoInfo?.Select(CopyIoInfoDto).ToList() ?? new List<IoInfoDto>()
+            };
+        }
+
+        private static CommandDto CopyCommandDto(CommandDto original)
+        {
+            return new CommandDto
+            {
+                Name = original.Name,
+                Description = original.Description,
+                Parameters = original.Parameters?.Select(p => new ParameterDto
+                {
+                    Name = p.Name,
+                    Type = p.Type,
+                    Description = p.Description
+                }).ToList() ?? new List<ParameterDto>()
+            };
+        }
+
+        private static IoInfoDto CopyIoInfoDto(IoInfoDto original)
+        {
+            return new IoInfoDto
+            {
+                Name = original.Name,
+                IoType = original.IoType,
+                Address = original.Address,
+                Description = original.Description
+            };
+        }
+
         private void ExecuteGoToNextStep()
         {
             if (CurrentStepIndex < WorkflowSteps.Count - 1)
             {
                 CurrentStepIndex++;
+                SelectTreeNodeForCurrentStep();
                 MarkDirty(); // Mark for autosave when navigating
             }
         }
@@ -552,6 +747,7 @@ namespace EquipmentDesigner.ViewModels
             if (CurrentStepIndex > 0)
             {
                 CurrentStepIndex--;
+                SelectTreeNodeForCurrentStep();
                 MarkDirty(); // Mark for autosave when navigating
             }
         }
@@ -617,7 +813,7 @@ namespace EquipmentDesigner.ViewModels
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == WorkflowId);
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == WorkflowId);
             if (session != null)
             {
                 workflowData.WorkflowSessions.Remove(session);
@@ -662,7 +858,7 @@ namespace EquipmentDesigner.ViewModels
 
             // Create or update WorkflowSessionDto
             var sessionDto = ToWorkflowSessionDto();
-            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
+            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == WorkflowId);
 
             if (existingIndex >= 0)
                 workflowData.WorkflowSessions[existingIndex] = sessionDto;
@@ -878,7 +1074,7 @@ namespace EquipmentDesigner.ViewModels
         {
             return new WorkflowSessionDto
             {
-                WorkflowId = WorkflowId,
+                Id = WorkflowId,
                 HardwareType = StartType,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now,
@@ -893,7 +1089,7 @@ namespace EquipmentDesigner.ViewModels
         {
             var dto = new TreeNodeDataDto
             {
-                NodeId = node.NodeId,
+                Id = node.NodeId,
                 HardwareLayer = node.HardwareLayer,
                 Children = node.Children.Select(SerializeNode).ToList()
             };
@@ -924,7 +1120,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.WorkflowId);
+            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id);
 
             // Rebuild tree from TreeNodes
             if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)
@@ -1082,7 +1278,7 @@ namespace EquipmentDesigner.ViewModels
             var sessionDto = ToWorkflowSessionDto();
             sessionDto.State = ComponentState.Ready;
             
-            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == WorkflowId);
+            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == WorkflowId);
 
             if (existingIndex >= 0)
                 workflowData.WorkflowSessions[existingIndex] = sessionDto;
@@ -1221,6 +1417,30 @@ namespace EquipmentDesigner.ViewModels
                     OnPropertyChanged(nameof(CanGoToNext));
                     UpdateStepStates();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Selects the tree node matching the current step's hardware layer.
+        /// Called after step navigation to sync tree selection.
+        /// </summary>
+        private void SelectTreeNodeForCurrentStep()
+        {
+            if (CurrentStepIndex < 0 || CurrentStepIndex >= WorkflowSteps.Count)
+                return;
+
+            var targetStepName = CurrentStep.StepName;
+
+            // Parse step name to HardwareLayer
+            if (!Enum.TryParse<HardwareLayer>(targetStepName, out var targetLayer))
+                return;
+
+            // Find first tree node matching the target layer
+            var targetNode = GetAllNodes().FirstOrDefault(n => n.HardwareLayer == targetLayer);
+
+            if (targetNode != null && targetNode != SelectedTreeNode)
+            {
+                ExecuteSelectTreeNode(targetNode);
             }
         }
 

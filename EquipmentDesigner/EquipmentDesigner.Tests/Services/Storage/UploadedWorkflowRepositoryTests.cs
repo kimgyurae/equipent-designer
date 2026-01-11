@@ -126,21 +126,21 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var dataStore = new HardwareDefinitionDataStore();
             var session = new WorkflowSessionDto
             {
-                WorkflowId = "wf-tree",
+                Id = "wf-tree",
                 HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Uploaded,
                 TreeNodes = new System.Collections.Generic.List<TreeNodeDataDto>
                 {
                     new TreeNodeDataDto
                     {
-                        NodeId = "node-1",
+                        Id = "node-1",
                         HardwareLayer = HardwareLayer.Equipment,
                         EquipmentData = new EquipmentDto { Name = "TestEquipment" },
                         Children = new System.Collections.Generic.List<TreeNodeDataDto>
                         {
                             new TreeNodeDataDto
                             {
-                                NodeId = "node-2",
+                                Id = "node-2",
                                 HardwareLayer = HardwareLayer.System,
                                 SystemData = new SystemDto { Name = "TestSystem" }
                             }
@@ -157,10 +157,10 @@ namespace EquipmentDesigner.Tests.Services.Storage
             // Assert
             loaded.WorkflowSessions.Should().HaveCount(1);
             loaded.WorkflowSessions[0].TreeNodes.Should().HaveCount(1);
-            loaded.WorkflowSessions[0].TreeNodes[0].NodeId.Should().Be("node-1");
+            loaded.WorkflowSessions[0].TreeNodes[0].Id.Should().Be("node-1");
             loaded.WorkflowSessions[0].TreeNodes[0].EquipmentData.Name.Should().Be("TestEquipment");
             loaded.WorkflowSessions[0].TreeNodes[0].Children.Should().HaveCount(1);
-            loaded.WorkflowSessions[0].TreeNodes[0].Children[0].NodeId.Should().Be("node-2");
+            loaded.WorkflowSessions[0].TreeNodes[0].Children[0].Id.Should().Be("node-2");
             loaded.WorkflowSessions[0].TreeNodes[0].Children[0].SystemData.Name.Should().Be("TestSystem");
         }
 
@@ -215,7 +215,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "test-workflow-1",
+                Id = "test-workflow-1",
                 HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Uploaded
             });
@@ -242,14 +242,14 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "wf-001",
+                Id = "wf-001",
                 HardwareType = HardwareLayer.Equipment,
                 State = ComponentState.Uploaded,
                 LastModifiedAt = DateTime.Now
             });
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "wf-002",
+                Id = "wf-002",
                 HardwareType = HardwareLayer.System,
                 State = ComponentState.Validated,
                 LastModifiedAt = DateTime.Now
@@ -261,9 +261,9 @@ namespace EquipmentDesigner.Tests.Services.Storage
 
             // Assert
             loaded.WorkflowSessions.Should().HaveCount(2);
-            loaded.WorkflowSessions[0].WorkflowId.Should().Be("wf-001");
+            loaded.WorkflowSessions[0].Id.Should().Be("wf-001");
             loaded.WorkflowSessions[0].State.Should().Be(ComponentState.Uploaded);
-            loaded.WorkflowSessions[1].WorkflowId.Should().Be("wf-002");
+            loaded.WorkflowSessions[1].Id.Should().Be("wf-002");
             loaded.WorkflowSessions[1].State.Should().Be(ComponentState.Validated);
         }
 
@@ -272,18 +272,18 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-001", State = ComponentState.Uploaded });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-002", State = ComponentState.Uploaded });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { WorkflowId = "wf-003", State = ComponentState.Uploaded });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-001", State = ComponentState.Uploaded });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-002", State = ComponentState.Uploaded });
+            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-003", State = ComponentState.Uploaded });
             await _repository.SaveAsync(dataStore);
 
             // Act
             var loaded = await _repository.LoadAsync();
-            var found = loaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-002");
+            var found = loaded.WorkflowSessions.Find(s => s.Id == "wf-002");
 
             // Assert
             found.Should().NotBeNull();
-            found.WorkflowId.Should().Be("wf-002");
+            found.Id.Should().Be("wf-002");
         }
 
         [Fact]
@@ -293,27 +293,27 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "wf-update",
+                Id = "wf-update",
                 State = ComponentState.Uploaded
             });
             dataStore.WorkflowSessions.Add(new WorkflowSessionDto
             {
-                WorkflowId = "wf-unchanged",
+                Id = "wf-unchanged",
                 State = ComponentState.Uploaded
             });
             await _repository.SaveAsync(dataStore);
 
             // Act - load, update, save
             var loaded = await _repository.LoadAsync();
-            var existingIndex = loaded.WorkflowSessions.FindIndex(s => s.WorkflowId == "wf-update");
+            var existingIndex = loaded.WorkflowSessions.FindIndex(s => s.Id == "wf-update");
             loaded.WorkflowSessions[existingIndex].State = ComponentState.Validated;
             await _repository.SaveAsync(loaded);
 
             // Assert
             var reloaded = await _repository.LoadAsync();
-            reloaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-update").State
+            reloaded.WorkflowSessions.Find(s => s.Id == "wf-update").State
                 .Should().Be(ComponentState.Validated);
-            reloaded.WorkflowSessions.Find(s => s.WorkflowId == "wf-unchanged").State
+            reloaded.WorkflowSessions.Find(s => s.Id == "wf-unchanged").State
                 .Should().Be(ComponentState.Uploaded);
         }
 

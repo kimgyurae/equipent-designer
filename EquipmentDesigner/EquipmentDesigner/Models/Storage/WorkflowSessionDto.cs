@@ -6,12 +6,12 @@ namespace EquipmentDesigner.Models
     /// <summary>
     /// 워크플로우 세션 DTO - 미완료 워크플로우의 전체 상태 저장
     /// </summary>
-    public class WorkflowSessionDto
+    public class WorkflowSessionDto: IIdentifiable
     {
         /// <summary>
         /// 워크플로우 세션 고유 식별자
         /// </summary>
-        public string WorkflowId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// 워크플로우 시작 레이어 (Equipment, System, Unit, Device)

@@ -46,6 +46,10 @@ namespace EquipmentDesigner.ViewModels
             CreateUnitCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Unit));
             CreateDeviceCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Device));
 
+            // Navigation commands for new views
+            NavigateToCreateNewComponentCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToCreateNewComponent());
+            NavigateToComponentListCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToComponentList());
+
             // Resume workflow command
             ResumeWorkflowCommand = new RelayCommand<WorkflowItem>(ExecuteResumeWorkflow);
 
@@ -70,6 +74,16 @@ namespace EquipmentDesigner.ViewModels
         public ICommand CreateSystemCommand { get; }
         public ICommand CreateUnitCommand { get; }
         public ICommand CreateDeviceCommand { get; }
+
+        /// <summary>
+        /// Command to navigate to the Create New Component view.
+        /// </summary>
+        public ICommand NavigateToCreateNewComponentCommand { get; }
+
+        /// <summary>
+        /// Command to navigate to the Component List view.
+        /// </summary>
+        public ICommand NavigateToComponentListCommand { get; }
 
         /// <summary>
         /// Command to resume an incomplete workflow.

@@ -35,7 +35,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert - Data should be saved to workflows.json
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
 
             session.Should().NotBeNull("because property change should trigger autosave");
             session.TreeNodes.Should().NotBeEmpty();
@@ -69,7 +69,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert - Final value should be saved
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
 
             session.Should().NotBeNull();
             session.TreeNodes.First().DeviceData.Name.Should().Be("TestDevice");
@@ -198,7 +198,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Should().Contain(s => s.WorkflowId == viewModel.WorkflowId);
+            workflowData.WorkflowSessions.Should().Contain(s => s.Id == viewModel.WorkflowId);
 
             // Cleanup
             viewModel.DisableAutosave();
@@ -224,13 +224,13 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert - Should NOT have saved yet (debounce is 2s after LAST change)
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            var sessionBefore = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            var sessionBefore = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
 
             // Now wait for debounce to complete
             await Task.Delay(2000);
 
             workflowData = await workflowRepo.LoadAsync();
-            var sessionAfter = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            var sessionAfter = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
 
             sessionAfter.Should().NotBeNull("because debounce should have fired after 2s of inactivity");
             sessionAfter.TreeNodes.First().DeviceData.Name.Should().Be("Name3");
@@ -343,7 +343,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert - Both saves should have occurred (second change marked dirty again)
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
 
             session.Should().NotBeNull();
             session.TreeNodes.First().DeviceData.Name.Should().Be("ModifiedDevice");
@@ -370,7 +370,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            var session = workflowData.WorkflowSessions.First(s => s.WorkflowId == viewModel.WorkflowId);
+            var session = workflowData.WorkflowSessions.First(s => s.Id == viewModel.WorkflowId);
 
             session.LastModifiedAt.Should().BeOnOrAfter(beforeSave);
 
@@ -398,7 +398,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == viewModel.WorkflowId);
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
 
             session.Should().NotBeNull();
             session.TreeNodes.First().EquipmentData.Name.Should().Be("TestEquipment");

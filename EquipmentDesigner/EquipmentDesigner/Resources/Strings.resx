@@ -189,6 +189,18 @@
   <data name="Dashboard_ComponentLists" xml:space="preserve">
     <value>Component Lists</value>
   </data>
+  <data name="Dashboard_CreateNewComponent_Description" xml:space="preserve">
+    <value>Create new Equipment, System, Unit, or Device</value>
+  </data>
+  <data name="Dashboard_ComponentLists_Description" xml:space="preserve">
+    <value>View and manage all components</value>
+  </data>
+  <data name="CreateNewComponent_Subtitle" xml:space="preserve">
+    <value>Select the type of component you want to create</value>
+  </data>
+  <data name="ComponentList_Subtitle" xml:space="preserve">
+    <value>View and manage all your hardware components</value>
+  </data>
   <data name="Workflow_HardwareDefinition" xml:space="preserve">
     <value>Hardware Definition</value>
   </data>
@@ -671,5 +683,11 @@
   </data>
   <data name="Toast_ProcessEditorAlreadyOpen_Description" xml:space="preserve">
     <value>Only one Process editor window can be opened at a time. Please close the existing window first.</value>
+  </data>
+  <data name="Toast_CopyWorkflowFailed_Title" xml:space="preserve">
+    <value>Copy Failed</value>
+  </data>
+  <data name="Toast_CopyWorkflowFailed_Description" xml:space="preserve">
+    <value>Failed to create a copy of the workflow. Please try again.</value>
   </data>
 </root>

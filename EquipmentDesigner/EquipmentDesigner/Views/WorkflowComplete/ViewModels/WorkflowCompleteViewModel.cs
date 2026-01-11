@@ -29,7 +29,7 @@ namespace EquipmentDesigner.ViewModels
 
             var model = new HardwareNodeDisplayModel
             {
-                NodeId = dto.NodeId,
+                NodeId = dto.Id,
                 HardwareLayer = dto.HardwareLayer,
                 SourceDto = dto
             };
@@ -114,7 +114,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Gets the workflow ID.
         /// </summary>
-        public string WorkflowId => _sessionDto?.WorkflowId;
+        public string WorkflowId => _sessionDto?.Id;
 
         /// <summary>
         /// Gets the start type of the workflow.
@@ -204,7 +204,7 @@ namespace EquipmentDesigner.ViewModels
 
         private bool CanExecuteUpload()
         {
-            return _sessionDto != null && !string.IsNullOrEmpty(_sessionDto.WorkflowId);
+            return _sessionDto != null && !string.IsNullOrEmpty(_sessionDto.Id);
         }
 
         private void ExecuteUpload()
@@ -243,7 +243,7 @@ namespace EquipmentDesigner.ViewModels
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.WorkflowId == _sessionDto.WorkflowId);
+            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == _sessionDto.Id);
             if (session != null)
             {
                 workflowData.WorkflowSessions.Remove(session);
@@ -264,7 +264,7 @@ namespace EquipmentDesigner.ViewModels
             if (_sessionDto == null)
                 return;
 
-            NavigationService.Instance.ResumeWorkflow(_sessionDto.WorkflowId);
+            NavigationService.Instance.ResumeWorkflow(_sessionDto.Id);
         }
 
         private async void ExecuteUploadLater()
@@ -279,7 +279,7 @@ namespace EquipmentDesigner.ViewModels
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
-            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.WorkflowId == _sessionDto.WorkflowId);
+            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == _sessionDto.Id);
             if (existingIndex >= 0)
                 workflowData.WorkflowSessions[existingIndex] = _sessionDto;
             else

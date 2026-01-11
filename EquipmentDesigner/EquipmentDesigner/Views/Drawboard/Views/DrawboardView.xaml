@@ -345,6 +345,20 @@
                     <Canvas x:Name="GhostTrailCanvas"
                             IsHitTestVisible="False"/>
 
+                    <!-- Rubberband Selection Rectangle -->
+                    <Canvas IsHitTestVisible="False" Panel.ZIndex="9998">
+                        <Rectangle x:Name="RubberbandRect"
+                                   Stroke="#60A5FA"
+                                   StrokeThickness="1"
+                                   StrokeDashArray="4 2"
+                                   Fill="#1060A5FA"
+                                   Visibility="Collapsed"
+                                   Canvas.Left="{Binding RubberbandRect.X}"
+                                   Canvas.Top="{Binding RubberbandRect.Y}"
+                                   Width="{Binding RubberbandRect.Width}"
+                                   Height="{Binding RubberbandRect.Height}"/>
+                    </Canvas>
+
                     <!-- Inline Text Editing TextBox -->
                     <Canvas x:Name="InlineEditCanvas" IsHitTestVisible="True" Panel.ZIndex="10000">
                         <TextBox x:Name="InlineEditTextBox"

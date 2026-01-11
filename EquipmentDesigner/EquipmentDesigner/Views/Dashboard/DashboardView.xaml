@@ -28,7 +28,7 @@
         </Grid.RowDefinitions>
 
         <!-- Top Bar with Language Selector -->
-        <Border Grid.Row="0" 
+        <Border Grid.Row="0"
                 Background="{StaticResource Brush.Surface.Primary}"
                 BorderBrush="{StaticResource Brush.Border.Primary}"
                 BorderThickness="0,0,0,1"
@@ -154,7 +154,7 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            
+
                             <!-- Reset All Data Button -->
                             <Button Command="{Binding ResetAllDataCommand}"
                                     Background="{StaticResource Brush.Status.Danger.Background}"
@@ -202,7 +202,6 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
-                            <!-- Add more admin buttons here in the future -->
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -241,7 +240,7 @@
                                        Margin="0,4,0,16"/>
 
                             <!-- Workflow Items List -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled"
                                           MaxHeight="256">
                                 <ItemsControl ItemsSource="{Binding IncompleteWorkflows}">
@@ -276,7 +275,6 @@
                                                         <TextBlock Text="{Binding StartedFrom}"
                                                                    Style="{StaticResource Typography.Body.Large}"
                                                                    Foreground="{StaticResource Brush.Text.Primary}"/>
-
                                                         <controls:StateChip Text="{Binding ComponentStateDisplayText}"
                                                                             ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
                                                                             ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
@@ -324,578 +322,88 @@
                     </Grid>
                 </Border>
 
-                <!-- Create New Component Section -->
-                <StackPanel Margin="0,0,0,32">
-                    <TextBlock Text="{lex:Loc Key=Dashboard_CreateNewComponent}"
-                               Style="{StaticResource Typography.H4}"
-                               Foreground="{StaticResource Brush.Text.Primary}"
-                               Margin="0,0,0,16"/>
-
-                    <UniformGrid Rows="1" Columns="4">
-                        <!-- Equipment Button -->
-                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                BorderThickness="{StaticResource Border.Thin}"
-                                CornerRadius="{StaticResource Radius.LG}"
-                                Margin="0,0,16,0"
-                                Cursor="Hand"
-                                Height="96">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            
-                            <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" Command="{Binding CreateEquipmentCommand}"/>
-                            </Border.InputBindings>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Data="M21 8.00002C20.9996 7.6493 20.9071 7.30483 20.7315 7.00119C20.556 6.69754 20.3037 6.44539 20 6.27002L13 2.27002C12.696 2.09449 12.3511 2.00208 12 2.00208C11.6489 2.00208 11.304 2.09449 11 2.27002L4 6.27002C3.69626 6.44539 3.44398 6.69754 3.26846 7.00119C3.09294 7.30483 3.00036 7.6493 3 8.00002V16C3.00036 16.3508 3.09294 16.6952 3.26846 16.9989C3.44398 17.3025 3.69626 17.5547 4 17.73L11 21.73C11.304 21.9056 11.6489 21.998 12 21.998C12.3511 21.998 12.696 21.9056 13 21.73L20 17.73C20.3037 17.5547 20.556 17.3025 20.7315 16.9989C20.9996 16.6952 21 16.3508 21 16V8.00002Z 
-                                            M3.3 7L12 12L20.7 7 
-                                            M12 22V12"
-                                      Stroke="{StaticResource Brush.Text.Primary}"
-                                      StrokeThickness="2"
-                                      Fill="Transparent"
-                                      Width="24" Height="24"
-                                      Stretch="Uniform"
-                                      HorizontalAlignment="Center"/>
-                                <TextBlock Text="{lex:Loc Key=Dashboard_Equipment}"
-                                           Style="{StaticResource Typography.Body.Large}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"
-                                           HorizontalAlignment="Center"
-                                           Margin="0,12,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- System Button -->
-                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                BorderThickness="{StaticResource Border.Thin}"
-                                CornerRadius="{StaticResource Radius.LG}"
-                                Margin="0,0,16,0"
-                                Cursor="Hand"
-                                Height="96">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            
-                            <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" Command="{Binding CreateSystemCommand}"/>
-                            </Border.InputBindings>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Data="M12 2L2 7l10 5 10-5M2 17l10 5 10-5M2 12l10 5 10-5"
-                                      Stroke="{StaticResource Brush.Text.Primary}"
-                                      StrokeThickness="2"
-                                      Fill="Transparent"
-                                      Width="24" Height="24"
-                                      Stretch="Uniform"
-                                      HorizontalAlignment="Center"/>
-                                <TextBlock Text="{lex:Loc Key=Dashboard_System}"
-                                           Style="{StaticResource Typography.Body.Large}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"
-                                           HorizontalAlignment="Center"
-                                           Margin="0,12,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Unit Button -->
-                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                BorderThickness="{StaticResource Border.Thin}"
-                                CornerRadius="{StaticResource Radius.LG}"
-                                Margin="0,0,16,0"
-                                Cursor="Hand"
-                                Height="96">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            
-                            <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" Command="{Binding CreateUnitCommand}"/>
-                            </Border.InputBindings>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Stroke="{StaticResource Brush.Text.Primary}"
-                                      StrokeThickness="2" 
-                                      StrokeStartLineCap="Round" 
-                                      StrokeEndLineCap="Round" 
-                                      StrokeLineJoin="Round"
-                                      Data="M12 8V4H8
-                                            M18 8H6c-1.10457 0-2 .89543-2 2v8c0 1.1046.89543 2 2 2h12c1.1046 0 2-.8954 2-2v-8c0-1.10457-.8954-2-2-2z
-                                            M2 14h2
-                                            M20 14h2
-                                            M15 13v2
-                                            M9 13v2"
-                                      Stretch="Uniform"
-                                      Width="24" Height="24"
-                                      HorizontalAlignment="Center"/>
-                                <TextBlock Text="{lex:Loc Key=Dashboard_Unit}"
-                                           Style="{StaticResource Typography.Body.Large}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"
-                                           HorizontalAlignment="Center"
-                                           Margin="0,12,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Device Button -->
-                        <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                BorderThickness="{StaticResource Border.Thin}"
-                                CornerRadius="{StaticResource Radius.LG}"
-                                Margin="0,0,16,0"
-                                Cursor="Hand"
-                                Height="96">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            
-                            <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" Command="{Binding CreateDeviceCommand}"/>
-                            </Border.InputBindings>
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <Path Data="M12 20c2.1217 0 4.1566-.8429 5.6569-2.3431C19.1571 16.1566 20 14.1217 20 12c0-2.1217-.8429-4.15656-2.3431-5.65685C16.1566 4.84285 14.1217 4 12 4c-2.12173 0-4.15656.84285-5.65685 2.34315C7.84344 7.84344 4 9.87827 4 12c0 2.1217.84285 4.1566 2.34315 5.6569C7.84344 19.1571 9.87827 20 12 20z M12 14c.5304 0 1.0391-.2107 1.4142-.5858.3751-.3751.5858-.8838.5858-1.4142 0-.5304-.2107-1.0391-.5858-1.4142C13.0391 10.2107 12.5304 10 12 10c-.5304 0-1.0391.2107-1.4142.5858C10.2107 10.9609 10 11.4696 10 12c0 .5304.2107 1.0391.5858 1.4142C10.9609 13.7893 11.4696 14 12 14z M12 2v2 M12 22v-2 M17 20.6601l-1-1.73 M11 10.27L7 3.33997 M20.66 17l-1.73-1 M3.34003 7l1.73 1 M14 12h8 M2 12h2 M20.66 7l-1.73 1 M3.34003 17l1.73-1 M17 3.33997l-1 1.73 M11 13.73l-4 6.93"
-                                      Fill="Transparent"
-                                      Stroke="{StaticResource Brush.Text.Primary}"
-                                      StrokeThickness="2"
-                                      StrokeStartLineCap="Round"
-                                      StrokeEndLineCap="Round"
-                                      StrokeLineJoin="Round"
-                                      Width="24" Height="24"
-                                      Stretch="Uniform"
-                                      HorizontalAlignment="Center"/>
-                                <TextBlock Text="{lex:Loc Key=Dashboard_Device}"
-                                           Style="{StaticResource Typography.Body.Large}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"
-                                           HorizontalAlignment="Center"
-                                           Margin="0,12,0,0"/>
-                            </StackPanel>
-                        </Border>
-                    </UniformGrid>
-                </StackPanel>
-
-                <!-- Section Separator -->
-                <Border Height="1"
-                        Background="{StaticResource Brush.Border.Primary}"
-                        Margin="0,0,0,32"/>
-
-                <!-- Component Lists Section (2x2 Grid) -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="{lex:Loc Key=Dashboard_ComponentLists}"
-                               Style="{StaticResource Typography.H4}"
-                               Foreground="{StaticResource Brush.Text.Primary}"/>
-                </StackPanel>
-
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="24"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Equipments Card -->
-                    <Border Grid.Row="0" Grid.Column="0"
-                            Background="{StaticResource Brush.Surface.Primary}"
-                            BorderBrush="{StaticResource Brush.Border.Primary}"
+                <!-- Navigation Cards Section -->
+                <UniformGrid Rows="1" Columns="2" Margin="0,0,0,32">
+                    <!-- Create New Component Card -->
+                    <Border BorderBrush="{StaticResource Brush.Border.Primary}"
                             BorderThickness="{StaticResource Border.Thin}"
                             CornerRadius="{StaticResource Radius.LG}"
-                            Padding="24"
-                            Margin="0,0,0,24"
-                            MinHeight="140">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <TextBlock Text="{lex:Loc Key=Dashboard_Equipments}"
-                                           Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"/>
-                                <TextBlock Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}">
-                                    <Run Text=" ("/>
-                                    <Run Text="{Binding EquipmentsCount, Mode=OneWay}"/>
-                                    <Run Text=")"/>
-                                </TextBlock>
-                            </StackPanel>
+                            Margin="0,0,16,0"
+                            Cursor="Hand"
+                            Height="140">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource Brush.Status.Warning.Background}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
 
-                            <!-- Equipments Card ItemTemplate -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          MaxHeight="400">
-                                <ItemsControl ItemsSource="{Binding Equipments}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="10"
-                                                    Padding="16"
-                                                    Margin="0,0,0,12"
-                                                    Cursor="Hand">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="{StaticResource Brush.Background.Tertiary}"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <Border.InputBindings>
-                                                    <MouseBinding MouseAction="LeftClick"
-                                                                  Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  CommandParameter="{Binding}"/>
-                                                </Border.InputBindings>
-                                                <StackPanel>
-                                                    <!-- Version -->
-                                                    <TextBlock Text="{Binding Version}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"/>
-                                                    <!-- Title -->
-                                                    <TextBlock Text="{Binding Name}"
-                                                               Style="{StaticResource Typography.Body.Large}"
-                                                               FontWeight="{StaticResource Font.Weight.Medium}"
-                                                               Foreground="{StaticResource Brush.Text.Primary}"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Description -->
-                                                    <TextBlock Text="{Binding Description}"
-                                                               Style="{StaticResource Typography.Body}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Status and Type Chips -->
-                                                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                                                        <controls:StateChip Text="{Binding Status}"
-                                                                            ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
-                                                                            ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"/>
-                                                        <controls:StateChip Text="{Binding EquipmentType}"
-                                                                            ChipBackground="{StaticResource Brush.Status.Neutral.Background}"
-                                                                            ChipForeground="{StaticResource Brush.Text.Secondary}"
-                                                                            Margin="8,0,0,0"
-                                                                            Visibility="{Binding EquipmentType, Converter={StaticResource StringToVisibilityConverter}}"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-
-                            <!-- Empty State -->
-                            <TextBlock Text="{lex:Loc Key=Dashboard_NoEquipments}"
-                                       Style="{StaticResource Typography.Body.Large}"
+                        <Border.InputBindings>
+                            <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateToCreateNewComponentCommand}"/>
+                        </Border.InputBindings>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Path Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                                  Fill="{StaticResource Brush.Text.Primary}"
+                                  Width="32" Height="32"
+                                  Stretch="Uniform"
+                                  HorizontalAlignment="Center"/>
+                            <TextBlock Text="{lex:Loc Key=Dashboard_CreateNewComponent}"
+                                       Style="{StaticResource Typography.H4}"
+                                       Foreground="{StaticResource Brush.Text.Primary}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,16,0,0"/>
+                            <TextBlock Text="{lex:Loc Key=Dashboard_CreateNewComponent_Description}"
+                                       Style="{StaticResource Typography.Body}"
                                        Foreground="{StaticResource Brush.Text.Secondary}"
                                        HorizontalAlignment="Center"
-                                       Visibility="{Binding HasNoEquipments, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Visible}"/>
+                                       Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Systems Card -->
-                    <Border Grid.Row="0" Grid.Column="2"
-                            Background="{StaticResource Brush.Surface.Primary}"
-                            BorderBrush="{StaticResource Brush.Border.Primary}"
+                    <!-- Component Lists Card -->
+                    <Border BorderBrush="{StaticResource Brush.Border.Primary}"
                             BorderThickness="{StaticResource Border.Thin}"
                             CornerRadius="{StaticResource Radius.LG}"
-                            Padding="24"
-                            Margin="0,0,0,24"
-                            MinHeight="140">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <TextBlock Text="{lex:Loc Key=Dashboard_Systems}"
-                                           Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"/>
-                                <TextBlock Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}">
-                                    <Run Text=" ("/>
-                                    <Run Text="{Binding SystemsCount, Mode=OneWay}"/>
-                                    <Run Text=")"/>
-                                </TextBlock>
-                            </StackPanel>
+                            Margin="16,0,0,0"
+                            Cursor="Hand"
+                            Height="140">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource Brush.Status.Info.Background}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
 
-                            <!-- Systems Card ItemTemplate -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          MaxHeight="400">
-                                <ItemsControl ItemsSource="{Binding Systems}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="10"
-                                                    Padding="16"
-                                                    Margin="0,0,0,12"
-                                                    Cursor="Hand">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="{StaticResource Brush.Background.Tertiary}"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <Border.InputBindings>
-                                                    <MouseBinding MouseAction="LeftClick"
-                                                                  Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  CommandParameter="{Binding}"/>
-                                                </Border.InputBindings>
-                                                <StackPanel>
-                                                    <!-- Version -->
-                                                    <TextBlock Text="{Binding Version}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"/>
-                                                    <!-- Title -->
-                                                    <TextBlock Text="{Binding Name}"
-                                                               Style="{StaticResource Typography.Body.Large}"
-                                                               FontWeight="{StaticResource Font.Weight.Medium}"
-                                                               Foreground="{StaticResource Brush.Text.Primary}"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Description -->
-                                                    <TextBlock Text="{Binding Description}"
-                                                               Style="{StaticResource Typography.Body}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Status Chip -->
-                                                    <controls:StateChip Text="{Binding Status}"
-                                                                        ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
-                                                                        ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
-                                                                        Margin="0,16,0,0"
-                                                                        HorizontalAlignment="Left"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-
-                            <!-- Empty State -->
-                            <TextBlock Text="{lex:Loc Key=Dashboard_NoSystems}"
-                                       Style="{StaticResource Typography.Body.Large}"
+                        <Border.InputBindings>
+                            <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateToComponentListCommand}"/>
+                        </Border.InputBindings>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Path Data="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"
+                                  Fill="{StaticResource Brush.Text.Primary}"
+                                  Width="32" Height="32"
+                                  Stretch="Uniform"
+                                  HorizontalAlignment="Center"/>
+                            <TextBlock Text="{lex:Loc Key=Dashboard_ComponentLists}"
+                                       Style="{StaticResource Typography.H4}"
+                                       Foreground="{StaticResource Brush.Text.Primary}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,16,0,0"/>
+                            <TextBlock Text="{lex:Loc Key=Dashboard_ComponentLists_Description}"
+                                       Style="{StaticResource Typography.Body}"
                                        Foreground="{StaticResource Brush.Text.Secondary}"
                                        HorizontalAlignment="Center"
-                                       Visibility="{Binding HasNoSystems, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Visible}"/>
+                                       Margin="0,8,0,0"/>
                         </StackPanel>
                     </Border>
-
-                    <!-- Units Card -->
-                    <Border Grid.Row="1" Grid.Column="0"
-                            Background="{StaticResource Brush.Surface.Primary}"
-                            BorderBrush="{StaticResource Brush.Border.Primary}"
-                            BorderThickness="{StaticResource Border.Thin}"
-                            CornerRadius="{StaticResource Radius.LG}"
-                            Padding="24"
-                            MinHeight="160">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <TextBlock Text="{lex:Loc Key=Dashboard_Units}"
-                                           Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"/>
-                                <TextBlock Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}">
-                                    <Run Text=" ("/>
-                                    <Run Text="{Binding UnitsCount, Mode=OneWay}"/>
-                                    <Run Text=")"/>
-                                </TextBlock>
-                            </StackPanel>
-
-                            <!-- Units Card ItemTemplate -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          MaxHeight="400">
-                                <ItemsControl ItemsSource="{Binding Units}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="10"
-                                                    Padding="16"
-                                                    Margin="0,0,0,12"
-                                                    Cursor="Hand">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="{StaticResource Brush.Background.Tertiary}"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <Border.InputBindings>
-                                                    <MouseBinding MouseAction="LeftClick"
-                                                                  Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  CommandParameter="{Binding}"/>
-                                                </Border.InputBindings>
-                                                <StackPanel>
-                                                    <!-- Version -->
-                                                    <TextBlock Text="{Binding Version}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"/>
-                                                    <!-- Title -->
-                                                    <TextBlock Text="{Binding Name}"
-                                                               Style="{StaticResource Typography.Body.Large}"
-                                                               FontWeight="{StaticResource Font.Weight.Medium}"
-                                                               Foreground="{StaticResource Brush.Text.Primary}"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Description -->
-                                                    <TextBlock Text="{Binding Description}"
-                                                               Style="{StaticResource Typography.Body}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Status Chip -->
-                                                    <controls:StateChip Text="{Binding Status}"
-                                                                        ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
-                                                                        ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
-                                                                        Margin="0,16,0,0"
-                                                                        HorizontalAlignment="Left"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-
-                            <!-- Empty State -->
-                            <TextBlock Text="{lex:Loc Key=Dashboard_NoUnits}"
-                                       Style="{StaticResource Typography.Body.Large}"
-                                       Foreground="{StaticResource Brush.Text.Secondary}"
-                                       HorizontalAlignment="Center"
-                                       Visibility="{Binding HasNoUnits, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Visible}"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Devices Card -->
-                    <Border Grid.Row="1" Grid.Column="2"
-                            Background="{StaticResource Brush.Surface.Primary}"
-                            BorderBrush="{StaticResource Brush.Border.Primary}"
-                            BorderThickness="{StaticResource Border.Thin}"
-                            CornerRadius="{StaticResource Radius.LG}"
-                            Padding="24"
-                            MinHeight="160">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <TextBlock Text="{lex:Loc Key=Dashboard_Devices}"
-                                           Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}"/>
-                                <TextBlock Style="{StaticResource Typography.H4}"
-                                           Foreground="{StaticResource Brush.Text.Primary}">
-                                    <Run Text=" ("/>
-                                    <Run Text="{Binding DevicesCount, Mode=OneWay}"/>
-                                    <Run Text=")"/>
-                                </TextBlock>
-                            </StackPanel>
-
-                            <!-- Devices Card ItemTemplate -->
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          MaxHeight="400">
-                                <ItemsControl ItemsSource="{Binding Devices}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border BorderBrush="{StaticResource Brush.Border.Primary}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="10"
-                                                    Padding="16"
-                                                    Margin="0,0,0,12"
-                                                    Cursor="Hand">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource Brush.Surface.Primary}"/>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="{StaticResource Brush.Background.Tertiary}"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <Border.InputBindings>
-                                                    <MouseBinding MouseAction="LeftClick"
-                                                                  Command="{Binding DataContext.ViewComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  CommandParameter="{Binding}"/>
-                                                </Border.InputBindings>
-                                                <StackPanel>
-                                                    <!-- Version -->
-                                                    <TextBlock Text="{Binding Version}"
-                                                               Style="{StaticResource Typography.Body.Small}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"/>
-                                                    <!-- Title -->
-                                                    <TextBlock Text="{Binding Name}"
-                                                               Style="{StaticResource Typography.Body.Large}"
-                                                               FontWeight="{StaticResource Font.Weight.Medium}"
-                                                               Foreground="{StaticResource Brush.Text.Primary}"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Description -->
-                                                    <TextBlock Text="{Binding Description}"
-                                                               Style="{StaticResource Typography.Body}"
-                                                               Foreground="{StaticResource Brush.Text.Secondary}"
-                                                               TextTrimming="CharacterEllipsis"
-                                                               Margin="0,8,0,0"/>
-                                                    <!-- Status Chip -->
-                                                    <controls:StateChip Text="{Binding Status}"
-                                                                        ChipBackground="{Binding ComponentState, Converter={StaticResource ComponentStateToBackgroundConverter}}"
-                                                                        ChipForeground="{Binding ComponentState, Converter={StaticResource ComponentStateToForegroundConverter}}"
-                                                                        Margin="0,16,0,0"
-                                                                        HorizontalAlignment="Left"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-
-                            <!-- Empty State -->
-                            <TextBlock Text="{lex:Loc Key=Dashboard_NoDevices}"
-                                       Style="{StaticResource Typography.Body.Large}"
-                                       Foreground="{StaticResource Brush.Text.Secondary}"
-                                       HorizontalAlignment="Center"
-                                       Visibility="{Binding HasNoDevices, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Visible}"/>
-                        </StackPanel>
-                    </Border>
-                </Grid>
+                </UniformGrid>
             </StackPanel>
         </ScrollViewer>
     </Grid>

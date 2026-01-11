@@ -75,7 +75,7 @@ namespace EquipmentDesigner.Services
             try
             {
                 var dataStore = await _repository.LoadAsync();
-                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.WorkflowId == workflowId);
+                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.Id == workflowId);
 
                 if (session == null)
                 {
@@ -104,7 +104,7 @@ namespace EquipmentDesigner.Services
                 return ApiResponse<WorkflowSessionDto>.Fail("Session is required", "INVALID_SESSION");
             }
 
-            if (string.IsNullOrEmpty(session.WorkflowId))
+            if (string.IsNullOrEmpty(session.Id))
             {
                 LoadingSpinnerService.Instance.Hide();
                 return ApiResponse<WorkflowSessionDto>.Fail("Workflow ID is required", "INVALID_ID");
@@ -114,7 +114,7 @@ namespace EquipmentDesigner.Services
             {
                 var dataStore = await _repository.LoadAsync();
 
-                var existingIndex = dataStore.WorkflowSessions.FindIndex(s => s.WorkflowId == session.WorkflowId);
+                var existingIndex = dataStore.WorkflowSessions.FindIndex(s => s.Id == session.Id);
                 if (existingIndex >= 0)
                 {
                     dataStore.WorkflowSessions[existingIndex] = session;
@@ -150,7 +150,7 @@ namespace EquipmentDesigner.Services
             try
             {
                 var dataStore = await _repository.LoadAsync();
-                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.WorkflowId == workflowId);
+                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.Id == workflowId);
 
                 if (session == null)
                 {
@@ -185,7 +185,7 @@ namespace EquipmentDesigner.Services
             try
             {
                 var dataStore = await _repository.LoadAsync();
-                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.WorkflowId == workflowId);
+                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.Id == workflowId);
 
                 if (session == null)
                 {
@@ -205,5 +205,184 @@ namespace EquipmentDesigner.Services
                 return ApiResponse<bool>.Fail(ex.Message, "DELETE_ERROR");
             }
         }
+
+        public async Task<ApiResponse<HardwareVersionHistoryDto>> GetVersionHistoryAsync(
+            string hardwareKey,
+            HardwareLayer hardwareLayer)
+        {
+            LoadingSpinnerService.Instance.Show();
+            await Task.Delay(SimulatedDelay);
+
+            try
+            {
+                var dataStore = await _repository.LoadAsync();
+
+                // 같은 HardwareKey + HardwareLayer를 가진 모든 세션 필터링
+                var matchingSessions = dataStore.WorkflowSessions?
+                    .Where(s => s.HardwareType == hardwareLayer)
+                    .Where(s => GetEffectiveHardwareKey(s) == hardwareKey)
+                    .OrderByDescending(s => ParseVersion(GetVersion(s)))
+                    .ToList() ?? new List<WorkflowSessionDto>();
+
+                if (!matchingSessions.Any())
+                {
+                    LoadingSpinnerService.Instance.Hide();
+                    return ApiResponse<HardwareVersionHistoryDto>.Fail(
+                        $"No versions found for '{hardwareKey}'", "NOT_FOUND");
+                }
+
+                var history = new HardwareVersionHistoryDto
+                {
+                    HardwareKey = hardwareKey,
+                    HardwareLayer = hardwareLayer,
+                    DisplayName = GetDisplayName(matchingSessions.First()),
+                    TotalVersionCount = matchingSessions.Count,
+                    Versions = matchingSessions.Select((s, index) => new HardwareVersionSummaryDto
+                    {
+                        WorkflowId = s.Id,
+                        Version = GetVersion(s),
+                        State = s.State,
+                        LastModifiedAt = s.LastModifiedAt,
+                        IsLatest = index == 0,
+                        Description = GetDescription(s)
+                    }).ToList()
+                };
+
+                LoadingSpinnerService.Instance.Hide();
+                return ApiResponse<HardwareVersionHistoryDto>.Ok(history);
+            }
+            catch (Exception ex)
+            {
+                LoadingSpinnerService.Instance.Hide();
+                return ApiResponse<HardwareVersionHistoryDto>.Fail(ex.Message, "LOAD_ERROR");
+            }
+        }
+
+        public async Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareLayer hardwareLayer)
+        {
+            LoadingSpinnerService.Instance.Show();
+            await Task.Delay(SimulatedDelay);
+
+            try
+            {
+                var dataStore = await _repository.LoadAsync();
+
+                var distinctKeys = dataStore.WorkflowSessions?
+                    .Where(s => s.HardwareType == hardwareLayer)
+                    .Select(s => GetEffectiveHardwareKey(s))
+                    .Where(key => !string.IsNullOrEmpty(key))
+                    .Distinct()
+                    .ToList() ?? new List<string>();
+
+                LoadingSpinnerService.Instance.Hide();
+                return ApiResponse<List<string>>.Ok(distinctKeys);
+            }
+            catch (Exception ex)
+            {
+                LoadingSpinnerService.Instance.Hide();
+                return ApiResponse<List<string>>.Fail(ex.Message, "LOAD_ERROR");
+            }
+        }
+
+        #region Version History Helper Methods
+
+        /// <summary>
+        /// 세션에서 유효한 HardwareKey를 가져옵니다. null인 경우 Name을 반환합니다.
+        /// </summary>
+        private string GetEffectiveHardwareKey(WorkflowSessionDto session)
+        {
+            var rootNode = session.TreeNodes?.FirstOrDefault();
+            if (rootNode == null) return null;
+
+            return session.HardwareType switch
+            {
+                HardwareLayer.Equipment => rootNode.EquipmentData?.HardwareKey ?? rootNode.EquipmentData?.Name,
+                HardwareLayer.System => rootNode.SystemData?.HardwareKey ?? rootNode.SystemData?.Name,
+                HardwareLayer.Unit => rootNode.UnitData?.HardwareKey ?? rootNode.UnitData?.Name,
+                HardwareLayer.Device => rootNode.DeviceData?.HardwareKey ?? rootNode.DeviceData?.Name,
+                _ => null
+            };
+        }
+
+        /// <summary>
+        /// 세션에서 버전 정보를 가져옵니다.
+        /// </summary>
+        private string GetVersion(WorkflowSessionDto session)
+        {
+            var rootNode = session.TreeNodes?.FirstOrDefault();
+            if (rootNode == null) return "v0.0.0";
+
+            return session.HardwareType switch
+            {
+                HardwareLayer.Equipment => rootNode.EquipmentData?.Version ?? "v0.0.0",
+                HardwareLayer.System => rootNode.SystemData?.Version ?? "v0.0.0",
+                HardwareLayer.Unit => rootNode.UnitData?.Version ?? "v0.0.0",
+                HardwareLayer.Device => rootNode.DeviceData?.Version ?? "v0.0.0",
+                _ => "v0.0.0"
+            };
+        }
+
+        /// <summary>
+        /// 세션에서 표시용 이름을 가져옵니다.
+        /// </summary>
+        private string GetDisplayName(WorkflowSessionDto session)
+        {
+            var rootNode = session.TreeNodes?.FirstOrDefault();
+            if (rootNode == null) return "Unknown";
+
+            return session.HardwareType switch
+            {
+                HardwareLayer.Equipment => rootNode.EquipmentData?.DisplayName ?? rootNode.EquipmentData?.Name ?? "Unknown",
+                HardwareLayer.System => rootNode.SystemData?.DisplayName ?? rootNode.SystemData?.Name ?? "Unknown",
+                HardwareLayer.Unit => rootNode.UnitData?.DisplayName ?? rootNode.UnitData?.Name ?? "Unknown",
+                HardwareLayer.Device => rootNode.DeviceData?.DisplayName ?? rootNode.DeviceData?.Name ?? "Unknown",
+                _ => "Unknown"
+            };
+        }
+
+        /// <summary>
+        /// 세션에서 설명을 가져옵니다.
+        /// </summary>
+        private string GetDescription(WorkflowSessionDto session)
+        {
+            var rootNode = session.TreeNodes?.FirstOrDefault();
+            if (rootNode == null) return null;
+
+            return session.HardwareType switch
+            {
+                HardwareLayer.Equipment => rootNode.EquipmentData?.Description,
+                HardwareLayer.System => rootNode.SystemData?.Description,
+                HardwareLayer.Unit => rootNode.UnitData?.Description,
+                HardwareLayer.Device => rootNode.DeviceData?.Description,
+                _ => null
+            };
+        }
+
+        /// <summary>
+        /// 버전 문자열을 파싱하여 비교 가능한 Version 객체로 변환합니다.
+        /// </summary>
+        private Version ParseVersion(string versionString)
+        {
+            if (string.IsNullOrEmpty(versionString))
+                return new Version(0, 0, 0);
+
+            // 'v' 또는 'V' 접두사 제거
+            var normalized = versionString.TrimStart('v', 'V');
+
+            // 버전 형식 맞추기 (X.Y → X.Y.0)
+            var parts = normalized.Split('.');
+            while (parts.Length < 3)
+            {
+                normalized += ".0";
+                parts = normalized.Split('.');
+            }
+
+            if (Version.TryParse(normalized, out var version))
+                return version;
+
+            return new Version(0, 0, 0);
+        }
+
+        #endregion
     }
 }

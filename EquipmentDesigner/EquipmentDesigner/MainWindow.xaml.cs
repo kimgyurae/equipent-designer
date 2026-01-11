@@ -63,6 +63,16 @@ namespace EquipmentDesigner
                 };
                 MainContent.Content = workflowView;
             }
+            else if (target.TargetType == NavigationTargetType.CreateNewComponent)
+            {
+                var view = new CreateNewComponentView();
+                MainContent.Content = view;
+            }
+            else if (target.TargetType == NavigationTargetType.ComponentList)
+            {
+                var view = new ComponentListView();
+                MainContent.Content = view;
+            }
         }
 
         private void OnNavigateToDashboard()
@@ -86,7 +96,7 @@ namespace EquipmentDesigner
                 var dataStore = await repository.LoadAsync();
 
                 var sessionDto = dataStore?.WorkflowSessions?
-                    .FirstOrDefault(s => s.WorkflowId == target.WorkflowId);
+                    .FirstOrDefault(s => s.Id == target.WorkflowId);
 
                 if (sessionDto != null)
                 {
