@@ -1,0 +1,266 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using EquipmentDesigner.Models;
+
+namespace EquipmentDesigner.ViewModels
+{
+    /// <summary>
+    /// Partial class containing selection and multi-selection logic.
+    /// </summary>
+    public partial class DrawboardViewModel
+    {
+        #region Selection Operations
+
+        /// <summary>
+        /// Selects an element for editing.
+        /// </summary>
+        public void SelectElement(DrawingElement element)
+        {
+            if (element == null || element.IsLocked) return;
+
+            // Clear previous selection
+            if (_selectedElement != null && _selectedElement != element)
+            {
+                _selectedElement.IsSelected = false;
+            }
+
+            element.IsSelected = true;
+            SelectedElement = element;
+            EditModeState = EditModeState.Selected;
+        }
+
+        /// <summary>
+        /// Clears the current selection.
+        /// </summary>
+        public void ClearSelection()
+        {
+            if (_selectedElement != null)
+            {
+                _selectedElement.IsSelected = false;
+                SelectedElement = null;
+            }
+            EditModeState = EditModeState.None;
+            ActiveResizeHandle = ResizeHandleType.None;
+        }
+
+        /// <summary>
+        /// Deletes the currently selected element.
+        /// </summary>
+        public void DeleteSelectedElement()
+        {
+            if (_selectedElement == null || _selectedElement.IsLocked) return;
+
+            Elements.Remove(_selectedElement);
+            ClearSelection();
+        }
+
+        /// <summary>
+        /// Finds an element at the specified canvas point.
+        /// </summary>
+        /// <param name="point">The point in canvas coordinates.</param>
+        /// <returns>The topmost element at the point, or null if none found.</returns>
+        public DrawingElement FindElementAtPoint(Point point)
+        {
+            // Search in reverse ZIndex order (topmost first)
+            return Elements
+                .OrderByDescending(e => e.ZIndex)
+                .FirstOrDefault(e => e.Bounds.Contains(point));
+        }
+
+        #endregion
+
+        #region Multi-Selection Methods
+
+        /// <summary>
+        /// Adds or removes element from selection (Shift+Click toggle).
+        /// </summary>
+        public void ToggleSelection(DrawingElement element)
+        {
+            if (element == null || element.IsLocked) return;
+
+            if (_selectedElements.Contains(element))
+            {
+                // Remove from selection
+                element.IsSelected = false;
+                _selectedElements.Remove(element);
+
+                // Update state based on remaining selection
+                if (_selectedElements.Count == 0)
+                {
+                    SelectedElement = null;
+                    EditModeState = EditModeState.None;
+                }
+                else if (_selectedElements.Count == 1)
+                {
+                    SelectedElement = _selectedElements[0];
+                    EditModeState = EditModeState.Selected;
+                }
+            }
+            else
+            {
+                // Add to selection
+                element.IsSelected = true;
+                _selectedElements.Add(element);
+
+                if (_selectedElements.Count == 1)
+                {
+                    SelectedElement = element;
+                    EditModeState = EditModeState.Selected;
+                }
+                else
+                {
+                    SelectedElement = null;
+                    EditModeState = EditModeState.MultiSelected;
+                }
+            }
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Adds element to current selection without clearing.
+        /// </summary>
+        public void AddToSelection(DrawingElement element)
+        {
+            if (element == null || element.IsLocked) return;
+            if (_selectedElements.Contains(element)) return;
+
+            element.IsSelected = true;
+            _selectedElements.Add(element);
+
+            if (_selectedElements.Count == 1)
+            {
+                SelectedElement = element;
+                EditModeState = EditModeState.Selected;
+            }
+            else
+            {
+                SelectedElement = null;
+                EditModeState = EditModeState.MultiSelected;
+            }
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Clears all selections.
+        /// </summary>
+        public void ClearAllSelections()
+        {
+            foreach (var element in _selectedElements)
+            {
+                element.IsSelected = false;
+            }
+            _selectedElements.Clear();
+
+            if (_selectedElement != null)
+            {
+                _selectedElement.IsSelected = false;
+                SelectedElement = null;
+            }
+
+            EditModeState = EditModeState.None;
+            ActiveResizeHandle = ResizeHandleType.None;
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Finds all elements fully contained within the given rectangle.
+        /// </summary>
+        public IEnumerable<DrawingElement> FindElementsInRect(Rect selectionRect)
+        {
+            return Elements.Where(e => selectionRect.Contains(e.Bounds));
+        }
+
+        #endregion
+
+        #region Rubberband Selection
+
+        /// <summary>
+        /// Starts rubberband selection from empty space.
+        /// </summary>
+        public void StartRubberbandSelection(Point startPoint)
+        {
+            _rubberbandStartPoint = startPoint;
+            RubberbandRect = new Rect(startPoint, new Size(0, 0));
+            IsRubberbandSelecting = true;
+            EditModeState = EditModeState.RubberbandSelecting;
+        }
+
+        /// <summary>
+        /// Updates rubberband rectangle during drag.
+        /// </summary>
+        public void UpdateRubberbandSelection(Point currentPoint)
+        {
+            if (!_isRubberbandSelecting) return;
+
+            double x = Math.Min(_rubberbandStartPoint.X, currentPoint.X);
+            double y = Math.Min(_rubberbandStartPoint.Y, currentPoint.Y);
+            double width = Math.Abs(currentPoint.X - _rubberbandStartPoint.X);
+            double height = Math.Abs(currentPoint.Y - _rubberbandStartPoint.Y);
+
+            RubberbandRect = new Rect(x, y, width, height);
+        }
+
+        /// <summary>
+        /// Finishes rubberband selection and selects contained elements.
+        /// </summary>
+        public void FinishRubberbandSelection()
+        {
+            if (!_isRubberbandSelecting) return;
+
+            // Find elements fully contained in the rubberband
+            var containedElements = FindElementsInRect(_rubberbandRect).ToList();
+
+            // Clear rubberband state
+            IsRubberbandSelecting = false;
+            RubberbandRect = Rect.Empty;
+
+            if (containedElements.Count == 0)
+            {
+                EditModeState = EditModeState.None;
+                return;
+            }
+
+            // Select all contained elements
+            _selectedElements.Clear();
+            foreach (var element in containedElements)
+            {
+                element.IsSelected = true;
+                _selectedElements.Add(element);
+            }
+
+            if (_selectedElements.Count == 1)
+            {
+                SelectedElement = _selectedElements[0];
+                EditModeState = EditModeState.Selected;
+            }
+            else
+            {
+                SelectedElement = null;
+                EditModeState = EditModeState.MultiSelected;
+            }
+
+            OnPropertyChanged(nameof(IsMultiSelectionMode));
+            OnPropertyChanged(nameof(GroupBounds));
+        }
+
+        /// <summary>
+        /// Cancels rubberband selection.
+        /// </summary>
+        public void CancelRubberbandSelection()
+        {
+            IsRubberbandSelecting = false;
+            RubberbandRect = Rect.Empty;
+            EditModeState = EditModeState.None;
+        }
+
+        #endregion
+    }
+}

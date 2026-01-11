@@ -214,7 +214,9 @@ namespace EquipmentDesigner.ViewModels
                 Description = Description,
                 Customer = Customer,
                 Process = Process,
-                AttachedDocuments = AttachedDocuments.ToList()
+                AttachedDocuments = AttachedDocuments.ToList(),
+                Version = Version,
+                HardwareKey = HardwareKey
             };
         }
 
@@ -230,7 +232,9 @@ namespace EquipmentDesigner.ViewModels
                 DisplayName = dto.DisplayName ?? string.Empty,
                 Description = dto.Description ?? string.Empty,
                 Customer = dto.Customer ?? string.Empty,
-                Process = dto.Process ?? string.Empty
+                Process = dto.Process ?? string.Empty,
+                Version = dto.Version ?? "undefined",
+                HardwareKey = dto.HardwareKey
             };
 
             if (dto.AttachedDocuments != null)

@@ -523,7 +523,7 @@
     <value>Select Edit Mode</value>
   </data>
   <data name="EditModeSelection_DirectEdit_Title" xml:space="preserve">
-    <value>Edit Directly</value>
+    <value>Edit Current Version</value>
   </data>
   <data name="EditModeSelection_DirectEdit_Description" xml:space="preserve">
     <value>Edit the existing data directly. Changes will be reflected in the original immediately, so please work carefully.</value>
@@ -531,14 +531,26 @@
   <data name="EditModeSelection_DirectEdit_Warning" xml:space="preserve">
     <value>⚠️ Warning: Overwrites existing data</value>
   </data>
-  <data name="EditModeSelection_CreateCopy_Title" xml:space="preserve">
-    <value>Create Copy and Edit (Recommended)</value>
+  <data name="EditModeSelection_CreateNewVersion_Title" xml:space="preserve">
+    <value>Create New Version (Recommended)</value>
   </data>
-  <data name="EditModeSelection_CreateCopy_Description" xml:space="preserve">
-    <value>Create a copy of the existing data and edit it. The original data will be safely preserved.</value>
+  <data name="EditModeSelection_CreateNewVersion_Description" xml:space="preserve">
+    <value>Create a copy as a new version without modifying the existing version. Current version data will be safely preserved.</value>
   </data>
-  <data name="EditModeSelection_CreateCopy_Recommendation" xml:space="preserve">
+  <data name="EditModeSelection_CreateNewVersion_Recommendation" xml:space="preserve">
     <value>✓ Recommended: Use this option if you're not sure</value>
+  </data>
+  <data name="EditModeSelection_CreateNewHardware_Title" xml:space="preserve">
+    <value>Copy and Define New Hardware</value>
+  </data>
+  <data name="EditModeSelection_CreateNewHardware_Description" xml:space="preserve">
+    <value>Create a copy that defines a new hardware that does not share version history with the current hardware.</value>
+  </data>
+  <data name="EditModeSelection_CurrentVersion" xml:space="preserve">
+    <value>Current version:</value>
+  </data>
+  <data name="EditModeSelection_NewVersion" xml:space="preserve">
+    <value>New version:</value>
   </data>
   <data name="EditModeSelection_Confirm" xml:space="preserve">
     <value>Confirm</value>

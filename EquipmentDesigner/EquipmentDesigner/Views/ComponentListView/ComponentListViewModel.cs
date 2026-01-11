@@ -137,7 +137,7 @@ namespace EquipmentDesigner.ViewModels
                 HardwareLayer = hardwareLayer,
                 Name = name,
                 Description = description,
-                Version = version ?? "v1.0.0",
+                Version = version ?? "undefined",
                 Status = state.ToString(),
                 ComponentState = state,
                 EquipmentType = equipmentType ?? string.Empty,

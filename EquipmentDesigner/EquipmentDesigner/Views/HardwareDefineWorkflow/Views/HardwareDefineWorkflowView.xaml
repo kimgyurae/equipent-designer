@@ -56,6 +56,10 @@
                     <TextBlock Text="{lex:Loc Key=Workflow_HardwareDefinition}"
                                Style="{StaticResource Typography.H4}"
                                Foreground="{StaticResource Brush.Text.Primary}"/>
+                    <TextBlock Text="{Binding TopLevelComponentVersion}"
+                               Style="{StaticResource Typography.Body.Small}"
+                               Foreground="{StaticResource Brush.Text.Secondary}"
+                               Margin="0,8,0,0"/>
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                         <TextBlock Text="{lex:Loc Key=Workflow_CreatingFrom}"
                                    Style="{StaticResource Typography.Body.Small}"

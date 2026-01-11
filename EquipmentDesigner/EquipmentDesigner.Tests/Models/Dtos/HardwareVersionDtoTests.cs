@@ -235,7 +235,7 @@ namespace EquipmentDesigner.Tests.Models.Dtos
             var versions = new List<HardwareVersionSummaryDto>
             {
                 new HardwareVersionSummaryDto { Version = "v2.0.0", IsLatest = true },
-                new HardwareVersionSummaryDto { Version = "v1.0.0", IsLatest = false }
+                new HardwareVersionSummaryDto { Version = "1.0.0", IsLatest = false }
             };
 
             // Act

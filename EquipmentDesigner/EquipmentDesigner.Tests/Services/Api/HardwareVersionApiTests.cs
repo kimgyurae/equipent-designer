@@ -135,7 +135,7 @@ namespace EquipmentDesigner.Tests.Services.Api
                 "v2.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-2", HardwareLayer.Equipment, "auto-assembler", "Auto Assembler",
-                "v1.0.0", ComponentState.Uploaded, DateTime.Now.AddDays(-30)));
+                "1.0.0", ComponentState.Uploaded, DateTime.Now.AddDays(-30)));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -173,10 +173,10 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Same HardwareKey but different layers
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, "test-key", "Test",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-2", HardwareLayer.System, "test-key", "Test",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -197,7 +197,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, "auto-assembler", "Auto Assembler",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-2", HardwareLayer.Equipment, "auto-assembler", "Auto Assembler",
                 "v2.7.1", ComponentState.Validated, DateTime.Now));
@@ -215,7 +215,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             response.Data.Versions.Should().HaveCount(3);
             response.Data.Versions[0].Version.Should().Be("v2.7.1");
             response.Data.Versions[1].Version.Should().Be("v2.7.0");
-            response.Data.Versions[2].Version.Should().Be("v1.0.0");
+            response.Data.Versions[2].Version.Should().Be("1.0.0");
         }
 
         [Fact]
@@ -229,7 +229,7 @@ namespace EquipmentDesigner.Tests.Services.Api
                 "v2.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-2", HardwareLayer.Equipment, "auto-assembler", "Auto Assembler",
-                "v1.0.0", ComponentState.Validated, DateTime.Now.AddDays(-30)));
+                "1.0.0", ComponentState.Validated, DateTime.Now.AddDays(-30)));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -251,7 +251,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             // Create session with null HardwareKey - should use Name as fallback
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, null, "Auto Assembler",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -271,7 +271,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, "auto-assembler", "Auto Assembler Display",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -297,7 +297,7 @@ namespace EquipmentDesigner.Tests.Services.Api
                 "v2.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-3", HardwareLayer.Equipment, "auto-assembler", "Auto Assembler",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -336,10 +336,10 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, "key-a", "Item A",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-2", HardwareLayer.Equipment, "key-b", "Item B",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-3", HardwareLayer.Equipment, "key-a", "Item A",
                 "v2.0.0", ComponentState.Validated, DateTime.Now)); // Same key, different version
@@ -364,7 +364,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, null, "Item Name",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -384,10 +384,10 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, "eq-key", "Equipment",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-2", HardwareLayer.System, "sys-key", "System",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -413,7 +413,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var dataStore = new HardwareDefinitionDataStore();
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-1", HardwareLayer.Equipment, "test-key", "Test",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -422,7 +422,7 @@ namespace EquipmentDesigner.Tests.Services.Api
 
             // Assert
             response.Success.Should().BeTrue();
-            response.Data.Versions[0].Version.Should().Be("v1.0.0");
+            response.Data.Versions[0].Version.Should().Be("1.0.0");
         }
 
         [Fact]
@@ -456,7 +456,7 @@ namespace EquipmentDesigner.Tests.Services.Api
                 "v1.0", ComponentState.Validated, DateTime.Now));
             dataStore.WorkflowSessions.Add(CreateWorkflowSession(
                 "wf-2", HardwareLayer.Equipment, "test-key", "Test",
-                "v1.0.0", ComponentState.Validated, DateTime.Now));
+                "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 

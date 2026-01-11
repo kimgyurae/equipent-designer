@@ -18,6 +18,12 @@ namespace EquipmentDesigner.Models
         /// </summary>
         public HardwareLayer HardwareType { get; set; }
 
+        /// <summary>
+        /// 하드웨어 고유 식별 키 - 같은 하드웨어의 모든 버전이 동일한 키를 공유
+        /// null인 경우 루트 노드의 Name을 기본값으로 사용 (하위 호환성)
+        /// </summary>
+        public string HardwareKey { get; set; }
+
         public ComponentState State { get; set; }
         public DateTime LastModifiedAt { get; set; }
 

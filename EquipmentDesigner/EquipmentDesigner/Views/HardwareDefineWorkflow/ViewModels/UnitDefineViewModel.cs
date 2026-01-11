@@ -252,7 +252,9 @@ namespace EquipmentDesigner.ViewModels
                 DisplayName = DisplayName,
                 Description = Description,
                 ProcessInfo = Process,
-                Commands = Commands.Select(c => c.ToDto()).ToList()
+                Commands = Commands.Select(c => c.ToDto()).ToList(),
+                Version = Version,
+                HardwareKey = HardwareKey
             };
 
             if (!string.IsNullOrEmpty(ImplementationGuidelines))
@@ -276,7 +278,9 @@ namespace EquipmentDesigner.ViewModels
                 Name = dto.Name ?? string.Empty,
                 DisplayName = dto.DisplayName ?? string.Empty,
                 Description = dto.Description ?? string.Empty,
-                Process = dto.ProcessInfo ?? string.Empty
+                Process = dto.ProcessInfo ?? string.Empty,
+                Version = dto.Version ?? "undefined",
+                HardwareKey = dto.HardwareKey
             };
 
             if (dto.ImplementationInstructions != null && dto.ImplementationInstructions.Any())

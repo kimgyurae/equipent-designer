@@ -719,5 +719,290 @@ namespace EquipmentDesigner.Tests.Views.Drawboard.UMLEngine
         }
 
         #endregion
+
+        #region Multi-Selection Edge Resize with Aspect Ratio Tests (Bug Fix TDD)
+
+        /// <summary>
+        /// API-Level Test: Top edge handle with Shift should scale both width and height proportionally.
+        /// BUG: Currently only height changes, width remains unchanged.
+        /// </summary>
+        [Fact]
+        public void CalculateGroupResize_TopHandle_WithShift_ScalesBothDimensions()
+        {
+            // Arrange - Group with 2:1 aspect ratio
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 100, Height = 100 }
+            };
+            // Group bounds: (0, 0, 100, 100) - 1:1 aspect ratio
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements,
+                ResizeHandleType.Top,
+                new Point(50, 0)); // Top edge center
+
+            // Act - Drag top edge upward by 50 (increase height from 100 to 150)
+            // With Shift, width should also increase proportionally
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context,
+                new Point(50, -50),
+                maintainAspectRatio: true);
+
+            // Assert - Both dimensions should scale by same factor (1.5x)
+            result.Transforms[0].NewWidth.Should().BeApproximately(150, Tolerance,
+                "Width should scale proportionally when using Top handle with Shift");
+            result.Transforms[0].NewHeight.Should().BeApproximately(150, Tolerance,
+                "Height should increase when dragging Top handle upward");
+        }
+
+        /// <summary>
+        /// API-Level Test: Bottom edge handle with Shift should scale both dimensions.
+        /// </summary>
+        [Fact]
+        public void CalculateGroupResize_BottomHandle_WithShift_ScalesBothDimensions()
+        {
+            // Arrange
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 100, Height = 100 }
+            };
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements,
+                ResizeHandleType.Bottom,
+                new Point(50, 100)); // Bottom edge center
+
+            // Act - Drag bottom edge downward by 50
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context,
+                new Point(50, 150),
+                maintainAspectRatio: true);
+
+            // Assert
+            result.Transforms[0].NewWidth.Should().BeApproximately(150, Tolerance,
+                "Width should scale proportionally when using Bottom handle with Shift");
+            result.Transforms[0].NewHeight.Should().BeApproximately(150, Tolerance,
+                "Height should increase when dragging Bottom handle downward");
+        }
+
+        /// <summary>
+        /// API-Level Test: Left edge handle with Shift should scale both dimensions.
+        /// </summary>
+        [Fact]
+        public void CalculateGroupResize_LeftHandle_WithShift_ScalesBothDimensions()
+        {
+            // Arrange
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 100, Height = 100 }
+            };
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements,
+                ResizeHandleType.Left,
+                new Point(0, 50)); // Left edge center
+
+            // Act - Drag left edge leftward by 50 (increase width from 100 to 150)
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context,
+                new Point(-50, 50),
+                maintainAspectRatio: true);
+
+            // Assert
+            result.Transforms[0].NewWidth.Should().BeApproximately(150, Tolerance,
+                "Width should increase when dragging Left handle leftward");
+            result.Transforms[0].NewHeight.Should().BeApproximately(150, Tolerance,
+                "Height should scale proportionally when using Left handle with Shift");
+        }
+
+        /// <summary>
+        /// API-Level Test: Right edge handle with Shift should scale both dimensions.
+        /// </summary>
+        [Fact]
+        public void CalculateGroupResize_RightHandle_WithShift_ScalesBothDimensions()
+        {
+            // Arrange
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 100, Height = 100 }
+            };
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements,
+                ResizeHandleType.Right,
+                new Point(100, 50)); // Right edge center
+
+            // Act - Drag right edge rightward by 50
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context,
+                new Point(150, 50),
+                maintainAspectRatio: true);
+
+            // Assert
+            result.Transforms[0].NewWidth.Should().BeApproximately(150, Tolerance,
+                "Width should increase when dragging Right handle rightward");
+            result.Transforms[0].NewHeight.Should().BeApproximately(150, Tolerance,
+                "Height should scale proportionally when using Right handle with Shift");
+        }
+
+        /// <summary>
+        /// Replication Test: Verifies scale factors are equal for edge handles with maintainAspectRatio.
+        /// This directly tests the root cause - scaleX and scaleY should be equal.
+        /// </summary>
+        [Theory]
+        [InlineData(ResizeHandleType.Top)]
+        [InlineData(ResizeHandleType.Bottom)]
+        [InlineData(ResizeHandleType.Left)]
+        [InlineData(ResizeHandleType.Right)]
+        public void CalculateGroupResize_EdgeHandle_WithShift_AppliesUniformScale(ResizeHandleType handle)
+        {
+            // Arrange - Non-square group to clearly see aspect ratio changes
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 200, Height = 100 }
+            };
+            // Group bounds: (0, 0, 200, 100) - 2:1 aspect ratio
+            var startPoint = handle switch
+            {
+                ResizeHandleType.Top => new Point(100, 0),
+                ResizeHandleType.Bottom => new Point(100, 100),
+                ResizeHandleType.Left => new Point(0, 50),
+                ResizeHandleType.Right => new Point(200, 50),
+                _ => new Point(0, 0)
+            };
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements, handle, startPoint);
+
+            // Act - Move the handle to scale by 1.5x in primary dimension
+            var currentPoint = handle switch
+            {
+                ResizeHandleType.Top => new Point(100, -50),    // Height 100->150
+                ResizeHandleType.Bottom => new Point(100, 150), // Height 100->150
+                ResizeHandleType.Left => new Point(-100, 50),   // Width 200->300
+                ResizeHandleType.Right => new Point(300, 50),   // Width 200->300
+                _ => new Point(0, 0)
+            };
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context, currentPoint, maintainAspectRatio: true);
+
+            // Assert - Aspect ratio should be preserved (2:1)
+            var originalAspectRatio = 200.0 / 100.0;
+            var newAspectRatio = result.Transforms[0].NewWidth / result.Transforms[0].NewHeight;
+            newAspectRatio.Should().BeApproximately(originalAspectRatio, Tolerance,
+                $"Aspect ratio should be preserved when using {handle} handle with Shift");
+        }
+
+        /// <summary>
+        /// Replication Test: Multiple elements should all scale proportionally with edge handle + Shift.
+        /// </summary>
+        [Fact]
+        public void CalculateGroupResize_TopHandle_WithShift_ScalesAllElementsProportionally()
+        {
+            // Arrange - Two elements
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 100, Height = 50 },
+                new ActionElement { X = 100, Y = 50, Width = 100, Height = 50 }
+            };
+            // Group bounds: (0, 0, 200, 100)
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements,
+                ResizeHandleType.Top,
+                new Point(100, 0));
+
+            // Act - Scale height from 100 to 150 (1.5x)
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context,
+                new Point(100, -50),
+                maintainAspectRatio: true);
+
+            // Assert - Both elements should scale by 1.5x in both dimensions
+            result.Transforms.Count.Should().Be(2);
+
+            // First element: (0, 0, 100, 50) -> should become (x, y, 150, 75)
+            result.Transforms[0].NewWidth.Should().BeApproximately(150, Tolerance);
+            result.Transforms[0].NewHeight.Should().BeApproximately(75, Tolerance);
+
+            // Second element: (100, 50, 100, 50) -> should become (x, y, 150, 75)
+            result.Transforms[1].NewWidth.Should().BeApproximately(150, Tolerance);
+            result.Transforms[1].NewHeight.Should().BeApproximately(75, Tolerance);
+        }
+
+        /// <summary>
+        /// Regression Test: Corner handles should continue working correctly with Shift.
+        /// </summary>
+        [Theory]
+        [InlineData(ResizeHandleType.TopLeft)]
+        [InlineData(ResizeHandleType.TopRight)]
+        [InlineData(ResizeHandleType.BottomLeft)]
+        [InlineData(ResizeHandleType.BottomRight)]
+        public void CalculateGroupResize_CornerHandle_WithShift_ContinuesToWork(ResizeHandleType handle)
+        {
+            // Arrange
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 200, Height = 100 }
+            };
+            var startPoint = handle switch
+            {
+                ResizeHandleType.TopLeft => new Point(0, 0),
+                ResizeHandleType.TopRight => new Point(200, 0),
+                ResizeHandleType.BottomLeft => new Point(0, 100),
+                ResizeHandleType.BottomRight => new Point(200, 100),
+                _ => new Point(0, 0)
+            };
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements, handle, startPoint);
+
+            // Act - Scale by dragging the corner
+            var currentPoint = handle switch
+            {
+                ResizeHandleType.TopLeft => new Point(-100, -50),
+                ResizeHandleType.TopRight => new Point(300, -50),
+                ResizeHandleType.BottomLeft => new Point(-100, 150),
+                ResizeHandleType.BottomRight => new Point(300, 150),
+                _ => new Point(0, 0)
+            };
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context, currentPoint, maintainAspectRatio: true);
+
+            // Assert - Aspect ratio should be preserved
+            var originalAspectRatio = 200.0 / 100.0;
+            var newAspectRatio = result.Transforms[0].NewWidth / result.Transforms[0].NewHeight;
+            newAspectRatio.Should().BeApproximately(originalAspectRatio, Tolerance,
+                $"Aspect ratio should be preserved when using {handle} handle with Shift");
+        }
+
+        /// <summary>
+        /// Position Test: Top handle with Shift should anchor bottom edge and center width.
+        /// </summary>
+        [Fact]
+        public void CalculateGroupResize_TopHandle_WithShift_AnchorsBottomAndCentersWidth()
+        {
+            // Arrange
+            var elements = new List<DrawingElement>
+            {
+                new ActionElement { X = 0, Y = 0, Width = 100, Height = 100 }
+            };
+            var context = DrawingElementEditingEngine.CreateGroupResizeContext(
+                elements,
+                ResizeHandleType.Top,
+                new Point(50, 0));
+            var originalBottom = 100.0;
+            var originalCenterX = 50.0;
+
+            // Act - Drag top up by 50
+            var result = DrawingElementEditingEngine.CalculateGroupResize(
+                context,
+                new Point(50, -50),
+                maintainAspectRatio: true);
+
+            // Assert
+            var newBottom = result.NewGroupBounds.Bottom;
+            var newCenterX = result.NewGroupBounds.Left + result.NewGroupBounds.Width / 2;
+
+            newBottom.Should().BeApproximately(originalBottom, Tolerance,
+                "Bottom edge should remain anchored when resizing from Top handle");
+            newCenterX.Should().BeApproximately(originalCenterX, Tolerance,
+                "Horizontal center should remain the same when resizing from Top handle with Shift");
+        }
+
+        #endregion
     }
 }

@@ -37,7 +37,7 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// 버전 정보 (예: v1.0.0)
         /// </summary>
-        public string Version { get; set; } = "v1.0.0";
+        public string Version { get; set; } = "1.0.0";
 
         /// <summary>
         /// 하드웨어 고유 식별 키 - 같은 하드웨어의 모든 버전이 동일한 키를 공유

@@ -303,6 +303,7 @@
                       Background="{StaticResource Brush.Surface.Primary}"
                       Focusable="True"
                       PreviewMouseLeftButtonDown="OnCanvasPreviewMouseLeftButtonDown"
+                      PreviewMouseRightButtonDown="OnCanvasPreviewMouseRightButtonDown"
                       PreviewMouseRightButtonUp="OnCanvasPreviewMouseRightButtonUp"
                       MouseLeftButtonDown="OnCanvasMouseLeftButtonDown"
                       MouseMove="OnCanvasMouseMove"

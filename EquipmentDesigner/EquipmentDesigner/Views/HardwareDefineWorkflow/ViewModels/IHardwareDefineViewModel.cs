@@ -32,5 +32,16 @@ namespace EquipmentDesigner.ViewModels
         /// Whether the form is editable.
         /// </summary>
         bool IsEditable { get; set; }
+
+        /// <summary>
+        /// Version information (e.g., v1.0.0).
+        /// </summary>
+        string Version { get; set; }
+
+        /// <summary>
+        /// Hardware unique identification key - all versions of the same hardware share this key.
+        /// If null, Name is used as default (backward compatibility).
+        /// </summary>
+        string HardwareKey { get; set; }
     }
 }

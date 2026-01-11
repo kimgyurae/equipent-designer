@@ -65,7 +65,7 @@ namespace EquipmentDesigner.ViewModels
 
             // Load data from repository
             LoadIncompleteWorkflowsAsync();
-            LoadComponentsAsync();
+            //LoadComponentsAsync();
         }
 
         #region Navigation Commands
@@ -200,77 +200,77 @@ namespace EquipmentDesigner.ViewModels
             }
         }
 
-        /// <summary>
-        /// Loads components from the unified repository.
-        /// Filters by Uploaded or Validated state and routes to cards based on StartType.
-        /// </summary>
-        private async void LoadComponentsAsync()
-        {
-            try
-            {
-                var apiService = ServiceLocator.GetService<IHardwareApiService>();
-                var response = await apiService.GetSessionsByStateAsync(
-                    ComponentState.Ready, ComponentState.Uploaded, ComponentState.Validated);
+        ///// <summary>
+        ///// Loads components from the unified repository.
+        ///// Filters by Uploaded or Validated state and routes to cards based on StartType.
+        ///// </summary>
+        //private async void LoadComponentsAsync()
+        //{
+        //    try
+        //    {
+        //        var apiService = ServiceLocator.GetService<IHardwareApiService>();
+        //        var response = await apiService.GetSessionsByStateAsync(
+        //            ComponentState.Ready, ComponentState.Uploaded, ComponentState.Validated);
 
-                // Clear existing collections
-                Equipments.Clear();
-                Systems.Clear();
-                Units.Clear();
-                Devices.Clear();
+        //        // Clear existing collections
+        //        Equipments.Clear();
+        //        Systems.Clear();
+        //        Units.Clear();
+        //        Devices.Clear();
 
-                if (!response.Success || response.Data == null) return;
+        //        if (!response.Success || response.Data == null) return;
 
-                // Filter and load from WorkflowSessions based on StartType
-                foreach (var session in response.Data)
-                {
-                    // Extract component info from root tree node
-                    var rootNode = session.TreeNodes?.FirstOrDefault();
-                    if (rootNode == null) continue;
+        //        // Filter and load from WorkflowSessions based on StartType
+        //        foreach (var session in response.Data)
+        //        {
+        //            // Extract component info from root tree node
+        //            var rootNode = session.TreeNodes?.FirstOrDefault();
+        //            if (rootNode == null) continue;
 
-                    var (name, description, version, equipmentType, hardwareKey) = ExtractComponentInfo(rootNode);
-                    var componentItem = CreateComponentItem(
-                        session.Id,  // Use WorkflowId as ID for navigation
-                        name ?? "Unnamed",
-                        description ?? "",
-                        version,
-                        session.State,
-                        session.HardwareType,
-                        equipmentType,
-                        hardwareKey);
+        //            var (name, description, version, equipmentType, hardwareKey) = ExtractComponentInfo(rootNode);
+        //            var componentItem = CreateComponentItem(
+        //                session.Id,  // Use WorkflowId as ID for navigation
+        //                name ?? "Unnamed",
+        //                description ?? "",
+        //                version,
+        //                session.State,
+        //                session.HardwareType,
+        //                equipmentType,
+        //                hardwareKey);
 
-                    // Add to correct collection based on StartType
-                    switch (session.HardwareType)
-                    {
-                        case HardwareLayer.Equipment:
-                            Equipments.Add(componentItem);
-                            break;
-                        case HardwareLayer.System:
-                            Systems.Add(componentItem);
-                            break;
-                        case HardwareLayer.Unit:
-                            Units.Add(componentItem);
-                            break;
-                        case HardwareLayer.Device:
-                            Devices.Add(componentItem);
-                            break;
-                    }
-                }
+        //            // Add to correct collection based on StartType
+        //            switch (session.HardwareType)
+        //            {
+        //                case HardwareLayer.Equipment:
+        //                    Equipments.Add(componentItem);
+        //                    break;
+        //                case HardwareLayer.System:
+        //                    Systems.Add(componentItem);
+        //                    break;
+        //                case HardwareLayer.Unit:
+        //                    Units.Add(componentItem);
+        //                    break;
+        //                case HardwareLayer.Device:
+        //                    Devices.Add(componentItem);
+        //                    break;
+        //            }
+        //        }
 
-                // Raise property changed for counts and empty state
-                OnPropertyChanged(nameof(EquipmentsCount));
-                OnPropertyChanged(nameof(SystemsCount));
-                OnPropertyChanged(nameof(UnitsCount));
-                OnPropertyChanged(nameof(DevicesCount));
-                OnPropertyChanged(nameof(HasNoEquipments));
-                OnPropertyChanged(nameof(HasNoSystems));
-                OnPropertyChanged(nameof(HasNoUnits));
-                OnPropertyChanged(nameof(HasNoDevices));
-            }
-            catch
-            {
-                // Silently fail - dashboard will show empty state
-            }
-        }
+        //        // Raise property changed for counts and empty state
+        //        OnPropertyChanged(nameof(EquipmentsCount));
+        //        OnPropertyChanged(nameof(SystemsCount));
+        //        OnPropertyChanged(nameof(UnitsCount));
+        //        OnPropertyChanged(nameof(DevicesCount));
+        //        OnPropertyChanged(nameof(HasNoEquipments));
+        //        OnPropertyChanged(nameof(HasNoSystems));
+        //        OnPropertyChanged(nameof(HasNoUnits));
+        //        OnPropertyChanged(nameof(HasNoDevices));
+        //    }
+        //    catch
+        //    {
+        //        // Silently fail - dashboard will show empty state
+        //    }
+        //}
 
         /// <summary>
         /// Extracts name and description from a tree node based on its hardware layer.
@@ -298,7 +298,7 @@ namespace EquipmentDesigner.ViewModels
                 HardwareLayer = hardwareLayer,
                 Name = name,
                 Description = description,
-                Version = version ?? "v1.0.0",
+                Version = version ?? "undefined",
                 Status = state.ToString(),
                 ComponentState = state,
                 EquipmentType = equipmentType ?? string.Empty,
@@ -551,7 +551,7 @@ namespace EquipmentDesigner.ViewModels
         public void RefreshAsync()
         {
             LoadIncompleteWorkflowsAsync();
-            LoadComponentsAsync();
+            //LoadComponentsAsync();
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

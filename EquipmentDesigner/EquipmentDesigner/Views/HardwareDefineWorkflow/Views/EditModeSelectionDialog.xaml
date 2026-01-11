@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
+        xmlns:reusable="clr-namespace:EquipmentDesigner.Controls"
         lex:LocalizeDictionary.DesignCulture="ko"
         lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
         lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -15,7 +16,56 @@
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        Width="448" Height="428">
+        Width="448" Height="705">
+
+    <Window.Resources>
+        <!-- BoolToVisibility Converter -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        
+        <!-- Inverse Boolean Converter for Confirm Button -->
+        <Style x:Key="VersionInputTextBox" TargetType="TextBox">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Background" Value="{StaticResource Brush.Input.Background}"/>
+            <Setter Property="Foreground" Value="{StaticResource Brush.Text.Primary}"/>
+            <Setter Property="FontFamily" Value="{StaticResource Font.Family.Primary}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="1.6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Primary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="0"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource Brush.Input.Border.Hover}"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource Brush.Input.Border.Focus}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Tag" Value="Error">
+                    <Setter Property="BorderBrush" Value="{StaticResource Brush.Input.Border.Error}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
 
     <!-- Dialog Container -->
     <Border Background="{StaticResource Brush.Surface.Primary}"
@@ -23,130 +73,263 @@
             BorderThickness="1"
             CornerRadius="{StaticResource Radius.XL}"
             Padding="24">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="25" ShadowDepth="20" Opacity="0.1" Direction="270"/>
+        </Border.Effect>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Close Button -->
-            <Button x:Name="CloseButton"
-                    Click="CloseButton_Click"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Width="28" Height="28"
-                    Margin="0,-4,-4,0"
-                    Padding="4"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Cursor="Hand">
-                <Path Data="M18 6L6 18M6 6l12 12"
-                      Stroke="{StaticResource Brush.Text.Secondary}"
-                      StrokeThickness="2"
-                      Width="12" Height="12"
-                      Stretch="Uniform"/>
-            </Button>
+            <!-- Header: Title + Close Button -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Title -->
-            <TextBlock Grid.Row="0"
-                       Text="{lex:Loc Key=EditModeSelection_Title}"
-                       Style="{StaticResource Typography.H4}"
-                       Foreground="{StaticResource Brush.Text.Primary}"/>
+                <!-- Title -->
+                <TextBlock Grid.Column="0"
+                           Text="{lex:Loc Key=EditModeSelection_Title}"
+                           Style="{StaticResource Typography.H4}"
+                           Foreground="{StaticResource Brush.Text.Primary}"
+                           VerticalAlignment="Center"/>
+
+                <!-- Close Button -->
+                <Button x:Name="CloseButton"
+                        Grid.Column="1"
+                        Click="CloseButton_Click"
+                        Width="28" Height="28"
+                        Padding="4"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        VerticalAlignment="Center">
+                    <Path Data="M18 6L6 18M6 6l12 12"
+                          Stroke="{StaticResource Brush.Text.Secondary}"
+                          StrokeThickness="2"
+                          Width="12" Height="12"
+                          Stretch="Uniform"/>
+                </Button>
+            </Grid>
 
             <!-- Option Cards Container -->
-            <StackPanel Grid.Row="1" Margin="0,16,0,0">
-                <!-- Option 1: Direct Edit -->
+            <StackPanel Grid.Row="1">
+                <!-- Option 1: Direct Edit (현재 버전 변경하기) -->
                 <Border x:Name="DirectEditOption"
                         MouseLeftButtonDown="DirectEditOption_Click"
-                        BorderThickness="2"
+                        BorderThickness="1.6"
                         CornerRadius="{StaticResource Radius.LG}"
-                        Padding="16"
+                        Padding="18,16"
                         Margin="0,0,0,12"
                         Cursor="Hand"
-                        Height="132">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
+                        MinHeight="132">
+                    <StackPanel>
                         <!-- Title -->
-                        <TextBlock Grid.Row="0"
-                                   Text="{lex:Loc Key=EditModeSelection_DirectEdit_Title}"
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_DirectEdit_Title}"
                                    FontWeight="Bold"
                                    FontSize="16"
                                    Foreground="{StaticResource Brush.Text.Primary}"/>
 
                         <!-- Description -->
-                        <TextBlock Grid.Row="1"
-                                   Text="{lex:Loc Key=EditModeSelection_DirectEdit_Description}"
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_DirectEdit_Description}"
                                    FontSize="14"
                                    Foreground="{StaticResource Brush.Text.Secondary}"
                                    TextWrapping="Wrap"
-                                   Margin="0,8,0,0"/>
+                                   Margin="0,9,0,0"/>
 
                         <!-- Warning -->
-                        <TextBlock Grid.Row="3"
-                                   Text="{lex:Loc Key=EditModeSelection_DirectEdit_Warning}"
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_DirectEdit_Warning}"
                                    FontSize="12"
                                    Foreground="#F54900"
-                                   Margin="0,8,0,0"/>
-                    </Grid>
+                                   Margin="0,9,0,0"/>
+                    </StackPanel>
                 </Border>
 
-                <!-- Option 2: Create Copy (Recommended) -->
-                <Border x:Name="CreateCopyOption"
-                        MouseLeftButtonDown="CreateCopyOption_Click"
-                        BorderThickness="2"
+                <!-- Option 2: Create New Version (새로운 버전 만들기 - 권장) -->
+                <Border x:Name="CreateNewVersionOption"
+                        MouseLeftButtonDown="CreateNewVersionOption_Click"
+                        BorderThickness="1.6"
                         CornerRadius="{StaticResource Radius.LG}"
-                        Padding="16"
-                        Cursor="Hand"
-                        Height="132">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
+                        Padding="18,16"
+                        Margin="0,0,0,12"
+                        Cursor="Hand">
+                    <StackPanel>
                         <!-- Title -->
-                        <TextBlock Grid.Row="0"
-                                   Text="{lex:Loc Key=EditModeSelection_CreateCopy_Title}"
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_CreateNewVersion_Title}"
                                    FontWeight="Bold"
                                    FontSize="16"
                                    Foreground="{StaticResource Brush.Text.Primary}"/>
 
                         <!-- Description -->
-                        <TextBlock Grid.Row="1"
-                                   Text="{lex:Loc Key=EditModeSelection_CreateCopy_Description}"
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_CreateNewVersion_Description}"
                                    FontSize="14"
                                    Foreground="{StaticResource Brush.Text.Secondary}"
                                    TextWrapping="Wrap"
-                                   Margin="0,8,0,0"/>
+                                   Margin="0,9,0,0"/>
 
                         <!-- Recommendation -->
-                        <TextBlock Grid.Row="3"
-                                   Text="{lex:Loc Key=EditModeSelection_CreateCopy_Recommendation}"
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_CreateNewVersion_Recommendation}"
                                    FontSize="12"
                                    Foreground="#00A63E"
-                                   Margin="0,8,0,0"/>
-                    </Grid>
+                                   Margin="0,9,0,0"/>
+
+                        <!-- Version Input Section -->
+                        <StackPanel Margin="0,8,0,0">
+                            <!-- Version Display Row -->
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,12">
+                                <TextBlock Text="{lex:Loc Key=EditModeSelection_CurrentVersion}"
+                                           FontSize="14"
+                                           Foreground="{StaticResource Brush.Text.Secondary}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding CurrentVersion}"
+                                           FontWeight="Bold"
+                                           FontSize="16"
+                                           Foreground="{StaticResource Brush.Text.Primary}"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,0,0"/>
+                                
+                                <!-- Arrow Icon -->
+                                <Path Data="M5 12h14m-7-7l7 7-7 7"
+                                      Stroke="{StaticResource Brush.Text.Secondary}"
+                                      StrokeThickness="1.5"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform"
+                                      Margin="12,0"
+                                      VerticalAlignment="Center"/>
+                                
+                                <TextBlock Text="{lex:Loc Key=EditModeSelection_NewVersion}"
+                                           FontSize="14"
+                                           Foreground="{StaticResource Brush.Text.Secondary}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock x:Name="NewVersionText"
+                                           Text="{Binding NewVersionDisplay}"
+                                           FontWeight="Bold"
+                                           FontSize="16"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="#2B7FFF"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsVersionValid}" Value="False">
+                                                    <Setter Property="Foreground" Value="{StaticResource Brush.Status.Danger}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- Version Input Fields -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Major -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Major"
+                                               FontSize="12"
+                                               Foreground="{StaticResource Brush.Text.Secondary}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding MajorVersion, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource VersionInputTextBox}">
+                                        <TextBox.Tag>
+                                            <Binding Path="IsMajorEmpty">
+                                                <Binding.Converter>
+                                                    <local:BoolToErrorTagConverter xmlns:local="clr-namespace:EquipmentDesigner.Views"/>
+                                                </Binding.Converter>
+                                            </Binding>
+                                        </TextBox.Tag>
+                                    </TextBox>
+                                </StackPanel>
+
+                                <!-- Minor -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Minor"
+                                               FontSize="12"
+                                               Foreground="{StaticResource Brush.Text.Secondary}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding MinorVersion, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource VersionInputTextBox}">
+                                        <TextBox.Tag>
+                                            <Binding Path="IsMinorEmpty">
+                                                <Binding.Converter>
+                                                    <local:BoolToErrorTagConverter xmlns:local="clr-namespace:EquipmentDesigner.Views"/>
+                                                </Binding.Converter>
+                                            </Binding>
+                                        </TextBox.Tag>
+                                    </TextBox>
+                                </StackPanel>
+
+                                <!-- Patch -->
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Patch"
+                                               FontSize="12"
+                                               Foreground="{StaticResource Brush.Text.Secondary}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding PatchVersion, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource VersionInputTextBox}">
+                                        <TextBox.Tag>
+                                            <Binding Path="IsPatchEmpty">
+                                                <Binding.Converter>
+                                                    <local:BoolToErrorTagConverter xmlns:local="clr-namespace:EquipmentDesigner.Views"/>
+                                                </Binding.Converter>
+                                            </Binding>
+                                        </TextBox.Tag>
+                                    </TextBox>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Divider -->
+                <Border Background="{StaticResource Brush.Border.Primary}"
+                        Height="1"
+                        Margin="0,0,0,12"/>
+
+                <!-- Option 3: Create New Hardware (복사 후 새로운 하드웨어 정의하기) -->
+                <Border x:Name="CreateNewHardwareOption"
+                        MouseLeftButtonDown="CreateNewHardwareOption_Click"
+                        BorderThickness="1.6"
+                        CornerRadius="{StaticResource Radius.LG}"
+                        Padding="18,16"
+                        Cursor="Hand"
+                        MinHeight="132">
+                    <StackPanel>
+                        <!-- Title -->
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_CreateNewHardware_Title}"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   Foreground="{StaticResource Brush.Text.Primary}"/>
+
+                        <!-- Description -->
+                        <TextBlock Text="{lex:Loc Key=EditModeSelection_CreateNewHardware_Description}"
+                                   FontSize="14"
+                                   Foreground="{StaticResource Brush.Text.Secondary}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,9,0,0"/>
+                    </StackPanel>
                 </Border>
             </StackPanel>
 
             <!-- Confirm Button -->
             <Button x:Name="ConfirmButton"
-                    Grid.Row="4"
+                    Grid.Row="3"
                     Click="ConfirmButton_Click"
                     Height="44"
                     Cursor="Hand"
-                    Margin="0,16,0,0">
+                    Margin="0,16,0,0"
+                    IsEnabled="{Binding IsConfirmEnabled}">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="ButtonBorder"
@@ -160,12 +343,24 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource Brush.Button.Primary.Background.Hover}"/>
                             </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource Brush.Button.Disabled.Background}"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Button.Template>
-                <TextBlock Text="{lex:Loc Key=EditModeSelection_Confirm}"
-                           Style="{StaticResource Typography.Button}"
-                           Foreground="White"/>
+                <TextBlock Text="{lex:Loc Key=EditModeSelection_Confirm}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource Typography.Button}">
+                            <Setter Property="Foreground" Value="White"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
+                                    <Setter Property="Foreground" Value="{StaticResource Brush.Button.Disabled.Foreground}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </Button>
         </Grid>
     </Border>

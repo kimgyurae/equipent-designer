@@ -354,7 +354,9 @@ namespace EquipmentDesigner.ViewModels
                 DisplayName = DisplayName,
                 Description = Description,
                 Commands = Commands.Select(c => c.ToDto()).ToList(),
-                IoInfo = IoConfigurations.Select(io => io.ToDto()).ToList()
+                IoInfo = IoConfigurations.Select(io => io.ToDto()).ToList(),
+                Version = Version,
+                HardwareKey = HardwareKey
             };
 
             if (!string.IsNullOrEmpty(ImplementationGuidelines))
@@ -377,7 +379,9 @@ namespace EquipmentDesigner.ViewModels
                 ParentUnitId = dto.UnitId,
                 Name = dto.Name ?? string.Empty,
                 DisplayName = dto.DisplayName ?? string.Empty,
-                Description = dto.Description ?? string.Empty
+                Description = dto.Description ?? string.Empty,
+                Version = dto.Version ?? "undefined",
+                HardwareKey = dto.HardwareKey
             };
 
             if (dto.ImplementationInstructions != null && dto.ImplementationInstructions.Any())

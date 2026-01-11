@@ -46,17 +46,18 @@ namespace EquipmentDesigner.ViewModels
         /// Creates a new workflow with a unique ID.
         /// </summary>
         public HardwareDefineWorkflowViewModel(HardwareLayer startType)
-            : this(startType, Guid.NewGuid().ToString())
+            : this(startType, Guid.NewGuid().ToString(), Guid.NewGuid().ToString())
         {
         }
 
         /// <summary>
         /// Creates a workflow with a specific ID (for resume scenarios).
         /// </summary>
-        private HardwareDefineWorkflowViewModel(HardwareLayer startType, string workflowId)
+        private HardwareDefineWorkflowViewModel(HardwareLayer startType, string workflowId, string hardwareKey)
         {
             WorkflowId = workflowId;
             StartType = startType;
+            HardwareKey = hardwareKey;
             WorkflowSteps = new ObservableCollection<WorkflowStepViewModel>();
 
             InitializeWorkflowSteps();
@@ -75,6 +76,12 @@ namespace EquipmentDesigner.ViewModels
         /// The starting type of the workflow.
         /// </summary>
         public HardwareLayer StartType { get; }
+
+        /// <summary>
+        /// Hardware unique identification key - all versions of the same hardware share this key.
+        /// If null, the root node's Name is used as default (backward compatibility).
+        /// </summary>
+        public string HardwareKey { get; private set; }
 
         /// <summary>
         /// Collection of workflow steps.
@@ -331,6 +338,12 @@ namespace EquipmentDesigner.ViewModels
         public DeviceDefineViewModel DeviceViewModel =>
             GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.Device)?.DataViewModel as DeviceDefineViewModel;
 
+        /// <summary>
+        /// Gets the version of the top-level component (root node).
+        /// Returns the Version from the first root node's data ViewModel.
+        /// </summary>
+        public string TopLevelComponentVersion => TreeRootNodes?.FirstOrDefault()?.DataViewModel?.Version ?? "undefined";
+
         #endregion
 
         private void InitializeWorkflowSteps()
@@ -466,7 +479,8 @@ namespace EquipmentDesigner.ViewModels
                 // Show edit mode selection dialog
                 var dialog = new EditModeSelectionDialog
                 {
-                    Owner = mainWindow
+                    Owner = mainWindow,
+                    CurrentVersion = TopLevelComponentVersion
                 };
 
                 if (dialog.ShowDialog() == true && dialog.IsConfirmed)
@@ -475,16 +489,18 @@ namespace EquipmentDesigner.ViewModels
                     var selectedMode = dialog.SelectedMode;
 
                     // Execute edit mode based on selection
-                    // Currently both options perform the same action (direct edit)
-                    // In the future, CreateCopy mode will create a copy of the data
                     switch (selectedMode)
                     {
                         case EditModeSelection.DirectEdit:
                             EnableEditModeDirectly();
                             break;
 
-                        case EditModeSelection.CreateCopy:
-                            EnableEditModeWithCopyAsync();
+                        case EditModeSelection.CreateNewVersion:
+                            EnableEditModeWithNewVersionAsync(dialog.NewVersion);
+                            break;
+
+                        case EditModeSelection.CreateNewHardware:
+                            EnableEditModeWithNewHardwareAsync();
                             break;
                     }
                 }
@@ -532,18 +548,51 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Creates a copy of the current workflow and navigates to edit it.
-        /// Original data remains unchanged.
+        /// Creates a new version of the current workflow with updated version number.
+        /// Original data remains unchanged. HardwareKey is preserved.
         /// </summary>
-        private async void EnableEditModeWithCopyAsync()
+        /// <param name="newVersion">The new version string to apply.</param>
+        private async void EnableEditModeWithNewVersionAsync(string newVersion)
         {
             try
             {
                 // 1. Create WorkflowSessionDto from current state
                 var sessionDto = ToWorkflowSessionDto();
 
-                // 2. Create a copy with new ID and regenerated node IDs
-                var copiedSession = CreateCopySession(sessionDto);
+                // 2. Create a copy with new session ID but same HardwareKey
+                var copiedSession = CreateNewVersionSession(sessionDto, newVersion);
+
+                // 3. Save to WorkflowRepository
+                var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
+                var workflowData = await workflowRepo.LoadAsync();
+                workflowData.WorkflowSessions.Add(copiedSession);
+                await workflowRepo.SaveAsync(workflowData);
+
+                // 4. Navigate to the copied workflow
+                NavigationService.Instance.ResumeWorkflow(copiedSession.Id);
+            }
+            catch (Exception)
+            {
+                // Show error toast
+                ToastService.Instance.ShowError(
+                    Strings.Toast_CopyWorkflowFailed_Title,
+                    Strings.Toast_CopyWorkflowFailed_Description);
+            }
+        }
+
+        /// <summary>
+        /// Creates a completely new hardware with new GUID and ID from the current workflow.
+        /// Original data remains unchanged. No version history is shared.
+        /// </summary>
+        private async void EnableEditModeWithNewHardwareAsync()
+        {
+            try
+            {
+                // 1. Create WorkflowSessionDto from current state
+                var sessionDto = ToWorkflowSessionDto();
+
+                // 2. Create a copy with new HardwareKey and regenerated IDs
+                var copiedSession = CreateNewHardwareSession(sessionDto);
 
                 // 3. Save to WorkflowRepository
                 var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -631,6 +680,127 @@ namespace EquipmentDesigner.ViewModels
             }
 
             return copiedSession;
+        }
+
+        /// <summary>
+        /// Creates a new version of a workflow session with updated version number.
+        /// The copied session has a new session ID but preserves the HardwareKey.
+        /// </summary>
+        /// <param name="originalSession">The original session to copy.</param>
+        /// <param name="newVersion">The new version string to apply.</param>
+        /// <returns>A new WorkflowSessionDto with updated version.</returns>
+        public static WorkflowSessionDto CreateNewVersionSession(WorkflowSessionDto originalSession, string newVersion)
+        {
+            // Create a deep copy by creating a new DTO
+            var copiedSession = new WorkflowSessionDto
+            {
+                Id = Guid.NewGuid().ToString(),
+                HardwareType = originalSession.HardwareType,
+                State = ComponentState.Draft,
+                LastModifiedAt = DateTime.Now,
+                TreeNodes = originalSession.TreeNodes.Select(DeepCopyTreeNode).ToList()
+            };
+
+            // Regenerate all tree node IDs but preserve HardwareKey
+            foreach (var rootNode in copiedSession.TreeNodes)
+            {
+                RegenerateTreeNodeIds(rootNode);
+            }
+
+            // Update version in root node(s)
+            foreach (var rootNode in copiedSession.TreeNodes)
+            {
+                UpdateRootNodeVersion(rootNode, newVersion);
+            }
+
+            return copiedSession;
+        }
+
+        /// <summary>
+        /// Creates a completely new hardware session with new GUID and ID.
+        /// No version history is shared with the original.
+        /// </summary>
+        /// <param name="originalSession">The original session to copy.</param>
+        /// <returns>A new WorkflowSessionDto with new HardwareKey and IDs.</returns>
+        public static WorkflowSessionDto CreateNewHardwareSession(WorkflowSessionDto originalSession)
+        {
+            // Create a deep copy by creating a new DTO
+            var copiedSession = new WorkflowSessionDto
+            {
+                Id = Guid.NewGuid().ToString(),
+                HardwareType = originalSession.HardwareType,
+                State = ComponentState.Draft,
+                LastModifiedAt = DateTime.Now,
+                TreeNodes = originalSession.TreeNodes.Select(DeepCopyTreeNode).ToList()
+            };
+
+            // Regenerate all tree node IDs
+            foreach (var rootNode in copiedSession.TreeNodes)
+            {
+                RegenerateTreeNodeIds(rootNode);
+            }
+
+            // Regenerate HardwareKey for root nodes (creates new hardware identity)
+            foreach (var rootNode in copiedSession.TreeNodes)
+            {
+                RegenerateHardwareKey(rootNode);
+            }
+
+            // Apply copy suffix to root node names
+            foreach (var rootNode in copiedSession.TreeNodes)
+            {
+                ApplyCopySuffixToRootNode(rootNode);
+            }
+
+            return copiedSession;
+        }
+
+        /// <summary>
+        /// Updates the version in the root node's data.
+        /// </summary>
+        /// <param name="nodeDto">The root node to update.</param>
+        /// <param name="newVersion">The new version string.</param>
+        public static void UpdateRootNodeVersion(TreeNodeDataDto nodeDto, string newVersion)
+        {
+            switch (nodeDto.HardwareLayer)
+            {
+                case HardwareLayer.Equipment when nodeDto.EquipmentData != null:
+                    nodeDto.EquipmentData.Version = newVersion;
+                    break;
+                case HardwareLayer.System when nodeDto.SystemData != null:
+                    nodeDto.SystemData.Version = newVersion;
+                    break;
+                case HardwareLayer.Unit when nodeDto.UnitData != null:
+                    nodeDto.UnitData.Version = newVersion;
+                    break;
+                case HardwareLayer.Device when nodeDto.DeviceData != null:
+                    nodeDto.DeviceData.Version = newVersion;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Regenerates the HardwareKey in the root node's data, creating a new hardware identity.
+        /// </summary>
+        /// <param name="nodeDto">The root node to regenerate HardwareKey for.</param>
+        public static void RegenerateHardwareKey(TreeNodeDataDto nodeDto)
+        {
+            var newHardwareKey = Guid.NewGuid().ToString();
+            switch (nodeDto.HardwareLayer)
+            {
+                case HardwareLayer.Equipment when nodeDto.EquipmentData != null:
+                    nodeDto.EquipmentData.HardwareKey = newHardwareKey;
+                    break;
+                case HardwareLayer.System when nodeDto.SystemData != null:
+                    nodeDto.SystemData.HardwareKey = newHardwareKey;
+                    break;
+                case HardwareLayer.Unit when nodeDto.UnitData != null:
+                    nodeDto.UnitData.HardwareKey = newHardwareKey;
+                    break;
+                case HardwareLayer.Device when nodeDto.DeviceData != null:
+                    nodeDto.DeviceData.HardwareKey = newHardwareKey;
+                    break;
+            }
         }
 
         /// <summary>
@@ -1076,6 +1246,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 Id = WorkflowId,
                 HardwareType = StartType,
+                HardwareKey = HardwareKey,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
@@ -1120,7 +1291,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id);
+            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id, dto.HardwareKey);
 
             // Rebuild tree from TreeNodes
             if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)

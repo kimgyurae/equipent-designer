@@ -107,8 +107,11 @@ namespace EquipmentDesigner.Views
             else
             {
                 // No selection: remove all adorners
-                RemoveSelectionAdorner();
+                // IMPORTANT: RemoveMultiSelectionAdorner must be called first because
+                // RemoveSelectionAdorner sets _adornerLayer = null, which would cause
+                // RemoveMultiSelectionAdorner's null check to fail
                 RemoveMultiSelectionAdorner();
+                RemoveSelectionAdorner();
             }
         }
 
@@ -226,10 +229,14 @@ namespace EquipmentDesigner.Views
             // ESC key: Exit edit mode (clear selection) - works even in TextBox
             if (e.Key == Key.Escape)
             {
-                if (DataContext is DrawboardViewModel viewModel && viewModel.SelectedElement != null)
+                if (DataContext is DrawboardViewModel viewModel)
                 {
-                    viewModel.ClearSelection();
-                    e.Handled = true;
+                    // Handle both single selection and multi-selection
+                    if (viewModel.SelectedElement != null || viewModel.IsMultiSelectionMode)
+                    {
+                        viewModel.ClearAllSelections();
+                        e.Handled = true;
+                    }
                 }
                 return;
             }
@@ -288,9 +295,9 @@ namespace EquipmentDesigner.Views
         }
 
         /// <summary>
-        /// Handles preview mouse right button up for selection (per spec: right-click Button Up activates edit mode).
+        /// Handles preview mouse right button down for deselection (per spec: Button Down triggers deselection).
         /// </summary>
-        private void OnCanvasPreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        private void OnCanvasPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (_viewModel == null) return;
 
@@ -300,18 +307,55 @@ namespace EquipmentDesigner.Views
             var position = e.GetPosition(ZoomableGrid);
             var hitElement = _viewModel.FindElementAtPoint(position);
 
-            if (hitElement != null)
+            // Track Shift key state
+            _isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
+            if (hitElement == null)
             {
-                // Right-click on element: select it
-                _viewModel.SelectElement(hitElement);
+                // Right-click on empty space: clear all selections
+                _viewModel.ClearAllSelections();
+                e.Handled = true;
+                return;
+            }
+
+            // Shift+Click: Toggle selection (same as left-click)
+            if (_isShiftPressed)
+            {
+                _viewModel.ToggleSelection(hitElement);
                 ZoomableGrid.Focus();
                 e.Handled = true;
+                return;
             }
-            else
+
+            // Handle multi-selection mode
+            if (_viewModel.IsMultiSelectionMode)
             {
-                // Right-click on empty space: clear selection
-                _viewModel.ClearSelection();
+                if (!_viewModel.SelectedElements.Contains(hitElement))
+                {
+                    // Right-click on non-selected element: clear all and select new one
+                    _viewModel.ClearAllSelections();
+                    _viewModel.SelectElement(hitElement);
+                }
+                // If clicking on a selected element in multi-select, keep multi-selection
             }
+            else if (hitElement != _viewModel.SelectedElement)
+            {
+                // Right-click on different element in single selection: select the new one
+                _viewModel.SelectElement(hitElement);
+            }
+            // If clicking on already selected element, keep selection
+
+            ZoomableGrid.Focus();
+            // Don't set e.Handled so context menu can show on ButtonUp if needed
+        }
+
+        /// <summary>
+        /// Handles preview mouse right button up for context menu (selection already handled on ButtonDown).
+        /// </summary>
+        private void OnCanvasPreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // Selection is already handled on ButtonDown per spec
+            // This handler can be used for context menu display in the future
         }
 
         /// <summary>
@@ -731,7 +775,12 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void RemoveMultiSelectionAdorner()
         {
-            if (_multiSelectionAdorner != null && _adornerLayer != null)
+            if (_multiSelectionAdorner == null) return;
+
+            // Get adorner layer directly from ZoomableGrid to avoid dependency on shared _adornerLayer
+            // which may point to a different element's layer (SelectionAdorner uses element container)
+            var adornerLayer = AdornerLayer.GetAdornerLayer(ZoomableGrid);
+            if (adornerLayer != null)
             {
                 // Disconnect events
                 _multiSelectionAdorner.ResizeStarted -= OnMultiAdornerResizeStarted;
@@ -739,7 +788,7 @@ namespace EquipmentDesigner.Views
                 _multiSelectionAdorner.ResizeCompleted -= OnMultiAdornerResizeCompleted;
 
                 _multiSelectionAdorner.Detach();
-                _adornerLayer.Remove(_multiSelectionAdorner);
+                adornerLayer.Remove(_multiSelectionAdorner);
             }
 
             _multiSelectionAdorner = null;

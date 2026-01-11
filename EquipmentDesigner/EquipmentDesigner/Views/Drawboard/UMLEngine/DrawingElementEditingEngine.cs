@@ -310,7 +310,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         /// <summary>
         /// Applies aspect ratio constraint to the given dimensions.
         /// </summary>
-        private static void ApplyAspectRatioConstraint(
+        internal static void ApplyAspectRatioConstraint(
             ref double newX, ref double newY,
             ref double newWidth, ref double newHeight,
             double aspectRatio,
@@ -661,18 +661,9 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 scaleY = newGroupHeight / Math.Max(MinSize, context.OriginalGroupBounds.Height);
             }
 
-            // For edge handles, only scale in that axis
+            // Determine edge handle types for axis-specific behavior
             bool isHorizontalEdge = context.InitialHandle is ResizeHandleType.Top or ResizeHandleType.Bottom;
             bool isVerticalEdge = context.InitialHandle is ResizeHandleType.Left or ResizeHandleType.Right;
-
-            if (isHorizontalEdge)
-            {
-                scaleX = 1.0;
-            }
-            else if (isVerticalEdge)
-            {
-                scaleY = 1.0;
-            }
 
             // Maintain aspect ratio if Shift is held
             if (maintainAspectRatio)
@@ -714,6 +705,18 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                     activeHandle);
 
                 newGroupBounds = new Rect(newGroupX, newGroupY, newGroupWidth, newGroupHeight);
+            }
+            else
+            {
+                // For edge handles without aspect ratio lock, only scale in that axis
+                if (isHorizontalEdge)
+                {
+                    scaleX = 1.0;
+                }
+                else if (isVerticalEdge)
+                {
+                    scaleY = 1.0;
+                }
             }
 
             // Calculate element transforms
