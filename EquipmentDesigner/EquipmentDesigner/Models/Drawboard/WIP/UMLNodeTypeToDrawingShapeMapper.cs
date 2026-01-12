@@ -1,12 +1,12 @@
 namespace EquipmentDesigner.Models
 {
     /// <summary>
-    /// Action node - performs actual work
-    /// Inbound: 1+ | Outbound: exactly 1
+    /// Mapper class for converting between UMLNodeType and DrawingShapeType.
     /// </summary>
-    public class UMLNodeTypeToDrawingShapeMapper
+    public static class UMLNodeTypeToDrawingShapeMapper
     {
-        UMLNodeType? ConvertToUMLNodeType(DrawingShapeType drawingShapeType) {
+        public static UMLNodeType? ConvertToUMLNodeType(DrawingShapeType drawingShapeType)
+        {
             switch (drawingShapeType)
             {
                 case DrawingShapeType.Initial:
@@ -24,9 +24,9 @@ namespace EquipmentDesigner.Models
             }
         }
 
-        DrawingShapeType? ConvertToDrawingShapeTypee(UMLNodeType drawingShapeType)
+        public static DrawingShapeType? ConvertToDrawingShapeType(UMLNodeType umlNodeType)
         {
-            switch (drawingShapeType)
+            switch (umlNodeType)
             {
                 case UMLNodeType.Initial:
                     return DrawingShapeType.Initial;

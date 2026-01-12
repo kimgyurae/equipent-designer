@@ -60,4 +60,20 @@ namespace EquipmentDesigner.Services
     public interface IUploadedWorkflowRepository : ITypedDataRepository<List<HardwareDefinition>>
     {
     }
+
+    /// <summary>
+    /// Repository interface for local process data.
+    /// Used for storing incomplete process definitions locally.
+    /// </summary>
+    public interface ILocalProcessRepository : ITypedDataRepository<List<Process>>
+    {
+    }
+
+    /// <summary>
+    /// Repository interface for remote process data.
+    /// Used for storing uploaded/remote process definitions.
+    /// </summary>
+    public interface IRemoteProcessRepository : ITypedDataRepository<List<Process>>
+    {
+    }
 }

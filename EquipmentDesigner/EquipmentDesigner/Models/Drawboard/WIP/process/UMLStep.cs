@@ -7,6 +7,6 @@ namespace EquipmentDesigner.Models
     {
         public string Id { get; set; }
 
-        DrawingElement DrawingElement { get; set; }
+        public DrawingElement DrawingElement { get; set; }
     }
 }
