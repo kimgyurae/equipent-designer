@@ -216,3 +216,4 @@ CLAUDE.md
 .auto-claude/
 EquipmentDesigner/EquipmentDesigner.Tests/TestResults
 EquipmentDesigner/.test_results
+tmpclaude*

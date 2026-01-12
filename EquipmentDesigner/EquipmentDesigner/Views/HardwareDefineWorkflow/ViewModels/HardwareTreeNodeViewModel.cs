@@ -404,7 +404,7 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Creates a clone of the data ViewModel using the ToDto/FromDto pattern.
+        /// Creates a clone of the data ViewModel using the ToHardwareDefinition/FromHardwareDefinition pattern.
         /// </summary>
         private static IHardwareDefineViewModel CloneDataViewModel(IHardwareDefineViewModel source)
         {
@@ -413,10 +413,10 @@ namespace EquipmentDesigner.ViewModels
 
             return source switch
             {
-                EquipmentDefineViewModel vm => EquipmentDefineViewModel.FromDto(vm.ToDto()),
-                SystemDefineViewModel vm => SystemDefineViewModel.FromDto(vm.ToDto()),
-                UnitDefineViewModel vm => UnitDefineViewModel.FromDto(vm.ToDto()),
-                DeviceDefineViewModel vm => DeviceDefineViewModel.FromDto(vm.ToDto()),
+                EquipmentDefineViewModel vm => EquipmentDefineViewModel.FromHardwareDefinition(vm.ToHardwareDefinition()),
+                SystemDefineViewModel vm => SystemDefineViewModel.FromHardwareDefinition(vm.ToHardwareDefinition()),
+                UnitDefineViewModel vm => UnitDefineViewModel.FromHardwareDefinition(vm.ToHardwareDefinition()),
+                DeviceDefineViewModel vm => DeviceDefineViewModel.FromHardwareDefinition(vm.ToHardwareDefinition()),
                 _ => null
             };
         }

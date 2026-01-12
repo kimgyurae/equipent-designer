@@ -346,75 +346,297 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
         #endregion
 
-        #region Data Conversion
+        #region HardwareDefinition Conversion
 
         [Fact]
-        public void ToDto_ReturnsSystemDtoWithAllPropertiesMapped()
+        public void ToHardwareDefinition_SetsHardwareTypeToSystem()
         {
-            var viewModel = new SystemDefineViewModel
-            {
-                ParentEquipmentId = "EQ001",
-                Name = "System1",
-                DisplayName = "System One",
-                Description = "Description",
-                ImplementationGuidelines = "Guidelines",
-                Process = "Process A"
-            };
+            var viewModel = new SystemDefineViewModel { Name = "TestSystem" };
 
-            var dto = viewModel.ToDto();
+            var hw = viewModel.ToHardwareDefinition();
 
-            dto.EquipmentId.Should().Be("EQ001");
-            dto.Name.Should().Be("System1");
-            dto.DisplayName.Should().Be("System One");
-            dto.Description.Should().Be("Description");
-            dto.ProcessInfo.Should().Be("Process A");
+            hw.HardwareType.Should().Be(HardwareType.System);
         }
 
         [Fact]
-        public void ToDto_IncludesAllCommandsInSystemDtoCommands()
+        public void ToHardwareDefinition_MapsNamePropertyCorrectly()
+        {
+            var viewModel = new SystemDefineViewModel { Name = "TestSystem" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Name.Should().Be("TestSystem");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsDisplayNamePropertyCorrectly()
         {
             var viewModel = new SystemDefineViewModel
             {
-                Name = "System1"
+                Name = "TestSystem",
+                DisplayName = "Test System Display"
             };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.DisplayName.Should().Be("Test System Display");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsDescriptionPropertyCorrectly()
+        {
+            var viewModel = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                Description = "Test System Description"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Description.Should().Be("Test System Description");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsProcessToProcessInfoCorrectly()
+        {
+            var viewModel = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                Process = "TestProcess"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.ProcessInfo.Should().Be("TestProcess");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsVersionPropertyCorrectly()
+        {
+            var viewModel = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                Version = "2.0.0"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Version.Should().Be("2.0.0");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsHardwareKeyPropertyCorrectly()
+        {
+            var viewModel = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                HardwareKey = "sys-key-123"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.HardwareKey.Should().Be("sys-key-123");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_SplitsImplementationGuidelinesIntoList()
+        {
+            var viewModel = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                ImplementationGuidelines = "Line1\nLine2\nLine3"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.ImplementationInstructions.Should().HaveCount(3);
+            hw.ImplementationInstructions.Should().ContainInOrder("Line1", "Line2", "Line3");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_HandlesEmptyImplementationGuidelinesWithEmptyList()
+        {
+            var viewModel = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                ImplementationGuidelines = string.Empty
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.ImplementationInstructions.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_SplitsImplementationGuidelinesOnBothCrLfAndLf()
+        {
+            var viewModel = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                ImplementationGuidelines = "Line1\r\nLine2\nLine3"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.ImplementationInstructions.Should().HaveCount(3);
+            hw.ImplementationInstructions.Should().ContainInOrder("Line1", "Line2", "Line3");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_ConvertsCommandsCollectionUsingCommandViewModelToDto()
+        {
+            var viewModel = new SystemDefineViewModel { Name = "TestSystem" };
             viewModel.Commands.Add(new CommandViewModel { Name = "Cmd1", Description = "Desc1" });
             viewModel.Commands.Add(new CommandViewModel { Name = "Cmd2", Description = "Desc2" });
 
-            var dto = viewModel.ToDto();
+            var hw = viewModel.ToHardwareDefinition();
 
-            dto.Commands.Should().HaveCount(2);
-            dto.Commands.Select(c => c.Name).Should().Contain(new[] { "Cmd1", "Cmd2" });
+            hw.Commands.Should().HaveCount(2);
+            hw.Commands.Select(c => c.Name).Should().Contain(new[] { "Cmd1", "Cmd2" });
         }
 
         [Fact]
-        public void FromDto_PopulatesAllPropertiesFromSystemDto()
+        public void ToHardwareDefinition_ReturnsEmptyCommandsListWhenCollectionIsEmpty()
         {
-            var dto = new SystemDto
+            var viewModel = new SystemDefineViewModel { Name = "TestSystem" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Commands.Should().NotBeNull();
+            hw.Commands.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectName()
+        {
+            var hw = new HardwareDefinition
             {
-                EquipmentId = "EQ002",
-                Name = "System2",
-                DisplayName = "System Two",
-                Description = "Description B",
-                ImplementationInstructions = new System.Collections.Generic.List<string> { "Guideline1", "Guideline2" },
-                ProcessInfo = "Process B"
+                HardwareType = HardwareType.System,
+                Name = "TestSystem"
             };
 
-            var viewModel = SystemDefineViewModel.FromDto(dto);
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
 
-            viewModel.ParentEquipmentId.Should().Be("EQ002");
-            viewModel.Name.Should().Be("System2");
-            viewModel.DisplayName.Should().Be("System Two");
-            viewModel.Description.Should().Be("Description B");
-            viewModel.ImplementationGuidelines.Should().Be("Guideline1\nGuideline2");
-            viewModel.Process.Should().Be("Process B");
+            viewModel.Name.Should().Be("TestSystem");
         }
 
         [Fact]
-        public void FromDto_PopulatesCommandsCollectionFromSystemDtoCommands()
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectDisplayName()
         {
-            var dto = new SystemDto
+            var hw = new HardwareDefinition
             {
-                Name = "System1",
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                DisplayName = "Test System Display"
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.DisplayName.Should().Be("Test System Display");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectDescription()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                Description = "Test Description"
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Description.Should().Be("Test Description");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_MapsProcessInfoToProcessCorrectly()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                ProcessInfo = "TestProcess"
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Process.Should().Be("TestProcess");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectVersion()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                Version = "3.0.0"
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Version.Should().Be("3.0.0");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectHardwareKey()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                HardwareKey = "sys-key-456"
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.HardwareKey.Should().Be("sys-key-456");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_JoinsImplementationInstructionsIntoGuidelinesWithNewlines()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                ImplementationInstructions = new System.Collections.Generic.List<string>
+                {
+                    "Instruction1",
+                    "Instruction2",
+                    "Instruction3"
+                }
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.ImplementationGuidelines.Should().Be("Instruction1\nInstruction2\nInstruction3");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullImplementationInstructionsWithEmptyString()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                ImplementationInstructions = null
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.ImplementationGuidelines.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesCommandViewModelsFromCommandsList()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
                 Commands = new System.Collections.Generic.List<CommandDto>
                 {
                     new CommandDto { Name = "Cmd1", Description = "Desc1" },
@@ -422,10 +644,85 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 }
             };
 
-            var viewModel = SystemDefineViewModel.FromDto(dto);
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
 
             viewModel.Commands.Should().HaveCount(2);
             viewModel.Commands.Select(c => c.Name).Should().Contain(new[] { "Cmd1", "Cmd2" });
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullCommandsWithEmptyCollection()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = "TestSystem",
+                Commands = null
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Commands.Should().NotBeNull();
+            viewModel.Commands.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_ThrowsArgumentNullException_WhenHardwareDefinitionIsNull()
+        {
+            System.Action act = () => SystemDefineViewModel.FromHardwareDefinition(null);
+
+            act.Should().Throw<System.ArgumentNullException>()
+                .WithParameterName("hw");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullPropertiesWithEmptyStringDefaults()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.System,
+                Name = null,
+                DisplayName = null,
+                Description = null,
+                ProcessInfo = null
+            };
+
+            var viewModel = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Name.Should().BeEmpty();
+            viewModel.DisplayName.Should().BeEmpty();
+            viewModel.Description.Should().BeEmpty();
+            viewModel.Process.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void RoundTripConversion_PreservesAllSystemPropertiesIncludingCommands()
+        {
+            var original = new SystemDefineViewModel
+            {
+                Name = "TestSystem",
+                DisplayName = "Test System Display",
+                Description = "Test Description",
+                ImplementationGuidelines = "Line1\nLine2",
+                Process = "TestProcess",
+                Version = "1.5.0",
+                HardwareKey = "sys-key-789"
+            };
+            original.Commands.Add(new CommandViewModel { Name = "Cmd1", Description = "Desc1" });
+            original.Commands.Add(new CommandViewModel { Name = "Cmd2", Description = "Desc2" });
+
+            var hw = original.ToHardwareDefinition();
+            var restored = SystemDefineViewModel.FromHardwareDefinition(hw);
+
+            restored.Name.Should().Be(original.Name);
+            restored.DisplayName.Should().Be(original.DisplayName);
+            restored.Description.Should().Be(original.Description);
+            restored.ImplementationGuidelines.Should().Be(original.ImplementationGuidelines);
+            restored.Process.Should().Be(original.Process);
+            restored.Version.Should().Be(original.Version);
+            restored.HardwareKey.Should().Be(original.HardwareKey);
+            restored.Commands.Should().HaveCount(2);
+            restored.Commands.Select(c => c.Name).Should().Contain(new[] { "Cmd1", "Cmd2" });
         }
 
         #endregion

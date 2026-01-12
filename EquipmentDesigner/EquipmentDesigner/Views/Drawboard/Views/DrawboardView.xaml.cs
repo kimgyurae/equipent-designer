@@ -25,7 +25,6 @@ namespace EquipmentDesigner.Views
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
         private DrawboardViewModel _viewModel;
-        private DrawingElement _editingElement;
 
         public DrawboardView()
         {
@@ -36,12 +35,47 @@ namespace EquipmentDesigner.Views
         }
 
         /// <summary>
-        /// Sets keyboard focus when the view is loaded.
+        /// Sets keyboard focus and centers the canvas when the view is loaded.
+        /// Uses Dispatcher.BeginInvoke to ensure ScrollViewer layout is complete.
         /// </summary>
         private void OnDrawboardLoaded(object sender, RoutedEventArgs e)
         {
             Focusable = true;
             Focus();
+
+            // Center canvas after layout is complete
+            // Must use Dispatcher to ensure ScrollViewer has valid ViewportWidth/Height
+            Dispatcher.BeginInvoke(new Action(CenterCanvas), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        /// <summary>
+        /// Centers the canvas in the viewport.
+        /// Should be called after ScrollViewer layout is complete.
+        /// </summary>
+        private void CenterCanvas()
+        {
+            if (_viewModel == null) return;
+
+            // Get viewport size from ScrollViewer
+            var viewportSize = new Size(
+                CanvasScrollViewer.ViewportWidth,
+                CanvasScrollViewer.ViewportHeight);
+
+            // Skip if viewport not yet laid out (safety check)
+            if (viewportSize.Width <= 0 || viewportSize.Height <= 0) return;
+
+            // Get canvas size from ViewModel
+            var canvasSize = new Size(_viewModel.CanvasWidth, _viewModel.CanvasHeight);
+
+            // Calculate centered scroll offset
+            var centerOffset = ZoomControlEngine.CalculateCenterScrollOffset(
+                canvasSize,
+                viewportSize,
+                _viewModel.ZoomScale);
+
+            // Apply scroll offset
+            CanvasScrollViewer.ScrollToHorizontalOffset(centerOffset.X);
+            CanvasScrollViewer.ScrollToVerticalOffset(centerOffset.Y);
         }
 
         /// <summary>
@@ -54,6 +88,9 @@ namespace EquipmentDesigner.Views
             if (_viewModel != null)
             {
                 _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                _viewModel.TextEditingStarted -= OnTextEditingStarted;
+                _viewModel.TextEditingEnded -= OnTextEditingEnded;
+                _viewModel.TextBoxBoundsChanged -= OnTextBoxBoundsChanged;
             }
 
             // Force layout update to ensure toolbar resizes correctly
@@ -62,6 +99,9 @@ namespace EquipmentDesigner.Views
             {
                 _viewModel = viewModel;
                 _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+                _viewModel.TextEditingStarted += OnTextEditingStarted;
+                _viewModel.TextEditingEnded += OnTextEditingEnded;
+                _viewModel.TextBoxBoundsChanged += OnTextBoxBoundsChanged;
 
                 // Set up scroll offset callback for pan operations
                 _viewModel.ApplyScrollOffset = ApplyScrollOffset;
@@ -224,7 +264,7 @@ namespace EquipmentDesigner.Views
         private void OnDrawboardPreviewKeyDown(object sender, KeyEventArgs e)
         {
             // If text editing is active, let the TextBox handle ESC
-            if (e.Key == Key.Escape && _editingElement != null)
+            if (e.Key == Key.Escape && _viewModel?.IsTextEditing == true)
             {
                 return;  // OnInlineEditKeyDown will handle this
             }
@@ -301,7 +341,8 @@ namespace EquipmentDesigner.Views
                 // Get position relative to ScrollViewer (viewport coordinates)
                 var panPosition = e.GetPosition(CanvasScrollViewer);
                 _viewModel.StartPan(panPosition);
-                CanvasScrollViewer.CaptureMouse();
+                // Capture on ZoomableGrid (same as other edit modes) to ensure MouseLeftButtonUp is received
+                ZoomableGrid.CaptureMouse();
                 e.Handled = true;
                 return;
             }
@@ -451,16 +492,20 @@ namespace EquipmentDesigner.Views
                     // Clicked on non-selected element - clear and select new one
                     _viewModel.ClearAllSelections();
                     _viewModel.SelectElement(hitElement);
-                    _viewModel.StartMove(position);
-                    ZoomableGrid.CaptureMouse();
+                    // Only start move and capture mouse for non-locked elements
+                    if (!hitElement.IsLocked)
+                    {
+                        _viewModel.StartMove(position);
+                        ZoomableGrid.CaptureMouse();
+                    }
                     ZoomableGrid.Focus();
                     e.Handled = true;
                 }
             }
             else if (hitElement == _viewModel.SelectedElement)
             {
-                // Check if on element surface - start move
-                if (_selectionAdorner != null)
+                // Check if on element surface - start move (only for non-locked elements)
+                if (_selectionAdorner != null && !hitElement.IsLocked)
                 {
                     var adornerPoint = ZoomableGrid.TranslatePoint(position, _selectionAdorner);
                     if (_selectionAdorner.IsOnElementSurface(adornerPoint))
@@ -476,8 +521,12 @@ namespace EquipmentDesigner.Views
             {
                 // Clicked on different element - select it and start move immediately
                 _viewModel.SelectElement(hitElement);
-                _viewModel.StartMove(position);
-                ZoomableGrid.CaptureMouse();
+                // Only start move and capture mouse for non-locked elements
+                if (!hitElement.IsLocked)
+                {
+                    _viewModel.StartMove(position);
+                    ZoomableGrid.CaptureMouse();
+                }
                 ZoomableGrid.Focus();
                 e.Handled = true;
             }
@@ -671,7 +720,7 @@ namespace EquipmentDesigner.Views
 
                 case EditModeState.Panning:
                     _viewModel.EndPan();
-                    CanvasScrollViewer.ReleaseMouseCapture();
+                    ((UIElement)sender).ReleaseMouseCapture();
                     e.Handled = true;
                     return;
             }
@@ -908,38 +957,27 @@ namespace EquipmentDesigner.Views
             var position = e.GetPosition(ZoomableGrid);
             var hitElement = _viewModel.FindElementAtPoint(position);
 
-            if (hitElement != null)
+            if (hitElement != null && _viewModel.TryStartTextEditing(hitElement))
             {
-                StartTextEditing(hitElement);
                 e.Handled = true;
             }
         }
 
         /// <summary>
-        /// Starts inline text editing for the specified element.
+        /// Handles text editing started event from ViewModel.
         /// </summary>
-        private void StartTextEditing(DrawingElement element)
+        private void OnTextEditingStarted(object sender, TextEditingEventArgs e)
         {
-            _editingElement = element;
-
-            // Position and size the TextBox to match the element
-            InlineEditTextBox.Width = element.Width;
-            InlineEditTextBox.Height = element.Height;
-            Canvas.SetLeft(InlineEditTextBox, element.X);
-            Canvas.SetTop(InlineEditTextBox, element.Y);
+            // Position and size the TextBox using calculated text-safe bounds
+            Canvas.SetLeft(InlineEditTextBox, e.TextBoxBounds.X);
+            Canvas.SetTop(InlineEditTextBox, e.TextBoxBounds.Y);
+            InlineEditTextBox.Width = e.TextBoxBounds.Width;
+            InlineEditTextBox.Height = e.TextBoxBounds.Height;
 
             // Set text and style
-            InlineEditTextBox.Text = element.Text;
-            InlineEditTextBox.FontSize = (int)element.FontSize;
-            
-            // Convert Models.TextAlignment to System.Windows.TextAlignment
-            InlineEditTextBox.TextAlignment = element.TextAlign switch
-            {
-                Models.TextAlignment.Left => System.Windows.TextAlignment.Left,
-                Models.TextAlignment.Center => System.Windows.TextAlignment.Center,
-                Models.TextAlignment.Right => System.Windows.TextAlignment.Right,
-                _ => System.Windows.TextAlignment.Center
-            };
+            InlineEditTextBox.Text = e.InitialText;
+            InlineEditTextBox.FontSize = e.FontSize;
+            InlineEditTextBox.TextAlignment = e.TextAlignment;
 
             // Show and focus
             InlineEditTextBox.Visibility = Visibility.Visible;
@@ -948,27 +986,32 @@ namespace EquipmentDesigner.Views
         }
 
         /// <summary>
-        /// Commits the text changes and exits editing mode.
+        /// Handles text editing ended event from ViewModel.
         /// </summary>
-        private void CommitTextEditing()
+        private void OnTextEditingEnded(object sender, TextEditingEventArgs e)
         {
-            if (_editingElement != null)
-            {
-                _editingElement.Text = InlineEditTextBox.Text;
-                _editingElement = null;
-            }
             InlineEditTextBox.Visibility = Visibility.Collapsed;
             MainCanvasArea.Focus();
         }
 
         /// <summary>
-        /// Cancels text editing without saving changes.
+        /// Handles TextBox bounds changed event from ViewModel (when element resizes).
         /// </summary>
-        private void CancelTextEditing()
+        private void OnTextBoxBoundsChanged(object sender, TextEditingEventArgs e)
         {
-            _editingElement = null;
-            InlineEditTextBox.Visibility = Visibility.Collapsed;
-            MainCanvasArea.Focus();
+            Canvas.SetLeft(InlineEditTextBox, e.TextBoxBounds.X);
+            Canvas.SetTop(InlineEditTextBox, e.TextBoxBounds.Y);
+            InlineEditTextBox.Width = e.TextBoxBounds.Width;
+            InlineEditTextBox.Height = e.TextBoxBounds.Height;
+        }
+
+        /// <summary>
+        /// Handles text changed in the inline edit TextBox.
+        /// Notifies ViewModel to check if element resize is needed.
+        /// </summary>
+        private void OnInlineEditTextChanged(object sender, TextChangedEventArgs e)
+        {
+            _viewModel?.UpdateTextContent(InlineEditTextBox.Text);
         }
 
         /// <summary>
@@ -976,7 +1019,10 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void OnInlineEditLostFocus(object sender, RoutedEventArgs e)
         {
-            CommitTextEditing();
+            if (_viewModel?.IsTextEditing == true)
+            {
+                _viewModel.CommitTextEditing(InlineEditTextBox.Text);
+            }
         }
 
         /// <summary>
@@ -986,7 +1032,7 @@ namespace EquipmentDesigner.Views
         {
             if (e.Key == Key.Escape)
             {
-                CancelTextEditing();
+                _viewModel?.CancelTextEditing();
                 e.Handled = true;
             }
             // Enter allows line breaks (AcceptsReturn=True)
@@ -1019,6 +1065,7 @@ namespace EquipmentDesigner.Views
         private void OnUnlockFloatingButtonClick(object sender, RoutedEventArgs e)
         {
             _viewModel?.UnlockSingleSelectedElement();
+            MainCanvasArea.Focus();  // Restore focus to enable keyboard shortcuts (Ctrl+Shift+L)
             e.Handled = true;  // Prevent event bubbling
         }
 

@@ -48,6 +48,11 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Canvas is being panned using the Hand tool.
         /// </summary>
-        Panning
+        Panning,
+
+        /// <summary>
+        /// Text is being edited inline within an element.
+        /// </summary>
+        TextEditing
     }
 }

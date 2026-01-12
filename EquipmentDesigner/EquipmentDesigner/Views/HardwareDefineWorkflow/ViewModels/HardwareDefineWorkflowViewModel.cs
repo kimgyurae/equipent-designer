@@ -1140,57 +1140,34 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Serializes a tree node and its children to HardwareDefinition.
+        /// Uses ViewModel's ToHardwareDefinition() method for property mapping.
         /// </summary>
         private HardwareDefinition SerializeToHardwareDefinition(HardwareTreeNodeViewModel node)
         {
-            var hw = new HardwareDefinition
-            {
-                Id = node.NodeId,
-                HardwareType = node.HardwareType,
-                CreatedAt = DateTime.Now,
-                LastModifiedAt = DateTime.Now,
-                Children = node.Children.Select(SerializeToHardwareDefinition).ToList()
-            };
+            HardwareDefinition hw;
 
-            // Copy properties from DataViewModel based on type
+            // Use ViewModel's ToHardwareDefinition() method for property mapping
             if (node.DataViewModel != null)
             {
-                hw.Name = node.DataViewModel.Name;
-                hw.Version = node.DataViewModel.Version;
-
-                switch (node.HardwareType)
+                hw = node.DataViewModel switch
                 {
-                    case HardwareType.Equipment when node.DataViewModel is EquipmentDefineViewModel eqVm:
-                        hw.DisplayName = eqVm.DisplayName;
-                        hw.Description = eqVm.Description;
-                        hw.EquipmentType = eqVm.EquipmentType;
-                        hw.Customer = eqVm.Customer;
-                        hw.ProcessId = eqVm.Process;
-                        hw.AttachedDocumentsIds = eqVm.AttachedDocuments?.ToList() ?? new List<string>();
-                        break;
-                    case HardwareType.System when node.DataViewModel is SystemDefineViewModel sysVm:
-                        hw.DisplayName = sysVm.DisplayName;
-                        hw.Description = sysVm.Description;
-                        hw.ProcessInfo = sysVm.Process;
-                        hw.ImplementationInstructions = ParseImplementationGuidelines(sysVm.ImplementationGuidelines);
-                        hw.Commands = sysVm.Commands?.Select(c => c.ToDto()).ToList() ?? new List<CommandDto>();
-                        break;
-                    case HardwareType.Unit when node.DataViewModel is UnitDefineViewModel unitVm:
-                        hw.DisplayName = unitVm.DisplayName;
-                        hw.Description = unitVm.Description;
-                        hw.ProcessInfo = unitVm.Process;
-                        hw.ImplementationInstructions = ParseImplementationGuidelines(unitVm.ImplementationGuidelines);
-                        hw.Commands = unitVm.Commands?.Select(c => c.ToDto()).ToList() ?? new List<CommandDto>();
-                        break;
-                    case HardwareType.Device when node.DataViewModel is DeviceDefineViewModel devVm:
-                        hw.DisplayName = devVm.DisplayName;
-                        hw.Description = devVm.Description;
-                        hw.ImplementationInstructions = ParseImplementationGuidelines(devVm.ImplementationGuidelines);
-                        hw.Commands = devVm.Commands?.Select(c => c.ToDto()).ToList() ?? new List<CommandDto>();
-                        hw.IoInfo = devVm.IoConfigurations?.Select(i => i.ToDto()).ToList() ?? new List<IoInfoDto>();
-                        break;
-                }
+                    EquipmentDefineViewModel eqVm => eqVm.ToHardwareDefinition(),
+                    SystemDefineViewModel sysVm => sysVm.ToHardwareDefinition(),
+                    UnitDefineViewModel unitVm => unitVm.ToHardwareDefinition(),
+                    DeviceDefineViewModel devVm => devVm.ToHardwareDefinition(),
+                    _ => new HardwareDefinition { HardwareType = node.HardwareType }
+                };
             }
+            else
+            {
+                hw = new HardwareDefinition { HardwareType = node.HardwareType };
+            }
+
+            // Add tree-specific properties
+            hw.Id = node.NodeId;
+            hw.CreatedAt = DateTime.Now;
+            hw.LastModifiedAt = DateTime.Now;
+            hw.Children = node.Children.Select(SerializeToHardwareDefinition).ToList();
 
             return hw;
         }
@@ -1246,107 +1223,20 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Creates an appropriate IHardwareDefineViewModel from HardwareDefinition data.
+        /// Uses ViewModel's FromHardwareDefinition() static factory methods.
         /// </summary>
         private static IHardwareDefineViewModel CreateViewModelFromHardwareDefinition(HardwareDefinition dto)
         {
-            switch (dto.HardwareType)
+            return dto.HardwareType switch
             {
-                case HardwareType.Equipment:
-                    var eqVm = new EquipmentDefineViewModel
-                    {
-                        Name = dto.Name,
-                        DisplayName = dto.DisplayName,
-                        Description = dto.Description,
-                        EquipmentType = dto.EquipmentType,
-                        Customer = dto.Customer,
-                        Process = dto.ProcessId
-                    };
-                    if (dto.AttachedDocumentsIds != null)
-                    {
-                        foreach (var doc in dto.AttachedDocumentsIds)
-                            eqVm.AttachedDocuments.Add(doc);
-                    }
-                    return eqVm;
-
-                case HardwareType.System:
-                    var sysVm = new SystemDefineViewModel
-                    {
-                        Name = dto.Name,
-                        DisplayName = dto.DisplayName,
-                        Description = dto.Description,
-                        Process = dto.ProcessInfo,
-                        ImplementationGuidelines = JoinImplementationInstructions(dto.ImplementationInstructions)
-                    };
-                    if (dto.Commands != null)
-                    {
-                        foreach (var cmd in dto.Commands)
-                            sysVm.Commands.Add(CommandViewModel.FromDto(cmd));
-                    }
-                    return sysVm;
-
-                case HardwareType.Unit:
-                    var unitVm = new UnitDefineViewModel
-                    {
-                        Name = dto.Name,
-                        DisplayName = dto.DisplayName,
-                        Description = dto.Description,
-                        Process = dto.ProcessInfo,
-                        ImplementationGuidelines = JoinImplementationInstructions(dto.ImplementationInstructions)
-                    };
-                    if (dto.Commands != null)
-                    {
-                        foreach (var cmd in dto.Commands)
-                            unitVm.Commands.Add(CommandViewModel.FromDto(cmd));
-                    }
-                    return unitVm;
-
-                case HardwareType.Device:
-                    var devVm = new DeviceDefineViewModel
-                    {
-                        Name = dto.Name,
-                        DisplayName = dto.DisplayName,
-                        Description = dto.Description,
-                        ImplementationGuidelines = JoinImplementationInstructions(dto.ImplementationInstructions)
-                    };
-                    if (dto.Commands != null)
-                    {
-                        foreach (var cmd in dto.Commands)
-                            devVm.Commands.Add(CommandViewModel.FromDto(cmd));
-                    }
-                    if (dto.IoInfo != null)
-                    {
-                        foreach (var io in dto.IoInfo)
-                            devVm.IoConfigurations.Add(IoConfigurationViewModel.FromDto(io));
-                    }
-                    return devVm;
-
-                default:
-                    return null;
-            }
+                HardwareType.Equipment => EquipmentDefineViewModel.FromHardwareDefinition(dto),
+                HardwareType.System => SystemDefineViewModel.FromHardwareDefinition(dto),
+                HardwareType.Unit => UnitDefineViewModel.FromHardwareDefinition(dto),
+                HardwareType.Device => DeviceDefineViewModel.FromHardwareDefinition(dto),
+                _ => null
+            };
         }
 
-        /// <summary>
-        /// Parses implementation guidelines string into a list.
-        /// </summary>
-        private static List<string> ParseImplementationGuidelines(string guidelines)
-        {
-            if (string.IsNullOrEmpty(guidelines))
-                return new List<string>();
-
-            return guidelines.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
-        }
-
-        /// <summary>
-        /// Joins implementation instructions list into a single string.
-        /// </summary>
-        private static string JoinImplementationInstructions(List<string> instructions)
-        {
-            if (instructions == null || instructions.Count == 0)
-                return string.Empty;
-
-            return string.Join("\n", instructions);
-        }
-       
         /// <summary>
         /// Helper method to set DataViewModel using reflection (since setter is private).
         /// </summary>

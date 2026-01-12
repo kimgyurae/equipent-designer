@@ -241,13 +241,13 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Converts this ViewModel to a DTO.
+        /// Converts this ViewModel to a HardwareDefinition.
         /// </summary>
-        public UnitDto ToDto()
+        public HardwareDefinition ToHardwareDefinition()
         {
-            var dto = new UnitDto
+            var hw = new HardwareDefinition
             {
-                SystemId = ParentSystemId,
+                HardwareType = HardwareType.Unit,
                 Name = Name,
                 DisplayName = DisplayName,
                 Description = Description,
@@ -259,38 +259,42 @@ namespace EquipmentDesigner.ViewModels
 
             if (!string.IsNullOrEmpty(ImplementationGuidelines))
             {
-                dto.ImplementationInstructions = ImplementationGuidelines
+                hw.ImplementationInstructions = ImplementationGuidelines
                     .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
                     .ToList();
             }
 
-            return dto;
+            return hw;
         }
 
         /// <summary>
-        /// Creates a ViewModel from a DTO.
+        /// Creates a ViewModel from a HardwareDefinition.
         /// </summary>
-        public static UnitDefineViewModel FromDto(UnitDto dto)
+        /// <param name="hw">The HardwareDefinition to convert from.</param>
+        /// <exception cref="ArgumentNullException">Thrown when hw is null.</exception>
+        public static UnitDefineViewModel FromHardwareDefinition(HardwareDefinition hw)
         {
+            if (hw == null)
+                throw new ArgumentNullException(nameof(hw));
+
             var viewModel = new UnitDefineViewModel
             {
-                ParentSystemId = dto.SystemId,
-                Name = dto.Name ?? string.Empty,
-                DisplayName = dto.DisplayName ?? string.Empty,
-                Description = dto.Description ?? string.Empty,
-                Process = dto.ProcessInfo ?? string.Empty,
-                Version = dto.Version ?? "undefined",
-                HardwareKey = dto.HardwareKey
+                Name = hw.Name ?? string.Empty,
+                DisplayName = hw.DisplayName ?? string.Empty,
+                Description = hw.Description ?? string.Empty,
+                Process = hw.ProcessInfo ?? string.Empty,
+                Version = hw.Version ?? "undefined",
+                HardwareKey = hw.HardwareKey
             };
 
-            if (dto.ImplementationInstructions != null && dto.ImplementationInstructions.Any())
+            if (hw.ImplementationInstructions != null && hw.ImplementationInstructions.Any())
             {
-                viewModel.ImplementationGuidelines = string.Join("\n", dto.ImplementationInstructions);
+                viewModel.ImplementationGuidelines = string.Join("\n", hw.ImplementationInstructions);
             }
 
-            if (dto.Commands != null)
+            if (hw.Commands != null)
             {
-                foreach (var cmdDto in dto.Commands)
+                foreach (var cmdDto in hw.Commands)
                     viewModel.Commands.Add(CommandViewModel.FromDto(cmdDto));
             }
 

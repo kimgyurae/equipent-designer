@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -202,44 +203,50 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Converts this ViewModel to a DTO.
+        /// Converts this ViewModel to a HardwareDefinition.
         /// </summary>
-        public EquipmentDto ToDto()
+        public HardwareDefinition ToHardwareDefinition()
         {
-            return new EquipmentDto
+            return new HardwareDefinition
             {
-                EquipmentType = EquipmentType,
+                HardwareType = HardwareType.Equipment,
                 Name = Name,
                 DisplayName = DisplayName,
                 Description = Description,
+                EquipmentType = EquipmentType,
                 Customer = Customer,
-                Process = Process,
-                AttachedDocuments = AttachedDocuments.ToList(),
+                ProcessInfo = Process,
+                AttachedDocumentsIds = AttachedDocuments.ToList(),
                 Version = Version,
                 HardwareKey = HardwareKey
             };
         }
 
         /// <summary>
-        /// Creates a ViewModel from a DTO.
+        /// Creates a ViewModel from a HardwareDefinition.
         /// </summary>
-        public static EquipmentDefineViewModel FromDto(EquipmentDto dto)
+        /// <param name="hw">The HardwareDefinition to convert from.</param>
+        /// <exception cref="ArgumentNullException">Thrown when hw is null.</exception>
+        public static EquipmentDefineViewModel FromHardwareDefinition(HardwareDefinition hw)
         {
+            if (hw == null)
+                throw new ArgumentNullException(nameof(hw));
+
             var viewModel = new EquipmentDefineViewModel
             {
-                EquipmentType = dto.EquipmentType ?? string.Empty,
-                Name = dto.Name ?? string.Empty,
-                DisplayName = dto.DisplayName ?? string.Empty,
-                Description = dto.Description ?? string.Empty,
-                Customer = dto.Customer ?? string.Empty,
-                Process = dto.Process ?? string.Empty,
-                Version = dto.Version ?? "undefined",
-                HardwareKey = dto.HardwareKey
+                Name = hw.Name ?? string.Empty,
+                DisplayName = hw.DisplayName ?? string.Empty,
+                Description = hw.Description ?? string.Empty,
+                EquipmentType = hw.EquipmentType ?? string.Empty,
+                Customer = hw.Customer ?? string.Empty,
+                Process = hw.ProcessInfo ?? string.Empty,
+                Version = hw.Version ?? "undefined",
+                HardwareKey = hw.HardwareKey
             };
 
-            if (dto.AttachedDocuments != null)
+            if (hw.AttachedDocumentsIds != null)
             {
-                foreach (var doc in dto.AttachedDocuments)
+                foreach (var doc in hw.AttachedDocumentsIds)
                     viewModel.AttachedDocuments.Add(doc);
             }
 

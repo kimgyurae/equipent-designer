@@ -213,61 +213,379 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
         #endregion
 
-        #region Data Conversion
+        #region HardwareDefinition Conversion
 
         [Fact]
-        public void ToDto_ReturnsEquipmentDtoWithAllPropertiesMapped()
+        public void ToHardwareDefinition_SetsHardwareTypeToEquipment()
         {
-            var viewModel = new EquipmentDefineViewModel
-            {
-                EquipmentType = "TypeA",
-                Name = "Equipment1",
-                DisplayName = "Equipment One",
-                Description = "Description",
-                Customer = "Customer A",
-                Process = "Process A"
-            };
-            viewModel.AttachedDocuments.Add("doc1.pdf");
-            viewModel.AttachedDocuments.Add("doc2.md");
+            var viewModel = new EquipmentDefineViewModel { Name = "Test" };
 
-            var dto = viewModel.ToDto();
+            var result = viewModel.ToHardwareDefinition();
 
-            dto.EquipmentType.Should().Be("TypeA");
-            dto.Name.Should().Be("Equipment1");
-            dto.DisplayName.Should().Be("Equipment One");
-            dto.Description.Should().Be("Description");
-            dto.Customer.Should().Be("Customer A");
-            dto.Process.Should().Be("Process A");
-            dto.AttachedDocuments.Should().HaveCount(2);
-            dto.AttachedDocuments.Should().Contain("doc1.pdf");
-            dto.AttachedDocuments.Should().Contain("doc2.md");
+            result.HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]
-        public void FromDto_PopulatesAllPropertiesFromEquipmentDto()
+        public void ToHardwareDefinition_MapsNamePropertyCorrectly()
         {
-            var dto = new EquipmentDto
+            var viewModel = new EquipmentDefineViewModel { Name = "TestEquipment" };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.Name.Should().Be("TestEquipment");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsDisplayNamePropertyCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel
             {
-                EquipmentType = "TypeB",
-                Name = "Equipment2",
-                DisplayName = "Equipment Two",
-                Description = "Description B",
-                Customer = "Customer B",
-                Process = "Process B",
-                AttachedDocuments = new System.Collections.Generic.List<string> { "file1.ppt", "file2.drawio" }
+                Name = "Test",
+                DisplayName = "Test Display Name"
             };
 
-            var viewModel = EquipmentDefineViewModel.FromDto(dto);
+            var result = viewModel.ToHardwareDefinition();
 
-            viewModel.EquipmentType.Should().Be("TypeB");
-            viewModel.Name.Should().Be("Equipment2");
-            viewModel.DisplayName.Should().Be("Equipment Two");
-            viewModel.Description.Should().Be("Description B");
-            viewModel.Customer.Should().Be("Customer B");
-            viewModel.Process.Should().Be("Process B");
+            result.DisplayName.Should().Be("Test Display Name");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsDescriptionPropertyCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel
+            {
+                Name = "Test",
+                Description = "Test Description"
+            };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.Description.Should().Be("Test Description");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsEquipmentTypePropertyCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel
+            {
+                Name = "Test",
+                EquipmentType = "Fab Equipment"
+            };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.EquipmentType.Should().Be("Fab Equipment");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsCustomerPropertyCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel
+            {
+                Name = "Test",
+                Customer = "ACME Corp"
+            };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.Customer.Should().Be("ACME Corp");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsProcessToProcessInfoCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel
+            {
+                Name = "Test",
+                Process = "Manufacturing Process"
+            };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.ProcessInfo.Should().Be("Manufacturing Process");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsAttachedDocumentsToAttachedDocumentsIdsCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel { Name = "Test" };
+            viewModel.AttachedDocuments.Add("doc1.pdf");
+            viewModel.AttachedDocuments.Add("doc2.md");
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.AttachedDocumentsIds.Should().HaveCount(2);
+            result.AttachedDocumentsIds.Should().Contain("doc1.pdf");
+            result.AttachedDocumentsIds.Should().Contain("doc2.md");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsVersionPropertyCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel
+            {
+                Name = "Test",
+                Version = "2.0.0"
+            };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.Version.Should().Be("2.0.0");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsHardwareKeyPropertyCorrectly()
+        {
+            var viewModel = new EquipmentDefineViewModel
+            {
+                Name = "Test",
+                HardwareKey = "HW-KEY-123"
+            };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.HardwareKey.Should().Be("HW-KEY-123");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_ReturnsEmptyAttachedDocumentsIds_WhenCollectionIsEmpty()
+        {
+            var viewModel = new EquipmentDefineViewModel { Name = "Test" };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.AttachedDocumentsIds.Should().NotBeNull();
+            result.AttachedDocumentsIds.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_HandlesNullStringProperties_ByMappingEmptyStrings()
+        {
+            var viewModel = new EquipmentDefineViewModel { Name = "Test" };
+
+            var result = viewModel.ToHardwareDefinition();
+
+            result.DisplayName.Should().Be(string.Empty);
+            result.Description.Should().Be(string.Empty);
+            result.EquipmentType.Should().Be(string.Empty);
+            result.Customer.Should().Be(string.Empty);
+            result.ProcessInfo.Should().Be(string.Empty);
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectName()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "TestEquipment"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Name.Should().Be("TestEquipment");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectDisplayName()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                DisplayName = "Test Display"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.DisplayName.Should().Be("Test Display");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectDescription()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                Description = "Test Description"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Description.Should().Be("Test Description");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectEquipmentType()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                EquipmentType = "Assembly"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.EquipmentType.Should().Be("Assembly");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectCustomer()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                Customer = "Client Corp"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Customer.Should().Be("Client Corp");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_MapsProcessInfoToProcessCorrectly()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                ProcessInfo = "Some Process"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Process.Should().Be("Some Process");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_PopulatesAttachedDocumentsFromAttachedDocumentsIds()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                AttachedDocumentsIds = new System.Collections.Generic.List<string> { "file1.pdf", "file2.ppt" }
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
             viewModel.AttachedDocuments.Should().HaveCount(2);
-            viewModel.AttachedDocuments.Should().Contain("file1.ppt");
-            viewModel.AttachedDocuments.Should().Contain("file2.drawio");
+            viewModel.AttachedDocuments.Should().Contain("file1.pdf");
+            viewModel.AttachedDocuments.Should().Contain("file2.ppt");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectVersion()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                Version = "3.0.0"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Version.Should().Be("3.0.0");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectHardwareKey()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                HardwareKey = "KEY-456"
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.HardwareKey.Should().Be("KEY-456");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_ThrowsArgumentNullException_WhenHardwareDefinitionIsNull()
+        {
+            System.Action act = () => EquipmentDefineViewModel.FromHardwareDefinition(null);
+
+            act.Should().Throw<System.ArgumentNullException>()
+               .WithParameterName("hw");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullProperties_WithEmptyStringDefaults()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = null,
+                DisplayName = null,
+                Description = null,
+                EquipmentType = null,
+                Customer = null,
+                ProcessInfo = null
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Name.Should().Be(string.Empty);
+            viewModel.DisplayName.Should().Be(string.Empty);
+            viewModel.Description.Should().Be(string.Empty);
+            viewModel.EquipmentType.Should().Be(string.Empty);
+            viewModel.Customer.Should().Be(string.Empty);
+            viewModel.Process.Should().Be(string.Empty);
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullAttachedDocumentsIds_WithEmptyCollection()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Equipment,
+                Name = "Test",
+                AttachedDocumentsIds = null
+            };
+
+            var viewModel = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.AttachedDocuments.Should().NotBeNull();
+            viewModel.AttachedDocuments.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void RoundTripConversion_PreservesAllEquipmentProperties()
+        {
+            var original = new EquipmentDefineViewModel
+            {
+                EquipmentType = "Fabrication",
+                Name = "MainEquipment",
+                DisplayName = "Main Equipment Display",
+                Description = "Full Description",
+                Customer = "Big Customer",
+                Process = "Critical Process",
+                Version = "1.2.3",
+                HardwareKey = "UNIQUE-KEY"
+            };
+            original.AttachedDocuments.Add("spec.pdf");
+            original.AttachedDocuments.Add("design.drawio");
+
+            var hw = original.ToHardwareDefinition();
+            var restored = EquipmentDefineViewModel.FromHardwareDefinition(hw);
+
+            restored.EquipmentType.Should().Be(original.EquipmentType);
+            restored.Name.Should().Be(original.Name);
+            restored.DisplayName.Should().Be(original.DisplayName);
+            restored.Description.Should().Be(original.Description);
+            restored.Customer.Should().Be(original.Customer);
+            restored.Process.Should().Be(original.Process);
+            restored.Version.Should().Be(original.Version);
+            restored.HardwareKey.Should().Be(original.HardwareKey);
+            restored.AttachedDocuments.Should().BeEquivalentTo(original.AttachedDocuments);
         }
 
         #endregion

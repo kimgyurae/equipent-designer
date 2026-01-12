@@ -354,121 +354,6 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
         #endregion
 
-        #region Data Conversion
-
-        [Fact]
-        public void ToDto_ReturnsDeviceDtoWithAllPropertiesMapped()
-        {
-            var viewModel = new DeviceDefineViewModel
-            {
-                ParentUnitId = "UNIT001",
-                Name = "Device1",
-                DisplayName = "Device One",
-                Description = "Description",
-                ImplementationGuidelines = "Guidelines"
-            };
-
-            var dto = viewModel.ToDto();
-
-            dto.UnitId.Should().Be("UNIT001");
-            dto.Name.Should().Be("Device1");
-            dto.DisplayName.Should().Be("Device One");
-            dto.Description.Should().Be("Description");
-        }
-
-        [Fact]
-        public void ToDto_IncludesAllCommandsInDeviceDtoCommands()
-        {
-            var viewModel = new DeviceDefineViewModel
-            {
-                Name = "Device1"
-            };
-            viewModel.Commands.Add(new CommandViewModel { Name = "Cmd1", Description = "Desc1" });
-            viewModel.Commands.Add(new CommandViewModel { Name = "Cmd2", Description = "Desc2" });
-
-            var dto = viewModel.ToDto();
-
-            dto.Commands.Should().HaveCount(2);
-            dto.Commands.Select(c => c.Name).Should().Contain(new[] { "Cmd1", "Cmd2" });
-        }
-
-        [Fact]
-        public void ToDto_IncludesAllIoConfigurationsInDeviceDtoIoInfo()
-        {
-            var viewModel = new DeviceDefineViewModel
-            {
-                Name = "Device1"
-            };
-            viewModel.IoConfigurations.Add(new IoConfigurationViewModel { Name = "IO1", IoType = "Input" });
-            viewModel.IoConfigurations.Add(new IoConfigurationViewModel { Name = "IO2", IoType = "Output" });
-
-            var dto = viewModel.ToDto();
-
-            dto.IoInfo.Should().HaveCount(2);
-            dto.IoInfo.Select(io => io.Name).Should().Contain(new[] { "IO1", "IO2" });
-        }
-
-        [Fact]
-        public void FromDto_PopulatesAllPropertiesFromDeviceDto()
-        {
-            var dto = new DeviceDto
-            {
-                UnitId = "UNIT002",
-                Name = "Device2",
-                DisplayName = "Device Two",
-                Description = "Description B",
-                ImplementationInstructions = new System.Collections.Generic.List<string> { "Guideline1", "Guideline2" }
-            };
-
-            var viewModel = DeviceDefineViewModel.FromDto(dto);
-
-            viewModel.ParentUnitId.Should().Be("UNIT002");
-            viewModel.Name.Should().Be("Device2");
-            viewModel.DisplayName.Should().Be("Device Two");
-            viewModel.Description.Should().Be("Description B");
-            viewModel.ImplementationGuidelines.Should().Be("Guideline1\nGuideline2");
-        }
-
-        [Fact]
-        public void FromDto_PopulatesCommandsCollectionFromDeviceDtoCommands()
-        {
-            var dto = new DeviceDto
-            {
-                Name = "Device1",
-                Commands = new System.Collections.Generic.List<CommandDto>
-                {
-                    new CommandDto { Name = "Cmd1", Description = "Desc1" },
-                    new CommandDto { Name = "Cmd2", Description = "Desc2" }
-                }
-            };
-
-            var viewModel = DeviceDefineViewModel.FromDto(dto);
-
-            viewModel.Commands.Should().HaveCount(2);
-            viewModel.Commands.Select(c => c.Name).Should().Contain(new[] { "Cmd1", "Cmd2" });
-        }
-
-        [Fact]
-        public void FromDto_PopulatesIoConfigurationsCollectionFromDeviceDtoIoInfo()
-        {
-            var dto = new DeviceDto
-            {
-                Name = "Device1",
-                IoInfo = new System.Collections.Generic.List<IoInfoDto>
-                {
-                    new IoInfoDto { Name = "IO1", IoType = "Input" },
-                    new IoInfoDto { Name = "IO2", IoType = "Output" }
-                }
-            };
-
-            var viewModel = DeviceDefineViewModel.FromDto(dto);
-
-            viewModel.IoConfigurations.Should().HaveCount(2);
-            viewModel.IoConfigurations.Select(io => io.Name).Should().Contain(new[] { "IO1", "IO2" });
-        }
-
-        #endregion
-
         #region Dialog Integration
 
         [Fact]
@@ -633,6 +518,347 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             viewModel.SetAllStepsRequiredFieldsFilledCheck(() => false);
 
             viewModel.CanCompleteWorkflow.Should().BeFalse();
+        }
+
+        #endregion
+
+        #region HardwareDefinition Conversion
+
+        [Fact]
+        public void ToHardwareDefinition_SetsHardwareTypeToDevice()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "Device1" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.HardwareType.Should().Be(HardwareType.Device);
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsNamePropertyCorrectly()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "MyDevice" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Name.Should().Be("MyDevice");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsDisplayNamePropertyCorrectly()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1", DisplayName = "Device Display" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.DisplayName.Should().Be("Device Display");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsDescriptionPropertyCorrectly()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1", Description = "Device Description" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Description.Should().Be("Device Description");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsVersionPropertyCorrectly()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1", Version = "2.0.0" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Version.Should().Be("2.0.0");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_MapsHardwareKeyPropertyCorrectly()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1", HardwareKey = "device-key-001" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.HardwareKey.Should().Be("device-key-001");
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_SplitsImplementationGuidelinesIntoImplementationInstructionsList()
+        {
+            var viewModel = new DeviceDefineViewModel
+            {
+                Name = "D1",
+                ImplementationGuidelines = "Line1\nLine2\nLine3"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.ImplementationInstructions.Should().BeEquivalentTo(new[] { "Line1", "Line2", "Line3" });
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_HandlesEmptyImplementationGuidelinesWithEmptyList()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1", ImplementationGuidelines = "" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.ImplementationInstructions.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_SplitsImplementationGuidelinesOnBothCRLFAndLF()
+        {
+            var viewModel = new DeviceDefineViewModel
+            {
+                Name = "D1",
+                ImplementationGuidelines = "Line1\r\nLine2\nLine3"
+            };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.ImplementationInstructions.Should().BeEquivalentTo(new[] { "Line1", "Line2", "Line3" });
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_ConvertsCommandsCollectionUsingCommandViewModelToDto()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1" };
+            viewModel.Commands.Add(new CommandViewModel { Name = "Cmd1", Description = "Desc1" });
+            viewModel.Commands.Add(new CommandViewModel { Name = "Cmd2", Description = "Desc2" });
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Commands.Should().HaveCount(2);
+            hw.Commands.Select(c => c.Name).Should().BeEquivalentTo(new[] { "Cmd1", "Cmd2" });
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_ReturnsEmptyCommandsListWhenCollectionIsEmpty()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.Commands.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_ConvertsIoConfigurationsCollectionUsingIoConfigurationViewModelToDto()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1" };
+            viewModel.IoConfigurations.Add(new IoConfigurationViewModel { Name = "IO1", IoType = "Input" });
+            viewModel.IoConfigurations.Add(new IoConfigurationViewModel { Name = "IO2", IoType = "Output" });
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.IoInfo.Should().HaveCount(2);
+            hw.IoInfo.Select(io => io.Name).Should().BeEquivalentTo(new[] { "IO1", "IO2" });
+        }
+
+        [Fact]
+        public void ToHardwareDefinition_ReturnsEmptyIoInfoListWhenIoConfigurationsIsEmpty()
+        {
+            var viewModel = new DeviceDefineViewModel { Name = "D1" };
+
+            var hw = viewModel.ToHardwareDefinition();
+
+            hw.IoInfo.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectName()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "DeviceFromHw" };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Name.Should().Be("DeviceFromHw");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectDisplayName()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "D1", DisplayName = "Display From Hw" };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.DisplayName.Should().Be("Display From Hw");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectDescription()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "D1", Description = "Description From Hw" };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Description.Should().Be("Description From Hw");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectVersion()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "D1", Version = "3.0.0" };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Version.Should().Be("3.0.0");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesViewModelWithCorrectHardwareKey()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "D1", HardwareKey = "device-key-002" };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.HardwareKey.Should().Be("device-key-002");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_JoinsImplementationInstructionsIntoImplementationGuidelinesWithNewlines()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Device,
+                Name = "D1",
+                ImplementationInstructions = new System.Collections.Generic.List<string> { "Inst1", "Inst2", "Inst3" }
+            };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.ImplementationGuidelines.Should().Be("Inst1\nInst2\nInst3");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullImplementationInstructionsWithEmptyString()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "D1", ImplementationInstructions = null };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.ImplementationGuidelines.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesCommandViewModelsFromCommandsList()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Device,
+                Name = "D1",
+                Commands = new System.Collections.Generic.List<CommandDto>
+                {
+                    new CommandDto { Name = "CmdA", Description = "DescA" },
+                    new CommandDto { Name = "CmdB", Description = "DescB" }
+                }
+            };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Commands.Should().HaveCount(2);
+            viewModel.Commands.Select(c => c.Name).Should().BeEquivalentTo(new[] { "CmdA", "CmdB" });
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullCommandsWithEmptyCollection()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "D1", Commands = null };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Commands.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_CreatesIoConfigurationViewModelsFromIoInfoList()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Device,
+                Name = "D1",
+                IoInfo = new System.Collections.Generic.List<IoInfoDto>
+                {
+                    new IoInfoDto { Name = "IOA", IoType = "Input" },
+                    new IoInfoDto { Name = "IOB", IoType = "Output" }
+                }
+            };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.IoConfigurations.Should().HaveCount(2);
+            viewModel.IoConfigurations.Select(io => io.Name).Should().BeEquivalentTo(new[] { "IOA", "IOB" });
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullIoInfoWithEmptyCollection()
+        {
+            var hw = new HardwareDefinition { HardwareType = HardwareType.Device, Name = "D1", IoInfo = null };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.IoConfigurations.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullHardwareDefinitionThrowsArgumentNullException()
+        {
+            Action act = () => DeviceDefineViewModel.FromHardwareDefinition(null);
+
+            act.Should().Throw<ArgumentNullException>().WithParameterName("hw");
+        }
+
+        [Fact]
+        public void FromHardwareDefinition_HandlesNullPropertiesWithEmptyStringDefaults()
+        {
+            var hw = new HardwareDefinition
+            {
+                HardwareType = HardwareType.Device,
+                Name = null,
+                DisplayName = null,
+                Description = null,
+                Version = null
+            };
+
+            var viewModel = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            viewModel.Name.Should().BeEmpty();
+            viewModel.DisplayName.Should().BeEmpty();
+            viewModel.Description.Should().BeEmpty();
+            viewModel.Version.Should().Be("undefined");
+        }
+
+        [Fact]
+        public void RoundTripConversion_PreservesAllDevicePropertiesIncludingCommandsAndIoConfigurations()
+        {
+            var original = new DeviceDefineViewModel
+            {
+                Name = "RoundTripDevice",
+                DisplayName = "RT Device Display",
+                Description = "RT Device Description",
+                ImplementationGuidelines = "Guideline1\nGuideline2",
+                Version = "4.0.0",
+                HardwareKey = "round-trip-device-key"
+            };
+            original.Commands.Add(new CommandViewModel { Name = "RTCmd", Description = "RT Cmd Desc" });
+            original.IoConfigurations.Add(new IoConfigurationViewModel { Name = "RTIO", IoType = "Digital" });
+
+            var hw = original.ToHardwareDefinition();
+            var restored = DeviceDefineViewModel.FromHardwareDefinition(hw);
+
+            restored.Name.Should().Be(original.Name);
+            restored.DisplayName.Should().Be(original.DisplayName);
+            restored.Description.Should().Be(original.Description);
+            restored.ImplementationGuidelines.Should().Be(original.ImplementationGuidelines);
+            restored.Version.Should().Be(original.Version);
+            restored.HardwareKey.Should().Be(original.HardwareKey);
+            restored.Commands.Should().HaveCount(1);
+            restored.Commands[0].Name.Should().Be("RTCmd");
+            restored.IoConfigurations.Should().HaveCount(1);
+            restored.IoConfigurations[0].Name.Should().Be("RTIO");
         }
 
         #endregion

@@ -307,6 +307,7 @@
                       PreviewMouseRightButtonDown="OnCanvasPreviewMouseRightButtonDown"
                       PreviewMouseRightButtonUp="OnCanvasPreviewMouseRightButtonUp"
                       MouseLeftButtonDown="OnCanvasMouseLeftButtonDown"
+                      MouseDoubleClick="OnCanvasMouseDoubleClick"
                       MouseMove="OnCanvasMouseMove"
                       MouseLeftButtonUp="OnCanvasMouseLeftButtonUp">
                     <Grid.LayoutTransform>
@@ -370,9 +371,11 @@
                                  BorderThickness="2"
                                  BorderBrush="{StaticResource Brush.Border.Primary}"
                                  Background="{StaticResource Brush.Surface.Primary}"
-                                 Padding="4"
+                                 Padding="2"
+                                 VerticalContentAlignment="Center"
                                  LostFocus="OnInlineEditLostFocus"
-                                 KeyDown="OnInlineEditKeyDown"/>
+                                 KeyDown="OnInlineEditKeyDown"
+                                 TextChanged="OnInlineEditTextChanged"/>
                     </Canvas>
                 </Grid>
             </ScrollViewer>
@@ -397,7 +400,7 @@
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Effect="{StaticResource Shadow.LG}">
-                            <Path Fill="{StaticResource Brush.Text.Secondary}"
+                            <Path Style="{StaticResource IconPathStyle}"
                                   Width="18" Height="18"
                                   Stretch="Uniform"
                                   HorizontalAlignment="Center"

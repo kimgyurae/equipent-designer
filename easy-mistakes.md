@@ -20,3 +20,7 @@ ToastService.Instance.ShowError(
 
 ### Mistake 4
 - 마우스 또는 키보드 action handler를 추가할 때 기존에 동일 한 action handler를 비활성화하거나 override하지 않게 주의할 것.
+
+
+### Mistake 5
+- WPF에서 모달리스 UI 요소(floating buttons, popups 등)를 사용할 때는 포커스 관리가 중요. 특히 키보드 단축키가 특정 컨테이너의 PreviewKeyDown에 바인딩되어 있을 때, 해당 컨테이너 외부 요소와 상호작용 후에는 명시적으로 포커스를 복원해야 함.

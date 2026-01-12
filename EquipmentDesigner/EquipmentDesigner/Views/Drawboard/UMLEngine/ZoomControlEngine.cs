@@ -232,5 +232,33 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         }
 
         #endregion
+
+        #region Initial Centering
+
+        /// <summary>
+        /// Calculates scroll offset to center the canvas in the viewport.
+        /// </summary>
+        /// <param name="canvasSize">Total canvas size (Width, Height).</param>
+        /// <param name="viewportSize">Visible viewport size (Width, Height).</param>
+        /// <param name="zoomScale">Current zoom scale factor.</param>
+        /// <returns>Scroll offset (X, Y) to center the canvas.</returns>
+        public static Point CalculateCenterScrollOffset(Size canvasSize, Size viewportSize, double zoomScale)
+        {
+            // Effective canvas size after zoom transformation
+            double scaledCanvasWidth = canvasSize.Width * zoomScale;
+            double scaledCanvasHeight = canvasSize.Height * zoomScale;
+
+            // Center position = (scaled canvas size - viewport size) / 2
+            double centerScrollX = (scaledCanvasWidth - viewportSize.Width) / 2;
+            double centerScrollY = (scaledCanvasHeight - viewportSize.Height) / 2;
+
+            // Clamp to non-negative values (handles viewport larger than canvas)
+            centerScrollX = Math.Max(0, centerScrollX);
+            centerScrollY = Math.Max(0, centerScrollY);
+
+            return new Point(centerScrollX, centerScrollY);
+        }
+
+        #endregion
     }
 }
