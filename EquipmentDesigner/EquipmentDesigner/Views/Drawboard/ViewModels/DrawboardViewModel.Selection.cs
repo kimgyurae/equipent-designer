@@ -15,10 +15,11 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Selects an element for editing.
+        /// Locked elements can be selected (to allow unlocking via context menu).
         /// </summary>
         public void SelectElement(DrawingElement element)
         {
-            if (element == null || element.IsLocked) return;
+            if (element == null) return;
 
             // Clear previous selection
             if (_selectedElement != null && _selectedElement != element)
@@ -75,10 +76,11 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Adds or removes element from selection (Shift+Click toggle).
+        /// Locked elements can be toggled (to allow unlocking via context menu).
         /// </summary>
         public void ToggleSelection(DrawingElement element)
         {
-            if (element == null || element.IsLocked) return;
+            if (element == null) return;
 
             if (_selectedElements.Contains(element))
             {
@@ -122,11 +124,20 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Adds element to current selection without clearing.
+        /// Handles transition from single-selection (via SelectElement) to multi-selection.
+        /// Locked elements can be added (to allow unlocking via context menu).
         /// </summary>
         public void AddToSelection(DrawingElement element)
         {
-            if (element == null || element.IsLocked) return;
+            if (element == null) return;
             if (_selectedElements.Contains(element)) return;
+
+            // Bridge single-selection to multi-selection:
+            // If there's an existing single selection that's not in the list, add it first
+            if (_selectedElement != null && !_selectedElements.Contains(_selectedElement))
+            {
+                _selectedElements.Add(_selectedElement);
+            }
 
             element.IsSelected = true;
             _selectedElements.Add(element);

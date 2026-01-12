@@ -24,6 +24,11 @@ namespace EquipmentDesigner.Models
         /// </summary>
         public string HardwareKey { get; set; }
 
+        /// <summary>
+        /// 최상위 하드웨어의 버전 정보 (예: 1.0.0)
+        /// </summary>
+        public string Version { get; set; } = "1.0.0";
+
         public ComponentState State { get; set; }
         public DateTime LastModifiedAt { get; set; }
 

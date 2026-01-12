@@ -354,8 +354,20 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void OnCanvasPreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            // Selection is already handled on ButtonDown per spec
-            // This handler can be used for context menu display in the future
+            if (_viewModel == null) return;
+
+            // Only show context menu when Selection tool is active
+            if (!_viewModel.IsSelectionToolActive) return;
+
+            var position = e.GetPosition(ZoomableGrid);
+            var hitElement = _viewModel.FindElementAtPoint(position);
+
+            // Only show context menu if right-clicked on a shape (not empty space)
+            if (hitElement != null && _viewModel.CanShowContextMenu)
+            {
+                _viewModel.ShowContextMenu();
+                e.Handled = true;
+            }
         }
 
         /// <summary>
@@ -365,6 +377,9 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void HandleSelectionClick(Point position, MouseButtonEventArgs e)
         {
+            // Check Shift key state at click time, not relying on cached KeyDown state
+            _isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
             var hitElement = _viewModel.FindElementAtPoint(position);
 
             if (hitElement == null)
@@ -587,6 +602,7 @@ namespace EquipmentDesigner.Views
                     _viewModel.FinishRubberbandSelection();
                     UpdateRubberbandVisibility();
                     ((UIElement)sender).ReleaseMouseCapture();
+                    ZoomableGrid.Focus();  // Restore keyboard focus for Delete key handling
                     e.Handled = true;
                     return;
 
@@ -679,7 +695,8 @@ namespace EquipmentDesigner.Views
         private void OnAdornerResizeDelta(object sender, ResizeEventArgs e)
         {
             if (_viewModel == null) return;
-            _viewModel.UpdateResize(e.Position, _isShiftPressed);
+            bool isShiftHeld = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+            _viewModel.UpdateResize(e.Position, isShiftHeld);
         }
 
         /// <summary>
@@ -758,7 +775,8 @@ namespace EquipmentDesigner.Views
         private void OnMultiAdornerResizeDelta(object sender, ResizeEventArgs e)
         {
             if (_viewModel == null) return;
-            _viewModel.UpdateMultiResize(e.Position, _isShiftPressed);
+            bool isShiftHeld = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+            _viewModel.UpdateMultiResize(e.Position, isShiftHeld);
         }
 
         /// <summary>

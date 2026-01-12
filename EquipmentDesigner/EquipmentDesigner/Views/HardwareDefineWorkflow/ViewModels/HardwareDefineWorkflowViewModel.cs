@@ -46,18 +46,19 @@ namespace EquipmentDesigner.ViewModels
         /// Creates a new workflow with a unique ID.
         /// </summary>
         public HardwareDefineWorkflowViewModel(HardwareLayer startType)
-            : this(startType, Guid.NewGuid().ToString(), Guid.NewGuid().ToString())
+            : this(startType, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "1.0.0")
         {
         }
 
         /// <summary>
         /// Creates a workflow with a specific ID (for resume scenarios).
         /// </summary>
-        private HardwareDefineWorkflowViewModel(HardwareLayer startType, string workflowId, string hardwareKey)
+        private HardwareDefineWorkflowViewModel(HardwareLayer startType, string workflowId, string hardwareKey, string version)
         {
             WorkflowId = workflowId;
             StartType = startType;
             HardwareKey = hardwareKey;
+            Version = version;
             WorkflowSteps = new ObservableCollection<WorkflowStepViewModel>();
 
             InitializeWorkflowSteps();
@@ -82,6 +83,11 @@ namespace EquipmentDesigner.ViewModels
         /// If null, the root node's Name is used as default (backward compatibility).
         /// </summary>
         public string HardwareKey { get; private set; }
+
+        /// <summary>
+        /// Version information for the top-level hardware component (e.g., 1.0.0).
+        /// </summary>
+        public string Version { get; private set; }
 
         /// <summary>
         /// Collection of workflow steps.
@@ -1247,6 +1253,7 @@ namespace EquipmentDesigner.ViewModels
                 Id = WorkflowId,
                 HardwareType = StartType,
                 HardwareKey = HardwareKey,
+                Version = Version,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
@@ -1291,7 +1298,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id, dto.HardwareKey);
+            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id, dto.HardwareKey, dto.Version ?? "1.0.0");
 
             // Rebuild tree from TreeNodes
             if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)
