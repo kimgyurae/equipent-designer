@@ -30,20 +30,6 @@
             <Setter Property="Stretch" Value="Uniform"/>
         </Style>
 
-        <!-- Lock Icon Style for locked drawing elements -->
-        <Style x:Key="LockIndicatorStyle" TargetType="Border">
-            <Setter Property="Width" Value="20"/>
-            <Setter Property="Height" Value="20"/>
-            <Setter Property="Background" Value="#FFFFFFFF"/>
-            <Setter Property="BorderBrush" Value="#FF666666"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="Margin" Value="0,-8,-8,0"/>
-            <Setter Property="Visibility" Value="{Binding IsLocked, Converter={StaticResource BoolToVisibilityConverter}}"/>
-        </Style>
-
         <!-- Tool Shortcut Text Style (Common) -->
         <Style x:Key="ToolShortcutTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="10"/>
@@ -182,11 +168,6 @@
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="8"/>
-                <!-- Lock Icon Indicator -->
-                <Border Style="{StaticResource LockIndicatorStyle}">
-                    <Path Fill="#FF666666" Width="10" Height="10" Stretch="Uniform"
-                          Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
-                </Border>
             </Grid>
         </DataTemplate>
 
@@ -205,11 +186,6 @@
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="4"/>
-                <!-- Lock Icon Indicator -->
-                <Border Style="{StaticResource LockIndicatorStyle}">
-                    <Path Fill="#FF666666" Width="10" Height="10" Stretch="Uniform"
-                          Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
-                </Border>
             </Grid>
         </DataTemplate>
 
@@ -230,11 +206,6 @@
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="12"/>
-                <!-- Lock Icon Indicator -->
-                <Border Style="{StaticResource LockIndicatorStyle}">
-                    <Path Fill="#FF666666" Width="10" Height="10" Stretch="Uniform"
-                          Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
-                </Border>
             </Grid>
         </DataTemplate>
 
@@ -256,11 +227,6 @@
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="10"/>
-                <!-- Lock Icon Indicator -->
-                <Border Style="{StaticResource LockIndicatorStyle}">
-                    <Path Fill="#FF666666" Width="10" Height="10" Stretch="Uniform"
-                          Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
-                </Border>
             </Grid>
         </DataTemplate>
 
@@ -285,11 +251,6 @@
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="10"/>
-                <!-- Lock Icon Indicator -->
-                <Border Style="{StaticResource LockIndicatorStyle}">
-                    <Path Fill="#FF666666" Width="10" Height="10" Stretch="Uniform"
-                          Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
-                </Border>
             </Grid>
         </DataTemplate>
 
@@ -309,11 +270,6 @@
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="4"/>
-                <!-- Lock Icon Indicator -->
-                <Border Style="{StaticResource LockIndicatorStyle}">
-                    <Path Fill="#FF666666" Width="10" Height="10" Stretch="Uniform"
-                          Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
-                </Border>
             </Grid>
         </DataTemplate>
 
@@ -416,6 +372,46 @@
                                  Padding="4"
                                  LostFocus="OnInlineEditLostFocus"
                                  KeyDown="OnInlineEditKeyDown"/>
+                    </Canvas>
+
+                    <!-- Floating Unlock Button (for locked elements) -->
+                    <Canvas IsHitTestVisible="True" Panel.ZIndex="10001">
+                        <Button x:Name="UnlockFloatingButton"
+                                Width="40"
+                                Height="40"
+                                Command="{Binding UnlockSelectedElementCommand}"
+                                Canvas.Left="{Binding UnlockButtonX}"
+                                Canvas.Top="{Binding UnlockButtonY}"
+                                Visibility="{Binding ShowUnlockButton, Converter={StaticResource BoolToVisibilityConverter}}"
+                                Cursor="Hand"
+                                ToolTip="Unlock">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="ButtonBorder"
+                                            Background="{StaticResource Brush.Surface.Primary}"
+                                            BorderBrush="{StaticResource Brush.Border.Primary}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Effect="{StaticResource Shadow.LG}">
+                                        <Path Fill="{StaticResource Brush.Text.Secondary}"
+                                              Width="18" Height="18"
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource Brush.Background.Tertiary}"/>
+                                            <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{StaticResource Brush.Border.Focus}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource Brush.Button.Ghost.Background.Pressed}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
                     </Canvas>
                 </Grid>
             </ScrollViewer>

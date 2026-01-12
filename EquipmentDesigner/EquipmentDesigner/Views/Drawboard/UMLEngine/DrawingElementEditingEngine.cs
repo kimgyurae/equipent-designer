@@ -491,18 +491,18 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             Point currentPoint,
             bool maintainAspectRatio)
         {
-            // ABSOLUTE delta from original start point
-            double totalDeltaX = currentPoint.X - context.OriginalStartPoint.X;
-            double totalDeltaY = currentPoint.Y - context.OriginalStartPoint.Y;
+            // ABSOLUTE delta from TRUE original start point (never reset)
+            double totalDeltaX = currentPoint.X - context.TrueOriginalStartPoint.X;
+            double totalDeltaY = currentPoint.Y - context.TrueOriginalStartPoint.Y;
 
-            // Start from original group bounds
-            double left = context.OriginalGroupBounds.Left;
-            double top = context.OriginalGroupBounds.Top;
-            double right = context.OriginalGroupBounds.Right;
-            double bottom = context.OriginalGroupBounds.Bottom;
+            // Start from TRUE original group bounds (never reset)
+            double left = context.TrueOriginalBounds.Left;
+            double top = context.TrueOriginalBounds.Top;
+            double right = context.TrueOriginalBounds.Right;
+            double bottom = context.TrueOriginalBounds.Bottom;
 
-            // Apply delta based on initial handle type
-            switch (context.InitialHandle)
+            // Apply delta based on TRUE initial handle type (never changes)
+            switch (context.TrueInitialHandle)
             {
                 case ResizeHandleType.TopLeft:
                     left += totalDeltaX;
@@ -554,7 +554,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             {
                 newGroupWidth = Math.Max(MinSize, rawWidth);
                 // When width is clamped to MinSize, anchor the opposite edge to prevent drift
-                if (rawWidth < MinSize && IsLeftHandle(context.InitialHandle))
+                if (rawWidth < MinSize && IsLeftHandle(context.TrueInitialHandle))
                 {
                     // Left handle being dragged - anchor right edge
                     newGroupX = right - newGroupWidth;
@@ -574,7 +574,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             {
                 newGroupHeight = Math.Max(MinSize, rawHeight);
                 // When height is clamped to MinSize, anchor the opposite edge to prevent drift
-                if (rawHeight < MinSize && IsTopHandle(context.InitialHandle))
+                if (rawHeight < MinSize && IsTopHandle(context.TrueInitialHandle))
                 {
                     // Top handle being dragged - anchor bottom edge
                     newGroupY = bottom - newGroupHeight;
@@ -585,85 +585,29 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 }
             }
 
-            // Detect flip TRANSITIONS (both flip and unflip)
+            // Detect flip TRANSITIONS (for context tracking only, not for calculation reset)
             bool justFlippedHorizontally = horizontalFlip && !context.WasHorizontallyFlipped;
             bool justFlippedVertically = verticalFlip && !context.WasVerticallyFlipped;
             bool justUnflippedHorizontally = !horizontalFlip && context.WasHorizontallyFlipped;
             bool justUnflippedVertically = !verticalFlip && context.WasVerticallyFlipped;
 
-            // Reference frame needs reset on any flip state transition
+            // Reference frame tracking (for visual handle display only)
             bool needsReferenceReset = justFlippedHorizontally || justFlippedVertically
                                     || justUnflippedHorizontally || justUnflippedVertically;
 
-            // Prepare updated context
-            GroupResizeContext updatedContext;
-            ResizeHandleType currentInitialHandle = context.InitialHandle;
+            // Calculate the current active handle for visual feedback
+            ResizeHandleType activeHandle = GetFlippedHandle(
+                context.TrueInitialHandle,
+                horizontalFlip,
+                verticalFlip);
 
-            // Calculate transforms for all elements
-            var newGroupBounds = new Rect(newGroupX, newGroupY, newGroupWidth, newGroupHeight);
-
-            // Reset reference points on flip/unflip transition
-            if (needsReferenceReset)
-            {
-                // Only change handle on actual flip (not unflip)
-                if (justFlippedHorizontally || justFlippedVertically)
-                {
-                    currentInitialHandle = GetFlippedHandle(
-                        context.InitialHandle,
-                        justFlippedHorizontally,
-                        justFlippedVertically);
-                }
-
-                // Calculate transforms FIRST, then use them for snapshots
-                // This ensures snapshots reflect the calculated positions, not stale live bounds
-                var flipTransforms = CalculateElementTransformsForFlip(
-                    context.ElementSnapshots,
-                    context.OriginalGroupBounds,
-                    newGroupBounds);
-
-                var newSnapshots = flipTransforms
-                    .Select(t => new ElementSnapshot(t.Element, new Rect(t.NewX, t.NewY, t.NewWidth, t.NewHeight)))
-                    .ToList();
-
-                updatedContext = context.WithFlipUpdate(
-                    newGroupBounds,
-                    currentPoint,
-                    currentInitialHandle,
-                    newSnapshots,
-                    verticalFlip,
-                    horizontalFlip);
-            }
-            else
-            {
-                updatedContext = new GroupResizeContext(
-                    context.OriginalGroupBounds,
-                    context.OriginalStartPoint,
-                    context.InitialHandle,
-                    context.ElementSnapshots,
-                    context.OriginalAspectRatio,
-                    horizontalFlip,
-                    verticalFlip);
-            }
-
-            // Calculate scale factors
-            double scaleX, scaleY;
-
-            if (needsReferenceReset)
-            {
-                // On flip/unflip frame, scale is 1.0 because we just reset the reference frame
-                // The new snapshots already contain the calculated positions
-                scaleX = 1.0;
-                scaleY = 1.0;
-            }
-            else
-            {
-                scaleX = newGroupWidth / Math.Max(MinSize, context.OriginalGroupBounds.Width);
-                scaleY = newGroupHeight / Math.Max(MinSize, context.OriginalGroupBounds.Height);
-            }
+            // Calculate scale factors from TRUE original bounds
+            double scaleX = newGroupWidth / Math.Max(MinSize, context.TrueOriginalBounds.Width);
+            double scaleY = newGroupHeight / Math.Max(MinSize, context.TrueOriginalBounds.Height);
 
             // Determine edge handle types for axis-specific behavior
-            bool isHorizontalEdge = context.InitialHandle is ResizeHandleType.Top or ResizeHandleType.Bottom;
-            bool isVerticalEdge = context.InitialHandle is ResizeHandleType.Left or ResizeHandleType.Right;
+            bool isHorizontalEdge = context.TrueInitialHandle is ResizeHandleType.Top or ResizeHandleType.Bottom;
+            bool isVerticalEdge = context.TrueInitialHandle is ResizeHandleType.Left or ResizeHandleType.Right;
 
             // Maintain aspect ratio if Shift is held
             if (maintainAspectRatio)
@@ -674,37 +618,32 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 {
                     // Top/Bottom: height is primary, use scaleY for both axes
                     scale = scaleY;
-                    scaleX = scale;
-                    scaleY = scale;
                 }
                 else if (isVerticalEdge)
                 {
                     // Left/Right: width is primary, use scaleX for both axes
                     scale = scaleX;
-                    scaleX = scale;
-                    scaleY = scale;
                 }
                 else
                 {
                     // Corner handles: use the larger scale factor
                     scale = Math.Max(Math.Abs(scaleX), Math.Abs(scaleY));
-                    scaleX = scale;
-                    scaleY = scale;
                 }
 
-                // Recalculate group dimensions with uniform scale
-                newGroupWidth = context.OriginalGroupBounds.Width * scaleX;
-                newGroupHeight = context.OriginalGroupBounds.Height * scaleY;
+                scaleX = scale;
+                scaleY = scale;
 
-                // Adjust position based on anchor point (opposite corner/edge)
-                var activeHandle = GetFlippedHandle(currentInitialHandle, horizontalFlip, verticalFlip);
+                // Recalculate group dimensions with uniform scale
+                newGroupWidth = context.TrueOriginalBounds.Width * scale;
+                newGroupHeight = context.TrueOriginalBounds.Height * scale;
+
+                // Adjust position based on anchor point using TRUE original bounds
                 AdjustGroupPositionForAspectRatio(
                     ref newGroupX, ref newGroupY,
-                    context.OriginalGroupBounds,
+                    context.TrueOriginalBounds,
                     newGroupWidth, newGroupHeight,
-                    activeHandle);
-
-                newGroupBounds = new Rect(newGroupX, newGroupY, newGroupWidth, newGroupHeight);
+                    activeHandle,
+                    context.TrueOriginalBounds);
             }
             else
             {
@@ -719,12 +658,14 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 }
             }
 
-            // Calculate element transforms
-            var transforms = new List<ElementTransform>(context.ElementSnapshots.Count);
-            foreach (var snapshot in context.ElementSnapshots)
+            var newGroupBounds = new Rect(newGroupX, newGroupY, newGroupWidth, newGroupHeight);
+
+            // Calculate element transforms from TRUE original snapshots
+            var transforms = new List<ElementTransform>(context.TrueElementSnapshots.Count);
+            foreach (var snapshot in context.TrueElementSnapshots)
             {
                 var origBounds = snapshot.OriginalBounds;
-                var origGroupBounds = context.OriginalGroupBounds;
+                var origGroupBounds = context.TrueOriginalBounds;
 
                 // Calculate new size
                 double newWidth = Math.Max(MinSize, origBounds.Width * scaleX);
@@ -739,20 +680,61 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 transforms.Add(new ElementTransform(snapshot.Element, newX, newY, newWidth, newHeight));
             }
 
-            var activeHandleResult = GetFlippedHandle(currentInitialHandle, horizontalFlip, verticalFlip);
+            // Update context with current flip state (for tracking transitions only)
+            GroupResizeContext updatedContext;
+            if (needsReferenceReset)
+            {
+                var newSnapshots = transforms
+                    .Select(t => new ElementSnapshot(t.Element, new Rect(t.NewX, t.NewY, t.NewWidth, t.NewHeight)))
+                    .ToList();
 
-            return new GroupResizeResult(transforms, activeHandleResult, updatedContext, newGroupBounds);
+                updatedContext = context.WithFlipUpdate(
+                    newGroupBounds,
+                    currentPoint,
+                    activeHandle,
+                    newSnapshots,
+                    verticalFlip,
+                    horizontalFlip);
+            }
+            else
+            {
+                updatedContext = new GroupResizeContext(
+                    context.OriginalGroupBounds,
+                    context.OriginalStartPoint,
+                    context.InitialHandle,
+                    context.ElementSnapshots,
+                    context.OriginalAspectRatio,
+                    horizontalFlip,
+                    verticalFlip,
+                    context.TrueInitialHandle,
+                    context.TrueOriginalBounds,
+                    context.TrueOriginalStartPoint,
+                    context.TrueElementSnapshots);
+            }
+
+            return new GroupResizeResult(transforms, activeHandle, updatedContext, newGroupBounds);
         }
 
         /// <summary>
         /// Adjusts group position when maintaining aspect ratio.
         /// </summary>
+        /// <param name="trueOriginalBounds">
+        /// The TRUE original bounds from the start of the drag operation.
+        /// Used for secondary axis centering to prevent drift during flip/unflip cycles.
+        /// If null, uses originalBounds for centering.
+        /// </param>
         private static void AdjustGroupPositionForAspectRatio(
             ref double newX, ref double newY,
             Rect originalBounds,
             double newWidth, double newHeight,
-            ResizeHandleType activeHandle)
+            ResizeHandleType activeHandle,
+            Rect? trueOriginalBounds = null)
         {
+            // Use true original for centering if provided, otherwise use current original
+            var centeringBounds = trueOriginalBounds ?? originalBounds;
+            double trueOriginalCenterX = centeringBounds.X + centeringBounds.Width / 2;
+            double trueOriginalCenterY = centeringBounds.Y + centeringBounds.Height / 2;
+
             switch (activeHandle)
             {
                 case ResizeHandleType.TopLeft:
@@ -769,54 +751,24 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                     // Top-left anchor, no adjustment needed
                     break;
                 case ResizeHandleType.Top:
-                    // Anchor bottom edge, distribute width change from center
+                    // Anchor bottom edge, center width around TRUE original center
                     newY = originalBounds.Bottom - newHeight;
-                    newX = originalBounds.Left - (newWidth - originalBounds.Width) / 2;
+                    newX = trueOriginalCenterX - newWidth / 2;
                     break;
                 case ResizeHandleType.Bottom:
-                    // Anchor top edge, distribute width change from center
-                    newX = originalBounds.Left - (newWidth - originalBounds.Width) / 2;
+                    // Anchor top edge, center width around TRUE original center
+                    newX = trueOriginalCenterX - newWidth / 2;
                     break;
                 case ResizeHandleType.Left:
-                    // Anchor right edge, distribute height change from center
+                    // Anchor right edge, center height around TRUE original center
                     newX = originalBounds.Right - newWidth;
-                    newY = originalBounds.Top - (newHeight - originalBounds.Height) / 2;
+                    newY = trueOriginalCenterY - newHeight / 2;
                     break;
                 case ResizeHandleType.Right:
-                    // Anchor left edge, distribute height change from center
-                    newY = originalBounds.Top - (newHeight - originalBounds.Height) / 2;
+                    // Anchor left edge, center height around TRUE original center
+                    newY = trueOriginalCenterY - newHeight / 2;
                     break;
             }
-        }
-
-        /// <summary>
-        /// Calculates element transforms for flip transition.
-        /// Used to create accurate snapshots when flip occurs.
-        /// </summary>
-        private static List<ElementTransform> CalculateElementTransformsForFlip(
-            IReadOnlyList<ElementSnapshot> snapshots,
-            Rect originalGroupBounds,
-            Rect newGroupBounds)
-        {
-            double scaleX = newGroupBounds.Width / Math.Max(MinSize, originalGroupBounds.Width);
-            double scaleY = newGroupBounds.Height / Math.Max(MinSize, originalGroupBounds.Height);
-
-            var transforms = new List<ElementTransform>(snapshots.Count);
-            foreach (var snapshot in snapshots)
-            {
-                var origBounds = snapshot.OriginalBounds;
-
-                double newWidth = Math.Max(MinSize, origBounds.Width * scaleX);
-                double newHeight = Math.Max(MinSize, origBounds.Height * scaleY);
-
-                double relativeX = (origBounds.X - originalGroupBounds.X) * scaleX;
-                double relativeY = (origBounds.Y - originalGroupBounds.Y) * scaleY;
-                double newX = newGroupBounds.X + relativeX;
-                double newY = newGroupBounds.Y + relativeY;
-
-                transforms.Add(new ElementTransform(snapshot.Element, newX, newY, newWidth, newHeight));
-            }
-            return transforms;
         }
 
         #endregion

@@ -91,6 +91,7 @@ namespace EquipmentDesigner.ViewModels
             RedoCommand = new RelayCommand(_ => Redo(), _ => CanRedo);
             ShowHelpCommand = new RelayCommand(_ => ShowHelp());
             DeleteSelectedCommand = new RelayCommand(_ => DeleteSelectedElement(), _ => SelectedElement != null);
+            UnlockSelectedElementCommand = new RelayCommand(_ => UnlockSingleSelectedElement(), _ => ShowUnlockButton);
 
             InitializeTools();
             InitializeStates();
@@ -314,6 +315,26 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public bool IsSelectionToolActive => SelectedTool?.Id == "Selection";
 
+        /// <summary>
+        /// Whether to show the floating unlock button.
+        /// Shows only when a single locked element is selected (not multi-selection).
+        /// </summary>
+        public bool ShowUnlockButton => !IsMultiSelectionMode && SelectedElement?.IsLocked == true;
+
+        /// <summary>
+        /// Gets the X position for the unlock button (centered above the selected element).
+        /// </summary>
+        public double UnlockButtonX => SelectedElement != null 
+            ? SelectedElement.X + (SelectedElement.Width / 2) - 20  // 20 = half of 40px button width
+            : 0;
+
+        /// <summary>
+        /// Gets the Y position for the unlock button (above the selected element).
+        /// </summary>
+        public double UnlockButtonY => SelectedElement != null 
+            ? SelectedElement.Y - 50  // 50 = 40px button height + 10px gap
+            : 0;
+
         #endregion
 
         #region Commands
@@ -327,6 +348,7 @@ namespace EquipmentDesigner.ViewModels
         public ICommand RedoCommand { get; }
         public ICommand ShowHelpCommand { get; }
         public ICommand DeleteSelectedCommand { get; }
+        public ICommand UnlockSelectedElementCommand { get; }
 
         #endregion
 

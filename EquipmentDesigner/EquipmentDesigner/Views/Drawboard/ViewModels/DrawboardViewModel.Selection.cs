@@ -30,6 +30,7 @@ namespace EquipmentDesigner.ViewModels
             element.IsSelected = true;
             SelectedElement = element;
             EditModeState = EditModeState.Selected;
+            NotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -44,6 +45,7 @@ namespace EquipmentDesigner.ViewModels
             }
             EditModeState = EditModeState.None;
             ActiveResizeHandle = ResizeHandleType.None;
+            NotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -202,6 +204,7 @@ namespace EquipmentDesigner.ViewModels
 
             OnPropertyChanged(nameof(IsMultiSelectionMode));
             OnPropertyChanged(nameof(GroupBounds));
+            NotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -257,7 +260,7 @@ namespace EquipmentDesigner.ViewModels
 
             // Clear rubberband state
             IsRubberbandSelecting = false;
-            RubberbandRect = Rect.Empty;
+            RubberbandRect = new Rect(0, 0, 0, 0);
 
             if (containedElements.Count == 0)
             {
@@ -294,7 +297,7 @@ namespace EquipmentDesigner.ViewModels
         public void CancelRubberbandSelection()
         {
             IsRubberbandSelecting = false;
-            RubberbandRect = Rect.Empty;
+            RubberbandRect = new Rect(0, 0, 0, 0);
             EditModeState = EditModeState.None;
         }
 

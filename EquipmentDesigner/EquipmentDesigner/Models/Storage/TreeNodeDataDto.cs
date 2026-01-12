@@ -9,7 +9,7 @@ namespace EquipmentDesigner.Models
     public class TreeNodeDataDto: IIdentifiable
     {
 
-        public string Version = "0.0.1";
+        public string Version;
         /// <summary>
         /// Unique identifier for this node.
         /// </summary>

@@ -200,78 +200,6 @@ namespace EquipmentDesigner.ViewModels
             }
         }
 
-        ///// <summary>
-        ///// Loads components from the unified repository.
-        ///// Filters by Uploaded or Validated state and routes to cards based on StartType.
-        ///// </summary>
-        //private async void LoadComponentsAsync()
-        //{
-        //    try
-        //    {
-        //        var apiService = ServiceLocator.GetService<IHardwareApiService>();
-        //        var response = await apiService.GetSessionsByStateAsync(
-        //            ComponentState.Ready, ComponentState.Uploaded, ComponentState.Validated);
-
-        //        // Clear existing collections
-        //        Equipments.Clear();
-        //        Systems.Clear();
-        //        Units.Clear();
-        //        Devices.Clear();
-
-        //        if (!response.Success || response.Data == null) return;
-
-        //        // Filter and load from WorkflowSessions based on StartType
-        //        foreach (var session in response.Data)
-        //        {
-        //            // Extract component info from root tree node
-        //            var rootNode = session.TreeNodes?.FirstOrDefault();
-        //            if (rootNode == null) continue;
-
-        //            var (name, description, version, equipmentType, hardwareKey) = ExtractComponentInfo(rootNode);
-        //            var componentItem = CreateComponentItem(
-        //                session.Id,  // Use WorkflowId as ID for navigation
-        //                name ?? "Unnamed",
-        //                description ?? "",
-        //                version,
-        //                session.State,
-        //                session.HardwareType,
-        //                equipmentType,
-        //                hardwareKey);
-
-        //            // Add to correct collection based on StartType
-        //            switch (session.HardwareType)
-        //            {
-        //                case HardwareLayer.Equipment:
-        //                    Equipments.Add(componentItem);
-        //                    break;
-        //                case HardwareLayer.System:
-        //                    Systems.Add(componentItem);
-        //                    break;
-        //                case HardwareLayer.Unit:
-        //                    Units.Add(componentItem);
-        //                    break;
-        //                case HardwareLayer.Device:
-        //                    Devices.Add(componentItem);
-        //                    break;
-        //            }
-        //        }
-
-        //        // Raise property changed for counts and empty state
-        //        OnPropertyChanged(nameof(EquipmentsCount));
-        //        OnPropertyChanged(nameof(SystemsCount));
-        //        OnPropertyChanged(nameof(UnitsCount));
-        //        OnPropertyChanged(nameof(DevicesCount));
-        //        OnPropertyChanged(nameof(HasNoEquipments));
-        //        OnPropertyChanged(nameof(HasNoSystems));
-        //        OnPropertyChanged(nameof(HasNoUnits));
-        //        OnPropertyChanged(nameof(HasNoDevices));
-        //    }
-        //    catch
-        //    {
-        //        // Silently fail - dashboard will show empty state
-        //    }
-        //}
-
         /// <summary>
         /// Extracts name and description from a tree node based on its hardware layer.
         /// </summary>
@@ -301,7 +229,6 @@ namespace EquipmentDesigner.ViewModels
                 Version = version ?? "undefined",
                 Status = state.ToString(),
                 ComponentState = state,
-                EquipmentType = equipmentType ?? string.Empty,
                 HardwareKey = hardwareKey
             };
         }
@@ -597,11 +524,6 @@ namespace EquipmentDesigner.ViewModels
         public string Version { get; set; }
         public string Status { get; set; }
         public ComponentState ComponentState { get; set; }
-        public string EquipmentType { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 하드웨어 고유 식별 키 - 버전 선택 다이얼로그 호출 시 사용
-        /// </summary>
         public string HardwareKey { get; set; }
     }
 }

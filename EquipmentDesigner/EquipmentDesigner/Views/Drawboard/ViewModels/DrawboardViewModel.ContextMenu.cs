@@ -222,6 +222,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 element.IsLocked = true;
             }
+            NotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -233,6 +234,19 @@ namespace EquipmentDesigner.ViewModels
             foreach (var element in elements)
             {
                 element.IsLocked = false;
+            }
+            NotifyUnlockButtonPropertiesChanged();
+        }
+
+        /// <summary>
+        /// Unlocks the single selected element (used by floating unlock button).
+        /// </summary>
+        public void UnlockSingleSelectedElement()
+        {
+            if (SelectedElement != null && SelectedElement.IsLocked)
+            {
+                SelectedElement.IsLocked = false;
+                NotifyUnlockButtonPropertiesChanged();
             }
         }
 
@@ -251,6 +265,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 element.IsLocked = shouldLock;
             }
+            NotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -341,6 +356,16 @@ namespace EquipmentDesigner.ViewModels
                 return new[] { SelectedElement };
             }
             return Enumerable.Empty<DrawingElement>();
+        }
+
+        /// <summary>
+        /// Notifies property changes for unlock button properties.
+        /// </summary>
+        private void NotifyUnlockButtonPropertiesChanged()
+        {
+            OnPropertyChanged(nameof(ShowUnlockButton));
+            OnPropertyChanged(nameof(UnlockButtonX));
+            OnPropertyChanged(nameof(UnlockButtonY));
         }
 
         #endregion

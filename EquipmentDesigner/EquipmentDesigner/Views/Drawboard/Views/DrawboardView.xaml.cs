@@ -291,6 +291,12 @@ namespace EquipmentDesigner.Views
                 return;
             }
 
+            // Skip if clicking on the floating unlock button (let button handle the click)
+            if (IsClickOnUnlockButton(e.OriginalSource as DependencyObject))
+            {
+                return;
+            }
+
             // Only handle selection when Selection tool is active
             if (!_viewModel.IsSelectionToolActive)
             {
@@ -942,6 +948,30 @@ namespace EquipmentDesigner.Views
                 e.Handled = true;
             }
             // Enter allows line breaks (AcceptsReturn=True)
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Checks if the clicked element is part of the floating unlock button.
+        /// Walks up the visual tree to find the UnlockFloatingButton.
+        /// </summary>
+        private bool IsClickOnUnlockButton(DependencyObject source)
+        {
+            if (source == null) return false;
+
+            DependencyObject current = source;
+            while (current != null)
+            {
+                if (current == UnlockFloatingButton)
+                {
+                    return true;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return false;
         }
 
         #endregion
