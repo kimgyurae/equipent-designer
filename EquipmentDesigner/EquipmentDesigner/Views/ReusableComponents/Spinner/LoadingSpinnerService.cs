@@ -1,9 +1,11 @@
 using System;
+using System.Windows;
 
 namespace EquipmentDesigner.Controls
 {
     /// <summary>
     /// Singleton service for displaying a global loading spinner throughout the application.
+    /// Uses a Topmost window to ensure the spinner is always visible above all other windows.
     /// </summary>
     /// <example>
     /// // Show loading spinner
@@ -32,6 +34,7 @@ namespace EquipmentDesigner.Controls
 
         /// <summary>
         /// Event raised when the spinner visibility changes.
+        /// Kept for backward compatibility with existing subscribers.
         /// </summary>
         public event EventHandler<bool> VisibilityChanged;
 
@@ -40,12 +43,15 @@ namespace EquipmentDesigner.Controls
         /// </summary>
         public bool IsVisible { get; private set; }
 
+        private LoadingSpinnerWindow _spinnerWindow;
+        private readonly object _lock = new object();
+
         private LoadingSpinnerService()
         {
         }
 
         /// <summary>
-        /// Shows the loading spinner overlay.
+        /// Shows the loading spinner overlay as a topmost window.
         /// </summary>
         public void Show()
         {
@@ -53,6 +59,17 @@ namespace EquipmentDesigner.Controls
                 return;
 
             IsVisible = true;
+
+            // Ensure we're on the UI thread
+            if (Application.Current?.Dispatcher != null && !Application.Current.Dispatcher.CheckAccess())
+            {
+                Application.Current.Dispatcher.Invoke(ShowSpinnerWindow);
+            }
+            else
+            {
+                ShowSpinnerWindow();
+            }
+
             VisibilityChanged?.Invoke(this, true);
         }
 
@@ -65,7 +82,39 @@ namespace EquipmentDesigner.Controls
                 return;
 
             IsVisible = false;
+
+            // Ensure we're on the UI thread
+            if (Application.Current?.Dispatcher != null && !Application.Current.Dispatcher.CheckAccess())
+            {
+                Application.Current.Dispatcher.Invoke(HideSpinnerWindow);
+            }
+            else
+            {
+                HideSpinnerWindow();
+            }
+
             VisibilityChanged?.Invoke(this, false);
+        }
+
+        private void ShowSpinnerWindow()
+        {
+            lock (_lock)
+            {
+                if (_spinnerWindow == null)
+                {
+                    _spinnerWindow = new LoadingSpinnerWindow();
+                }
+
+                _spinnerWindow.ShowSpinner();
+            }
+        }
+
+        private void HideSpinnerWindow()
+        {
+            lock (_lock)
+            {
+                _spinnerWindow?.HideSpinner();
+            }
         }
     }
 }

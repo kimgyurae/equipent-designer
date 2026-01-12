@@ -47,6 +47,38 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         public const double TextboxMargin = 4.0;
 
         /// <summary>
+        /// TextBox border thickness for inline editing overlay.
+        /// Must match the BorderThickness in DrawboardView.xaml InlineEditTextBox.
+        /// </summary>
+        public const double InlineTextBoxBorderThickness = 1.0;
+
+        /// <summary>
+        /// TextBox padding for inline editing overlay.
+        /// Must match the Padding in DrawboardView.xaml InlineEditTextBox.
+        /// </summary>
+        public const double InlineTextBoxPadding = 0.0;
+
+        /// <summary>
+        /// Total offset from TextBox outer edge to actual text content area.
+        /// Used to align the editable TextBox with the displayed TextBlock.
+        /// </summary>
+        public const double InlineTextBoxContentOffset = InlineTextBoxBorderThickness + InlineTextBoxPadding;
+
+        /// <summary>
+        /// Safety margin for WPF TextBox internal rendering differences.
+        /// TextBox has internal structures (ScrollViewer, caret space) that make
+        /// actual text area narrower than calculated. This ensures FormattedText
+        /// wraps at the same point as TextBox.
+        /// </summary>
+        public const double TextBoxInternalRenderingMargin = 2.0;
+
+        /// <summary>
+        /// Extra vertical padding for single-line Textbox to prevent text clipping.
+        /// Accounts for TextBox internal padding and text rendering variations.
+        /// </summary>
+        public const double TextboxVerticalPadding = 6.0;
+
+        /// <summary>
         /// Minimum text area width.
         /// </summary>
         public const double MinTextWidth = 20.0;
@@ -199,6 +231,30 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             };
         }
 
+        /// <summary>
+        /// Calculates the height required for a single line of text at the given font size.
+        /// Uses WPF FormattedText for accurate measurement.
+        /// </summary>
+        /// <param name="fontSize">The font size enum value.</param>
+        /// <returns>The height in pixels for a single line of text.</returns>
+        public static double GetSingleLineTextHeight(TextFontSize fontSize)
+        {
+            double fontSizePixels = GetFontSizePixels(fontSize);
+            return MeasureSingleLineHeight(fontSizePixels);
+        }
+
+        /// <summary>
+        /// Calculates the total element height for a single-line Textbox.
+        /// Includes the text height plus margins and extra vertical padding.
+        /// </summary>
+        /// <param name="fontSize">The font size enum value.</param>
+        /// <returns>The total element height in pixels.</returns>
+        public static double GetSingleLineElementHeight(TextFontSize fontSize)
+        {
+            double textHeight = GetSingleLineTextHeight(fontSize);
+            return textHeight + 2 * TextboxMargin + TextboxVerticalPadding;
+        }
+
         #endregion
 
         #region Private Methods - Shape-Specific Calculations
@@ -285,10 +341,30 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         }
 
         /// <summary>
+        /// Measures the height of a single line of text using WPF FormattedText.
+        /// </summary>
+        private static double MeasureSingleLineHeight(double fontSize)
+        {
+            var formattedText = new FormattedText(
+                "Ag",  // Use characters with ascenders and descenders for accurate height
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface("Segoe UI"),
+                fontSize,
+                Brushes.Black,
+                96.0); // Standard DPI
+
+            return formattedText.Height;
+        }
+
+        /// <summary>
         /// Measures text height using WPF FormattedText.
         /// </summary>
         private static double MeasureTextHeight(string text, double maxWidth, double fontSize)
         {
+            // Apply safety margin to match TextBox internal rendering width
+            double effectiveWidth = Math.Max(MinTextWidth, maxWidth - TextBoxInternalRenderingMargin);
+
             var formattedText = new FormattedText(
                 text,
                 CultureInfo.CurrentCulture,
@@ -298,7 +374,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 Brushes.Black,
                 96.0); // Standard DPI
 
-            formattedText.MaxTextWidth = maxWidth;
+            formattedText.MaxTextWidth = effectiveWidth;
             formattedText.Trimming = TextTrimming.None;
 
             return formattedText.Height;

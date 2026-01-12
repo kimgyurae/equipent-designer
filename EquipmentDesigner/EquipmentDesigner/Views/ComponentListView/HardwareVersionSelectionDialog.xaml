@@ -1,0 +1,155 @@
+<Window x:Class="EquipmentDesigner.Views.HardwareVersionSelectionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lex="http://wpflocalizeextension.codeplex.com"
+        xmlns:controls="clr-namespace:EquipmentDesigner.Controls"
+        mc:Ignorable="d"
+        Title="Version Selection"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Backdrop - Click to dismiss -->
+        <Border Background="{StaticResource Brush.Overlay.Backdrop}"
+                MouseLeftButtonDown="Backdrop_MouseLeftButtonDown"/>
+        
+        <!-- Dialog Content Container -->
+        <Border Background="{StaticResource Brush.Surface.Primary}"
+                BorderBrush="{StaticResource Brush.Border.Primary}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource Radius.LG}"
+                Effect="{StaticResource Shadow.XL}"
+                Width="500"
+                MinHeight="200"
+                MaxHeight="600"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header Section -->
+                <Border Grid.Row="0"
+                        BorderBrush="{StaticResource Brush.Border.Primary}"
+                        BorderThickness="0,0,0,0.8"
+                        Padding="24">
+                    <TextBlock Text="{Binding DialogTitle}"
+                               Style="{StaticResource Typography.H3}"
+                               Foreground="{StaticResource Brush.Text.Primary}"/>
+                </Border>
+
+                <!-- Content Section -->
+                <Border Grid.Row="1" Padding="24,24,24,24">
+                    <Grid>
+
+                    <!-- Loading State -->
+                    <StackPanel Visibility="{Binding LoadingVisibility}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="{lex:Loc Key=VersionDialog_Loading}"
+                                   Style="{StaticResource Typography.Body}"
+                                   Foreground="{StaticResource Brush.Text.Secondary}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Empty State -->
+                    <StackPanel Visibility="{Binding EmptyVisibility}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="{lex:Loc Key=VersionDialog_NoVersions}"
+                                   Style="{StaticResource Typography.Body}"
+                                   Foreground="{StaticResource Brush.Text.Secondary}"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Version List -->
+                    <ScrollViewer Visibility="{Binding ListVisibility}"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  MaxHeight="450">
+                        <ItemsControl ItemsSource="{Binding Versions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <controls:DefaultWhiteCard CardPadding="17"
+                                                               IsClickable="True"
+                                                               Margin="0,0,0,12">
+                                        <controls:DefaultWhiteCard.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick"
+                                                          Command="{Binding DataContext.SelectVersionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                          CommandParameter="{Binding}"/>
+                                        </controls:DefaultWhiteCard.InputBindings>
+                                        <controls:DefaultWhiteCard.CardContent>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Row 0: Version + Status Chip -->
+                                                <Grid Grid.Row="0" Margin="0,0,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Version -->
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding Version}"
+                                                               Style="{StaticResource Typography.Body.Small}"
+                                                               Foreground="{StaticResource Brush.Text.Secondary}"/>
+
+                                                    <!-- Status Chip -->
+                                                    <controls:StateChip Grid.Column="1"
+                                                                        Text="{Binding StateText}"
+                                                                        ChipBackground="{Binding StateBackground}"
+                                                                        ChipForeground="{Binding StateForeground}"/>
+                                                </Grid>
+
+                                                <!-- Row 1: Name -->
+                                                <TextBlock Grid.Row="1"
+                                                           Text="{Binding Name}"
+                                                           Style="{StaticResource Typography.Body.Large}"
+                                                           FontWeight="{StaticResource Font.Weight.SemiBold}"
+                                                           Foreground="{StaticResource Brush.Text.Primary}"
+                                                           Margin="0,0,0,8"/>
+
+                                                <!-- Row 2: Description -->
+                                                <TextBlock Grid.Row="2"
+                                                           Text="{Binding Description}"
+                                                           Style="{StaticResource Typography.Body}"
+                                                           Foreground="{StaticResource Brush.Text.Secondary}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxHeight="21"/>
+                                            </Grid>
+                                        </controls:DefaultWhiteCard.CardContent>
+                                    </controls:DefaultWhiteCard>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

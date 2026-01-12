@@ -7,7 +7,6 @@
         xmlns:dashboard="clr-namespace:EquipmentDesigner.Views"
         xmlns:workflow="clr-namespace:EquipmentDesigner.Views"
         xmlns:toast="clr-namespace:EquipmentDesigner.Controls"
-        xmlns:spinner="clr-namespace:EquipmentDesigner.Controls"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         lex:LocalizeDictionary.DesignCulture="ko"
         lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
@@ -23,9 +22,6 @@
         <Border x:Name="BackdropOverlay"
                 Background="{StaticResource Brush.Overlay.Backdrop}"
                 Visibility="Collapsed"/>
-
-        <!-- Loading Spinner Overlay -->
-        <spinner:LoadingSpinnerOverlay x:Name="SpinnerOverlay"/>
         
         <!-- Toast Notifications Container (topmost layer) -->
         <toast:ToastContainer x:Name="ToastContainer"/>

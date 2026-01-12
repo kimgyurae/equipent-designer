@@ -19,6 +19,7 @@ namespace EquipmentDesigner.ViewModels
         private bool _isTextEditing;
         private Rect _textBoxBounds;
         private string _originalText;
+        private double _originalTextOpacity;
 
         #endregion
 
@@ -73,18 +74,27 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Starts inline text editing for an element.
         /// Called from View on double-click.
+        /// Clears all selections before entering text edit mode to remove adorners.
         /// </summary>
         public bool TryStartTextEditing(DrawingElement element)
         {
-            if (element == null || element.IsLocked || IsMultiSelectionMode)
+            if (element == null || element.IsLocked)
                 return false;
 
-            // Can't edit text while in other edit modes
-            if (EditModeState != EditModeState.Selected && EditModeState != EditModeState.None)
+            // Can't edit text while in other edit modes (except Selected, MultiSelected, or None)
+            if (EditModeState != EditModeState.Selected && 
+                EditModeState != EditModeState.MultiSelected &&
+                EditModeState != EditModeState.None)
                 return false;
+
+            // Clear all selections before entering text edit mode
+            // This removes the adorner so it doesn't overlay the text editing area
+            ClearAllSelections();
 
             _textEditingElement = element;
             _originalText = element.Text;
+            _originalTextOpacity = element.TextOpacity;
+            element.TextOpacity = 0;
 
             // Create context and calculate bounds using Engine
             _textEditContext = TextEditingEngine.CreateTextEditContext(element);
@@ -139,18 +149,43 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Commits text changes and ends editing.
+        /// Auto-deletes TextboxElement if text is empty or whitespace-only.
         /// </summary>
         public void CommitTextEditing(string finalText)
         {
             if (!IsTextEditing || _textEditingElement == null) return;
 
-            _textEditingElement.Text = finalText;
+            var elementToEdit = _textEditingElement;
+            
+            // Check if TextboxElement should be auto-deleted (empty or whitespace-only text)
+            bool shouldAutoDelete = elementToEdit.ShapeType == DrawingShapeType.Textbox 
+                && string.IsNullOrWhiteSpace(finalText);
+
+            if (shouldAutoDelete)
+            {
+                // Clear selection before removing element
+                if (SelectedElement == elementToEdit)
+                {
+                    SelectedElement = null;
+                }
+                _selectedElements.Remove(elementToEdit);
+                elementToEdit.IsSelected = false;
+                
+                // End text editing first
+                EndTextEditing(committed: false);
+                
+                // Remove from canvas
+                Elements.Remove(elementToEdit);
+                return;
+            }
+
+            elementToEdit.Text = finalText;
 
             // Final size calculation using Engine
             var result = TextEditingEngine.CalculateRequiredSize(_textEditContext, finalText);
             if (result.NeedsResize)
             {
-                _textEditingElement.Height = result.RequiredHeight;
+                elementToEdit.Height = result.RequiredHeight;
             }
 
             EndTextEditing(committed: true);
@@ -158,14 +193,41 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Cancels text editing and restores original text.
+        /// Auto-deletes TextboxElement if originalText was empty (newly created element).
         /// </summary>
         public void CancelTextEditing()
         {
             if (!IsTextEditing || _textEditingElement == null) return;
 
+            var elementToEdit = _textEditingElement;
+            var originalHeight = _textEditContext.OriginalHeight;
+            var originalTextValue = _originalText;
+
+            // Check if TextboxElement should be auto-deleted (originalText was empty)
+            bool shouldAutoDelete = elementToEdit.ShapeType == DrawingShapeType.Textbox 
+                && string.IsNullOrWhiteSpace(originalTextValue);
+
+            if (shouldAutoDelete)
+            {
+                // Clear selection before removing element
+                if (SelectedElement == elementToEdit)
+                {
+                    SelectedElement = null;
+                }
+                _selectedElements.Remove(elementToEdit);
+                elementToEdit.IsSelected = false;
+                
+                // End text editing first
+                EndTextEditing(committed: false);
+                
+                // Remove from canvas
+                Elements.Remove(elementToEdit);
+                return;
+            }
+
             // Restore original text and height
-            _textEditingElement.Text = _originalText;
-            _textEditingElement.Height = _textEditContext.OriginalHeight;
+            elementToEdit.Text = originalTextValue;
+            elementToEdit.Height = originalHeight;
 
             EndTextEditing(committed: false);
         }
@@ -178,6 +240,12 @@ namespace EquipmentDesigner.ViewModels
         {
             var element = _textEditingElement;
             var bounds = TextBoxBounds;
+
+            // Restore text opacity before clearing element reference
+            if (element != null)
+            {
+                element.TextOpacity = _originalTextOpacity;
+            }
 
             _textEditingElement = null;
             _originalText = null;

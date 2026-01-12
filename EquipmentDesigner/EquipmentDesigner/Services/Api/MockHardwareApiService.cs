@@ -258,6 +258,67 @@ namespace EquipmentDesigner.Services
             }
         }
 
+        public async Task<PagedApiResponse<HardwareVersionSummaryDto>> GetHardwareByHardwareKeyAsync(
+            string hardwareKey,
+            int page = 1,
+            int pageSize = 10)
+        {
+            LoadingSpinnerService.Instance.Show();
+            await Task.Delay(SimulatedDelay);
+
+            try
+            {
+                var sessions = await _repository.LoadAsync();
+
+                // 같은 HardwareKey를 가진 모든 세션 필터링 (HardwareType 무관)
+                var matchingSessions = sessions?
+                    .Where(s => GetEffectiveHardwareKey(s) == hardwareKey)
+                    .OrderByDescending(s => ParseVersion(s.Version))
+                    .ToList() ?? new List<HardwareDefinition>();
+
+                var totalCount = matchingSessions.Count;
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // 페이지네이션 적용
+                var pagedSessions = matchingSessions
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var versions = pagedSessions.Select((s, index) => new HardwareVersionSummaryDto
+                {
+                    WorkflowId = s.Id,
+                    Version = s.Version ?? "v0.0.0",
+                    State = s.State,
+                    LastModifiedAt = s.LastModifiedAt,
+                    IsLatest = page == 1 && index == 0,
+                    Description = s.Description
+                }).ToList();
+
+                LoadingSpinnerService.Instance.Hide();
+                return new PagedApiResponse<HardwareVersionSummaryDto>
+                {
+                    Success = true,
+                    Data = versions,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalCount = totalCount,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                LoadingSpinnerService.Instance.Hide();
+                return new PagedApiResponse<HardwareVersionSummaryDto>
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ErrorCode = "LOAD_ERROR",
+                    Data = new List<HardwareVersionSummaryDto>()
+                };
+            }
+        }
+
         public async Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareType hardwareType)
         {
             LoadingSpinnerService.Instance.Show();

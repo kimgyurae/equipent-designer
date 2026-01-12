@@ -2,10 +2,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 using EquipmentDesigner.Controls;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Services;
+using EquipmentDesigner.Views;
 
 namespace EquipmentDesigner.ViewModels
 {
@@ -130,10 +132,29 @@ namespace EquipmentDesigner.ViewModels
 
         private void ExecuteViewComponent(ComponentItem item)
         {
-            if (item == null || string.IsNullOrEmpty(item.Id))
+            if (item == null || string.IsNullOrEmpty(item.HardwareKey))
                 return;
 
-            NavigationService.Instance.ViewComponent(item.Id, item.HardwareType);
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+
+            // Show version selection dialog (dialog has its own backdrop with click-to-dismiss)
+            var dialog = new HardwareVersionSelectionDialog
+            {
+                Owner = mainWindow,
+                HardwareKey = item.HardwareKey,
+                HardwareType = item.HardwareType,
+                DisplayName = item.Name
+            };
+
+            var result = dialog.ShowDialog();
+
+            // If a version was selected, navigate to the hardware define workflow
+            if (result == true && !string.IsNullOrEmpty(dialog.SelectedWorkflowId))
+            {
+                NavigationService.Instance.ViewComponent(
+                    dialog.SelectedWorkflowId,
+                    item.HardwareType);
+            }
         }
 
         public void RefreshAsync()

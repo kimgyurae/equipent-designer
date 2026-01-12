@@ -231,6 +231,52 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                 zoomChanged: true);
         }
 
+        /// <summary>
+        /// Calculates zoom result for resetting zoom to 100%.
+        /// Maintains viewport center as focus point.
+        /// </summary>
+        public static ZoomResult CalculateZoomReset(ZoomContext context)
+        {
+            const int targetZoom = 100;
+            int oldZoom = context.CurrentZoomLevel;
+
+            // Check if zoom is already at 100%
+            if (oldZoom == targetZoom)
+            {
+                return new ZoomResult(
+                    targetZoom,
+                    CalculateZoomScale(targetZoom),
+                    context.ScrollOffset,
+                    zoomChanged: false);
+            }
+
+            // Calculate viewport center position
+            double viewportCenterX = context.ViewportSize.Width / 2;
+            double viewportCenterY = context.ViewportSize.Height / 2;
+
+            // Calculate new scroll offset to maintain viewport center
+            double oldScale = CalculateZoomScale(oldZoom);
+            double newScale = CalculateZoomScale(targetZoom);
+
+            // Content coordinate at viewport center (before zoom)
+            double contentCenterX = (context.ScrollOffset.X + viewportCenterX) / oldScale;
+            double contentCenterY = (context.ScrollOffset.Y + viewportCenterY) / oldScale;
+
+            // New scroll offset to keep same content at viewport center
+            double newScrollX = contentCenterX * newScale - viewportCenterX;
+            double newScrollY = contentCenterY * newScale - viewportCenterY;
+
+            // Clamp to non-negative values
+            newScrollX = Math.Max(0, newScrollX);
+            newScrollY = Math.Max(0, newScrollY);
+
+            return new ZoomResult(
+                targetZoom,
+                newScale,
+                new Point(newScrollX, newScrollY),
+                zoomChanged: true);
+        }
+
         #endregion
 
         #region Initial Centering

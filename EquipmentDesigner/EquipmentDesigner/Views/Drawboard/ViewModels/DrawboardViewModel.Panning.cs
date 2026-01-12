@@ -40,12 +40,13 @@ namespace EquipmentDesigner.ViewModels
         #region Pan Operations
 
         /// <summary>
-        /// Starts a pan operation when Hand tool is active.
+        /// Starts a pan operation when Hand tool is active or when forced (e.g., middle mouse button).
         /// </summary>
         /// <param name="startPoint">Mouse position at pan start (viewport coordinates).</param>
-        public void StartPan(Point startPoint)
+        /// <param name="force">If true, bypasses Hand tool check (used for middle mouse button panning).</param>
+        public void StartPan(Point startPoint, bool force = false)
         {
-            if (!IsHandToolActive) return;
+            if (!force && !IsHandToolActive) return;
 
             _panContext = CanvasPanEngine.CreatePanContext(
                 startPoint,
