@@ -52,8 +52,8 @@ namespace EquipmentDesigner.ViewModels
 
         private void OnStateChanged()
         {
-            // Each state has its own workspace
-            // Future: Load/save workspace data per state
+            // Load workflow for the newly selected state
+            LoadWorkflowForCurrentState();
         }
 
         private void ZoomIn()

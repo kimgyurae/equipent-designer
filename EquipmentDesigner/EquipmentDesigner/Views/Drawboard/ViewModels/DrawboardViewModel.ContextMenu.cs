@@ -91,6 +91,7 @@ namespace EquipmentDesigner.ViewModels
                 newElement.Y += offset;
                 newElement.ZIndex = _nextZIndex++;
                 Elements.Add(newElement);
+                AddStepToCurrentWorkflow(newElement);
                 newElements.Add(newElement);
 
                 // Update snapshot coordinates for cumulative offset on next paste
@@ -301,6 +302,7 @@ namespace EquipmentDesigner.ViewModels
 
             foreach (var element in elementsToDelete)
             {
+                RemoveStepFromCurrentWorkflow(element);
                 Elements.Remove(element);
             }
         }

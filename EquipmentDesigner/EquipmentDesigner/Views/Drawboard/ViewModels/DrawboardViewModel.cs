@@ -71,7 +71,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public double CanvasHeight { get; }
 
-        public DrawboardViewModel(bool showBackButton = true)
+        public DrawboardViewModel(bool showBackButton = true, Process process = null)
         {
             _showBackButton = showBackButton;
 
@@ -95,6 +95,9 @@ namespace EquipmentDesigner.ViewModels
 
             InitializeTools();
             InitializeStates();
+
+            // Initialize Process - create new if null
+            InitializeProcess(process);
 
             // Select default tool
             SelectTool(Tools.FirstOrDefault(t => t.Id == "Selection"));

@@ -55,6 +55,7 @@ namespace EquipmentDesigner.ViewModels
         {
             if (_selectedElement == null || _selectedElement.IsLocked) return;
 
+            RemoveStepFromCurrentWorkflow(_selectedElement);
             Elements.Remove(_selectedElement);
             ClearSelection();
         }

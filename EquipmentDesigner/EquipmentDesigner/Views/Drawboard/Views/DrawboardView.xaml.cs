@@ -603,26 +603,9 @@ namespace EquipmentDesigner.Views
             }
             else if (e.Key == Key.Delete)
             {
-                // Delete all selected elements (multi-selection or single)
-                if (_viewModel.IsMultiSelectionMode)
-                {
-                    // Delete all elements in multi-selection
-                    var elementsToDelete = _viewModel.SelectedElements.ToArray();
-                    _viewModel.ClearAllSelections();
-                    foreach (var element in elementsToDelete)
-                    {
-                        if (!element.IsLocked)
-                        {
-                            _viewModel.Elements.Remove(element);
-                        }
-                    }
-                    e.Handled = true;
-                }
-                else if (_viewModel.SelectedElement != null)
-                {
-                    _viewModel.DeleteSelectedElement();
-                    e.Handled = true;
-                }
+                // Delete all selected elements (uses ViewModel method which handles Process sync)
+                _viewModel.DeleteSelectedElements();
+                e.Handled = true;
             }
             else if (e.Key == Key.L && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
             {

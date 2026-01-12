@@ -113,6 +113,7 @@ namespace EquipmentDesigner.ViewModels
             var newElement = PreviewElement;
             newElement.Opacity = 1.0;
             Elements.Add(newElement);
+            AddStepToCurrentWorkflow(newElement);
             _nextZIndex++;
 
             PreviewElement = null;
@@ -200,6 +201,7 @@ namespace EquipmentDesigner.ViewModels
             };
 
             Elements.Add(textbox);
+            AddStepToCurrentWorkflow(textbox);
             _nextZIndex++;
 
             // Select and enter text editing mode
