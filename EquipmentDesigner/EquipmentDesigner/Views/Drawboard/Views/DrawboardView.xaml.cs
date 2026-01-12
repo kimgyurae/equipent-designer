@@ -285,10 +285,17 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void OnCanvasPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (_viewModel == null) return;
+            
+            if (_viewModel == null)
+            {
+                return;
+            }
 
             // Only handle selection when Selection tool is active
-            if (!_viewModel.IsSelectionToolActive) return;
+            if (!_viewModel.IsSelectionToolActive)
+            {
+                return;
+            }
 
             var position = e.GetPosition(ZoomableGrid);
             HandleSelectionClick(position, e);
@@ -376,9 +383,11 @@ namespace EquipmentDesigner.Views
         /// Note: Resize operations are now handled directly by Thumb drag events in SelectionAdorner.
         /// </summary>
         private void HandleSelectionClick(Point position, MouseButtonEventArgs e)
-        {
+        {            
             // Check Shift key state at click time, not relying on cached KeyDown state
-            _isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+            bool keyboardShiftState = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+            
+            _isShiftPressed = keyboardShiftState;
 
             var hitElement = _viewModel.FindElementAtPoint(position);
 

@@ -775,6 +775,143 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         }
 
         #endregion
+
+        #region Locked Element Multi-Selection Prevention
+
+        [Fact]
+        public void ToggleSelection_WhenAddingLockedElement_DoesNotAddToMultiSelection()
+        {
+            // Arrange
+            var viewModel = CreateViewModel();
+            var unlockedElement = CreateTestElement(100, 100);
+            var lockedElement = CreateTestElement(200, 200);
+            lockedElement.IsLocked = true;
+            viewModel.Elements.Add(unlockedElement);
+            viewModel.Elements.Add(lockedElement);
+            viewModel.SelectElement(unlockedElement);
+
+            // Act - Try to add locked element via shift+click
+            viewModel.ToggleSelection(lockedElement);
+
+            // Assert - Should remain single selection, not multi-selection
+            viewModel.IsMultiSelectionMode.Should().BeFalse();
+            viewModel.SelectedElement.Should().Be(unlockedElement);
+        }
+
+        [Fact]
+        public void ToggleSelection_WhenRemovingLockedElement_AllowsRemoval()
+        {
+            // Arrange
+            var viewModel = CreateViewModel();
+            var element1 = CreateTestElement(100, 100);
+            var element2 = CreateTestElement(200, 200);
+            viewModel.Elements.Add(element1);
+            viewModel.Elements.Add(element2);
+            viewModel.ToggleSelection(element1);
+            viewModel.ToggleSelection(element2);
+            // Lock element2 AFTER adding to selection
+            element2.IsLocked = true;
+
+            // Act - Remove locked element from selection
+            viewModel.ToggleSelection(element2);
+
+            // Assert - Should allow removal
+            viewModel.SelectedElements.Should().NotContain(element2);
+            viewModel.SelectedElements.Count().Should().Be(1);
+        }
+
+        [Fact]
+        public void AddToSelection_WhenElementIsLocked_DoesNotAddToSelection()
+        {
+            // Arrange
+            var viewModel = CreateViewModel();
+            var unlockedElement = CreateTestElement(100, 100);
+            var lockedElement = CreateTestElement(200, 200);
+            lockedElement.IsLocked = true;
+            viewModel.Elements.Add(unlockedElement);
+            viewModel.Elements.Add(lockedElement);
+            viewModel.SelectElement(unlockedElement);
+
+            // Act
+            viewModel.AddToSelection(lockedElement);
+
+            // Assert
+            viewModel.IsMultiSelectionMode.Should().BeFalse();
+            viewModel.SelectedElement.Should().Be(unlockedElement);
+        }
+
+        [Fact]
+        public void FinishRubberbandSelection_WithLockedElements_ExcludesLockedElements()
+        {
+            // Arrange
+            var viewModel = CreateViewModel();
+            var unlockedElement = CreateTestElement(50, 50, 50, 50);
+            var lockedElement = CreateTestElement(150, 50, 50, 50);
+            lockedElement.IsLocked = true;
+            viewModel.Elements.Add(unlockedElement);
+            viewModel.Elements.Add(lockedElement);
+
+            // Act - Rubberband select an area containing both elements
+            viewModel.StartRubberbandSelection(new Point(0, 0));
+            viewModel.UpdateRubberbandSelection(new Point(250, 150));
+            viewModel.FinishRubberbandSelection();
+
+            // Assert - Only unlocked element should be selected
+            viewModel.SelectedElements.Should().Contain(unlockedElement);
+            viewModel.SelectedElements.Should().NotContain(lockedElement);
+            viewModel.SelectedElements.Count().Should().Be(1);
+        }
+
+        [Fact]
+        public void FinishRubberbandSelection_WithOnlyLockedElements_SelectsNothing()
+        {
+            // Arrange
+            var viewModel = CreateViewModel();
+            var lockedElement1 = CreateTestElement(50, 50, 50, 50);
+            var lockedElement2 = CreateTestElement(150, 50, 50, 50);
+            lockedElement1.IsLocked = true;
+            lockedElement2.IsLocked = true;
+            viewModel.Elements.Add(lockedElement1);
+            viewModel.Elements.Add(lockedElement2);
+
+            // Act - Rubberband select an area containing both locked elements
+            viewModel.StartRubberbandSelection(new Point(0, 0));
+            viewModel.UpdateRubberbandSelection(new Point(250, 150));
+            viewModel.FinishRubberbandSelection();
+
+            // Assert - No elements should be selected
+            viewModel.SelectedElements.Count().Should().Be(0);
+            viewModel.IsMultiSelectionMode.Should().BeFalse();
+            viewModel.SelectedElement.Should().BeNull();
+        }
+
+        [Fact]
+        public void FinishRubberbandSelection_WithMixedElements_SelectsOnlyUnlocked()
+        {
+            // Arrange
+            var viewModel = CreateViewModel();
+            var unlocked1 = CreateTestElement(50, 50, 50, 50);
+            var unlocked2 = CreateTestElement(150, 50, 50, 50);
+            var locked1 = CreateTestElement(250, 50, 50, 50);
+            locked1.IsLocked = true;
+            viewModel.Elements.Add(unlocked1);
+            viewModel.Elements.Add(unlocked2);
+            viewModel.Elements.Add(locked1);
+
+            // Act - Rubberband select an area containing all elements
+            viewModel.StartRubberbandSelection(new Point(0, 0));
+            viewModel.UpdateRubberbandSelection(new Point(350, 150));
+            viewModel.FinishRubberbandSelection();
+
+            // Assert - Only unlocked elements should be selected
+            viewModel.SelectedElements.Should().Contain(unlocked1);
+            viewModel.SelectedElements.Should().Contain(unlocked2);
+            viewModel.SelectedElements.Should().NotContain(locked1);
+            viewModel.SelectedElements.Count().Should().Be(2);
+            viewModel.IsMultiSelectionMode.Should().BeTrue();
+        }
+
+        #endregion
     }
 
     /// <summary>

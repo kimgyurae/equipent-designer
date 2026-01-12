@@ -94,7 +94,6 @@ namespace EquipmentDesigner.Services
         {
             // Fallback to English when key is missing
             // The library handles this automatically with the base .resx file
-            System.Diagnostics.Debug.WriteLine($"Missing localization key: {e.Key}");
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)

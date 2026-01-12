@@ -76,7 +76,7 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Adds or removes element from selection (Shift+Click toggle).
-        /// Locked elements can be toggled (to allow unlocking via context menu).
+        /// Locked elements can be toggled for removal but cannot be added to multi-selection.
         /// </summary>
         public void ToggleSelection(DrawingElement element)
         {
@@ -102,6 +102,18 @@ namespace EquipmentDesigner.ViewModels
             }
             else
             {
+                // Locked elements cannot be added to multi-selection
+                if (element.IsLocked)
+                {
+                    return;
+                }
+
+                // Bridge: If there's an existing single selection not in the list, add it first
+                if (_selectedElement != null && !_selectedElements.Contains(_selectedElement))
+                {
+                    _selectedElements.Add(_selectedElement);
+                }
+
                 // Add to selection
                 element.IsSelected = true;
                 _selectedElements.Add(element);
@@ -125,12 +137,23 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Adds element to current selection without clearing.
         /// Handles transition from single-selection (via SelectElement) to multi-selection.
-        /// Locked elements can be added (to allow unlocking via context menu).
+        /// Locked elements cannot be added to multi-selection.
         /// </summary>
         public void AddToSelection(DrawingElement element)
         {
-            if (element == null) return;
-            if (_selectedElements.Contains(element)) return;
+            if (element == null)
+            {
+                return;
+            }
+            if (_selectedElements.Contains(element))
+            {
+                return;
+            }
+            // Locked elements cannot be added to multi-selection
+            if (element.IsLocked)
+            {
+                return;
+            }
 
             // Bridge single-selection to multi-selection:
             // If there's an existing single selection that's not in the list, add it first
@@ -221,13 +244,16 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Finishes rubberband selection and selects contained elements.
+        /// Locked elements are excluded from rubberband selection.
         /// </summary>
         public void FinishRubberbandSelection()
         {
             if (!_isRubberbandSelecting) return;
 
-            // Find elements fully contained in the rubberband
-            var containedElements = FindElementsInRect(_rubberbandRect).ToList();
+            // Find elements fully contained in the rubberband (excluding locked elements)
+            var containedElements = FindElementsInRect(_rubberbandRect)
+                .Where(e => !e.IsLocked)
+                .ToList();
 
             // Clear rubberband state
             IsRubberbandSelecting = false;
