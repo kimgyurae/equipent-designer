@@ -333,6 +333,13 @@ namespace EquipmentDesigner.Views
                 return;
             }
 
+            // Handle double-click for text editing (Grid doesn't support MouseDoubleClick event)
+            if (e.ClickCount == 2 && _viewModel.IsSelectionToolActive)
+            {
+                OnCanvasMouseDoubleClick(sender, e);
+                if (e.Handled) return;
+            }
+
             // Note: Unlock button is now outside ZoomableGrid, so no need to check for it here
 
             // Handle Hand tool panning
@@ -792,6 +799,13 @@ namespace EquipmentDesigner.Views
         private void OnAdornerResizeStarted(object sender, ResizeEventArgs e)
         {
             if (_viewModel == null) return;
+
+            // Commit text editing before resize (exit text edit mode, save text changes)
+            if (_viewModel.IsTextEditing)
+            {
+                _viewModel.CommitTextEditing(InlineEditTextBox.Text);
+            }
+
             _viewModel.StartResize(e.HandleType, e.Position);
         }
 
@@ -872,6 +886,13 @@ namespace EquipmentDesigner.Views
         private void OnMultiAdornerResizeStarted(object sender, ResizeEventArgs e)
         {
             if (_viewModel == null) return;
+
+            // Commit text editing before resize (exit text edit mode, save text changes)
+            if (_viewModel.IsTextEditing)
+            {
+                _viewModel.CommitTextEditing(InlineEditTextBox.Text);
+            }
+
             _viewModel.StartMultiResize(e.HandleType, e.Position);
         }
 

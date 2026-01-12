@@ -306,10 +306,12 @@
                       PreviewMouseLeftButtonDown="OnCanvasPreviewMouseLeftButtonDown"
                       PreviewMouseRightButtonDown="OnCanvasPreviewMouseRightButtonDown"
                       PreviewMouseRightButtonUp="OnCanvasPreviewMouseRightButtonUp"
+                      PreviewMouseDown="OnCanvasPreviewMouseDown"
                       MouseLeftButtonDown="OnCanvasMouseLeftButtonDown"
-                      MouseDoubleClick="OnCanvasMouseDoubleClick"
                       MouseMove="OnCanvasMouseMove"
-                      MouseLeftButtonUp="OnCanvasMouseLeftButtonUp">
+                      MouseLeftButtonUp="OnCanvasMouseLeftButtonUp"
+                      MouseUp="OnCanvasMouseUp"
+                      MouseDoubleClick="OnCanvasMouseDoubleClick">
                     <Grid.LayoutTransform>
                         <ScaleTransform ScaleX="{Binding ZoomScale}"
                                        ScaleY="{Binding ZoomScale}"/>
@@ -368,9 +370,9 @@
                                  Visibility="Collapsed"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
-                                 BorderThickness="2"
-                                 BorderBrush="{StaticResource Brush.Border.Primary}"
-                                 Background="{StaticResource Brush.Surface.Primary}"
+                                 BorderThickness="0"
+                                 BorderBrush="Transparent"
+                                 Background="Transparent"
                                  Padding="2"
                                  VerticalContentAlignment="Center"
                                  LostFocus="OnInlineEditLostFocus"
@@ -632,7 +634,7 @@
                     </Button.Background>
                     <Grid>
                         <Path Style="{StaticResource IconPathStyle}"
-                              Data="M12.6667,2 H3.33333 C2.59695,2 2,2.59695 2,3.33333 V12.6667 C2,13.403 2.59695,14 3.33333,14 H12.6667 C13.403,14 14,13.403 14,12.6667 V3.33333 C14,2.59695 13.403,2 12.6667,2 Z M11.5,3.5 H4.5 C3.94772,3.5 3.5,3.94772 3.5,4.5 V11.5 C3.5,12.0523 3.94772,12.5 4.5,12.5 H11.5 C12.0523,12.5 12.5,12.0523 12.5,11.5 V4.5 C12.5,3.94772 12.0523,3.5 11.5,3.5 Z"/>
+                              Data="M12.6667,2 H3.33333 C2.59695,2 2,2.59695 2,3.33333 V12.6667 C2,13.403 2.59695,14 3.33333,14 H12.6667 C13.403,14 14,13.403 14,12.6667 V3.33333 C14,2.59695 13.403,2 12.6667,2 Z M11.5,3.5 H4.5 C3.94772,3.5 3.5,3.94772 3.5,4.5 V11.5 C3.5,12.0523 3.94772,12.5 4.5,12.5 H11.5 C12.0523,12.5 12.5,12.0523 12.5,11.5 V4.5 Z"/>
                         <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
                                    Text="{Binding Tools[7].Shortcut}"/>
                     </Grid>
