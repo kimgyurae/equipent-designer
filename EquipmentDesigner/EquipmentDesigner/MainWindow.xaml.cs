@@ -93,10 +93,9 @@ namespace EquipmentDesigner
             try
             {
                 var repository = ServiceLocator.GetService<IWorkflowRepository>();
-                var dataStore = await repository.LoadAsync();
+                var sessions = await repository.LoadAsync();
 
-                var sessionDto = dataStore?.WorkflowSessions?
-                    .FirstOrDefault(s => s.Id == target.WorkflowId);
+                var sessionDto = sessions?.FirstOrDefault(s => s.Id == target.WorkflowId);
 
                 if (sessionDto != null)
                 {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Controls;
+
 namespace EquipmentDesigner.Services
 {
     /// <summary>
@@ -28,10 +29,9 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
+                var sessions = await _repository.LoadAsync();
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<List<HardwareDefinition>>.Ok(
-                    dataStore.WorkflowSessions?.ToList() ?? new List<HardwareDefinition>());
+                return ApiResponse<List<HardwareDefinition>>.Ok(sessions?.ToList() ?? new List<HardwareDefinition>());
             }
             catch (Exception ex)
             {
@@ -47,8 +47,8 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
-                var filtered = dataStore.WorkflowSessions?
+                var sessions = await _repository.LoadAsync();
+                var filtered = sessions?
                     .Where(s => states.Contains(s.State))
                     .ToList() ?? new List<HardwareDefinition>();
                 LoadingSpinnerService.Instance.Hide();
@@ -74,8 +74,8 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
-                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.Id == workflowId);
+                var sessions = await _repository.LoadAsync();
+                var session = sessions?.FirstOrDefault(s => s.Id == workflowId);
 
                 if (session == null)
                 {
@@ -112,20 +112,20 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
+                var sessions = await _repository.LoadAsync();
 
-                var existingIndex = dataStore.WorkflowSessions.FindIndex(s => s.Id == session.Id);
+                var existingIndex = sessions.FindIndex(s => s.Id == session.Id);
                 if (existingIndex >= 0)
                 {
-                    dataStore.WorkflowSessions[existingIndex] = session;
+                    sessions[existingIndex] = session;
                 }
                 else
                 {
-                    dataStore.WorkflowSessions.Add(session);
+                    sessions.Add(session);
                 }
 
                 session.LastModifiedAt = DateTime.Now;
-                await _repository.SaveAsync(dataStore);
+                await _repository.SaveAsync(sessions);
                 LoadingSpinnerService.Instance.Hide();
                 return ApiResponse<HardwareDefinition>.Ok(session);
             }
@@ -149,8 +149,8 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
-                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.Id == workflowId);
+                var sessions = await _repository.LoadAsync();
+                var session = sessions?.FirstOrDefault(s => s.Id == workflowId);
 
                 if (session == null)
                 {
@@ -161,7 +161,7 @@ namespace EquipmentDesigner.Services
 
                 session.State = newState;
                 session.LastModifiedAt = DateTime.Now;
-                await _repository.SaveAsync(dataStore);
+                await _repository.SaveAsync(sessions);
                 LoadingSpinnerService.Instance.Hide();
                 return ApiResponse<HardwareDefinition>.Ok(session);
             }
@@ -184,8 +184,8 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
-                var session = dataStore.WorkflowSessions?.FirstOrDefault(s => s.Id == workflowId);
+                var sessions = await _repository.LoadAsync();
+                var session = sessions?.FirstOrDefault(s => s.Id == workflowId);
 
                 if (session == null)
                 {
@@ -194,8 +194,8 @@ namespace EquipmentDesigner.Services
                         $"Session with ID '{workflowId}' not found", "NOT_FOUND");
                 }
 
-                dataStore.WorkflowSessions.Remove(session);
-                await _repository.SaveAsync(dataStore);
+                sessions.Remove(session);
+                await _repository.SaveAsync(sessions);
                 LoadingSpinnerService.Instance.Hide();
                 return ApiResponse<bool>.Ok(true);
             }
@@ -215,13 +215,13 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
+                var sessions = await _repository.LoadAsync();
 
                 // 같은 HardwareKey + HardwareType를 가진 모든 세션 필터링
-                var matchingSessions = dataStore.WorkflowSessions?
+                var matchingSessions = sessions?
                     .Where(s => s.HardwareType == hardwareType)
                     .Where(s => GetEffectiveHardwareKey(s) == hardwareKey)
-                    .OrderByDescending(s => ParseVersion(GetVersion(s)))
+                    .OrderByDescending(s => ParseVersion(s.Version))
                     .ToList() ?? new List<HardwareDefinition>();
 
                 if (!matchingSessions.Any())
@@ -235,16 +235,16 @@ namespace EquipmentDesigner.Services
                 {
                     HardwareKey = hardwareKey,
                     HardwareType = hardwareType,
-                    DisplayName = GetDisplayName(matchingSessions.First()),
+                    DisplayName = matchingSessions.First().DisplayName ?? matchingSessions.First().Name ?? "Unknown",
                     TotalVersionCount = matchingSessions.Count,
                     Versions = matchingSessions.Select((s, index) => new HardwareVersionSummaryDto
                     {
                         WorkflowId = s.Id,
-                        Version = GetVersion(s),
+                        Version = s.Version ?? "v0.0.0",
                         State = s.State,
                         LastModifiedAt = s.LastModifiedAt,
                         IsLatest = index == 0,
-                        Description = GetDescription(s)
+                        Description = s.Description
                     }).ToList()
                 };
 
@@ -265,9 +265,9 @@ namespace EquipmentDesigner.Services
 
             try
             {
-                var dataStore = await _repository.LoadAsync();
+                var sessions = await _repository.LoadAsync();
 
-                var distinctKeys = dataStore.WorkflowSessions?
+                var distinctKeys = sessions?
                     .Where(s => s.HardwareType == hardwareType)
                     .Select(s => GetEffectiveHardwareKey(s))
                     .Where(key => !string.IsNullOrEmpty(key))
@@ -291,71 +291,7 @@ namespace EquipmentDesigner.Services
         /// </summary>
         private string GetEffectiveHardwareKey(HardwareDefinition session)
         {
-            var rootNode = session.TreeNodes?.FirstOrDefault();
-            if (rootNode == null) return null;
-
-            return session.HardwareType switch
-            {
-                HardwareType.Equipment => rootNode.EquipmentData?.HardwareKey ?? rootNode.EquipmentData?.Name,
-                HardwareType.System => rootNode.SystemData?.HardwareKey ?? rootNode.SystemData?.Name,
-                HardwareType.Unit => rootNode.UnitData?.HardwareKey ?? rootNode.UnitData?.Name,
-                HardwareType.Device => rootNode.DeviceData?.HardwareKey ?? rootNode.DeviceData?.Name,
-                _ => null
-            };
-        }
-
-        /// <summary>
-        /// 세션에서 버전 정보를 가져옵니다.
-        /// </summary>
-        private string GetVersion(HardwareDefinition session)
-        {
-            var rootNode = session.TreeNodes?.FirstOrDefault();
-            if (rootNode == null) return "v0.0.0";
-
-            return session.HardwareType switch
-            {
-                HardwareType.Equipment => rootNode.EquipmentData?.Version ?? "v0.0.0",
-                HardwareType.System => rootNode.SystemData?.Version ?? "v0.0.0",
-                HardwareType.Unit => rootNode.UnitData?.Version ?? "v0.0.0",
-                HardwareType.Device => rootNode.DeviceData?.Version ?? "v0.0.0",
-                _ => "v0.0.0"
-            };
-        }
-
-        /// <summary>
-        /// 세션에서 표시용 이름을 가져옵니다.
-        /// </summary>
-        private string GetDisplayName(HardwareDefinition session)
-        {
-            var rootNode = session.TreeNodes?.FirstOrDefault();
-            if (rootNode == null) return "Unknown";
-
-            return session.HardwareType switch
-            {
-                HardwareType.Equipment => rootNode.EquipmentData?.DisplayName ?? rootNode.EquipmentData?.Name ?? "Unknown",
-                HardwareType.System => rootNode.SystemData?.DisplayName ?? rootNode.SystemData?.Name ?? "Unknown",
-                HardwareType.Unit => rootNode.UnitData?.DisplayName ?? rootNode.UnitData?.Name ?? "Unknown",
-                HardwareType.Device => rootNode.DeviceData?.DisplayName ?? rootNode.DeviceData?.Name ?? "Unknown",
-                _ => "Unknown"
-            };
-        }
-
-        /// <summary>
-        /// 세션에서 설명을 가져옵니다.
-        /// </summary>
-        private string GetDescription(HardwareDefinition session)
-        {
-            var rootNode = session.TreeNodes?.FirstOrDefault();
-            if (rootNode == null) return null;
-
-            return session.HardwareType switch
-            {
-                HardwareType.Equipment => rootNode.EquipmentData?.Description,
-                HardwareType.System => rootNode.SystemData?.Description,
-                HardwareType.Unit => rootNode.UnitData?.Description,
-                HardwareType.Device => rootNode.DeviceData?.Description,
-                _ => null
-            };
+            return session.HardwareKey ?? session.Name;
         }
 
         /// <summary>

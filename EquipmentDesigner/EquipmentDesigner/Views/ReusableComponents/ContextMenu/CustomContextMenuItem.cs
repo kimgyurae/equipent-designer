@@ -40,6 +40,7 @@ namespace EquipmentDesigner.Controls
         private bool _isSubMenuOpen;
         private string _section;
         private ObservableCollection<CustomContextMenuItem> _children;
+        private string _shortcut;
 
         /// <summary>
         /// Gets or sets the display text for this menu item.
@@ -112,6 +113,27 @@ namespace EquipmentDesigner.Controls
             get => _children;
             set => SetProperty(ref _children, value);
         }
+
+        /// <summary>
+        /// Gets or sets the keyboard shortcut display string (e.g., "Ctrl+C").
+        /// This is for display only - actual shortcut handling is done by the View/ViewModel.
+        /// </summary>
+        public string Shortcut
+        {
+            get => _shortcut;
+            set
+            {
+                if (SetProperty(ref _shortcut, value))
+                {
+                    OnPropertyChanged(nameof(HasShortcut));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets whether this item has a shortcut defined.
+        /// </summary>
+        public bool HasShortcut => !string.IsNullOrEmpty(Shortcut);
 
         /// <summary>
         /// Gets whether this item has children (sub-menu).

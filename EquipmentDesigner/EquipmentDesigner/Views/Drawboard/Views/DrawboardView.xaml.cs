@@ -63,6 +63,9 @@ namespace EquipmentDesigner.Views
                 _viewModel = viewModel;
                 _viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
+                // Set up scroll offset callback for pan operations
+                _viewModel.ApplyScrollOffset = ApplyScrollOffset;
+
                 InvalidateMeasure();
                 InvalidateArrange();
                 UpdateLayout();
@@ -292,6 +295,17 @@ namespace EquipmentDesigner.Views
 
             // Note: Unlock button is now outside ZoomableGrid, so no need to check for it here
 
+            // Handle Hand tool panning
+            if (_viewModel.IsHandToolActive)
+            {
+                // Get position relative to ScrollViewer (viewport coordinates)
+                var panPosition = e.GetPosition(CanvasScrollViewer);
+                _viewModel.StartPan(panPosition);
+                CanvasScrollViewer.CaptureMouse();
+                e.Handled = true;
+                return;
+            }
+
             // Only handle selection when Selection tool is active
             if (!_viewModel.IsSelectionToolActive)
             {
@@ -503,6 +517,27 @@ namespace EquipmentDesigner.Views
                     e.Handled = true;
                 }
             }
+            else if (e.Key == Key.L && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                // Ctrl+Shift+L: Toggle lock/unlock for selected elements
+                if (_viewModel.SelectedElement != null || _viewModel.IsMultiSelectionMode)
+                {
+                    _viewModel.ToggleLock();
+                    e.Handled = true;
+                }
+            }
+            else if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                // Ctrl+C: Copy selected elements
+                _viewModel.CopyToClipboard();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                // Ctrl+V: Paste elements from clipboard
+                _viewModel.PasteFromClipboard();
+                e.Handled = true;
+            }
         }
 
         /// <summary>
@@ -574,6 +609,12 @@ namespace EquipmentDesigner.Views
                 case EditModeState.MultiResizing:
                     // Multi-resize is handled by MultiSelectionAdorner.OnThumbDragDelta
                     return;
+
+                case EditModeState.Panning:
+                    // Get position relative to ScrollViewer for pan calculations
+                    var viewportPosition = e.GetPosition(CanvasScrollViewer);
+                    _viewModel.UpdatePan(viewportPosition);
+                    return;
             }
 
             // Handle drawing preview
@@ -625,6 +666,12 @@ namespace EquipmentDesigner.Views
                 case EditModeState.MultiResizing:
                     _viewModel.EndMultiResize();
                     ((UIElement)sender).ReleaseMouseCapture();
+                    e.Handled = true;
+                    return;
+
+                case EditModeState.Panning:
+                    _viewModel.EndPan();
+                    CanvasScrollViewer.ReleaseMouseCapture();
                     e.Handled = true;
                     return;
             }
@@ -948,6 +995,15 @@ namespace EquipmentDesigner.Views
         #endregion
 
         #region Helper Methods
+
+        /// <summary>
+        /// Applies scroll offset from ViewModel pan calculations.
+        /// </summary>
+        private void ApplyScrollOffset(double horizontalOffset, double verticalOffset)
+        {
+            CanvasScrollViewer.ScrollToHorizontalOffset(horizontalOffset);
+            CanvasScrollViewer.ScrollToVerticalOffset(verticalOffset);
+        }
 
         /// <summary>
         /// Handles ScrollViewer scroll changes to update unlock button position.

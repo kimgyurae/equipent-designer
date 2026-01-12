@@ -13,21 +13,21 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
     /// </summary>
     public class HardwareDefineWorkflowViewModelEditModeTests
     {
-        #region RegenerateTreeNodeIds Tests
+        #region RegenerateNodeIds Tests
 
         [Fact]
-        public void RegenerateTreeNodeIds_GeneratesNewGuidForTargetNode()
+        public void RegenerateNodeIds_GeneratesNewGuidForTargetNode()
         {
             // Arrange
             var originalId = Guid.NewGuid().ToString();
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 Id = originalId,
                 HardwareType = HardwareType.Equipment
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.RegenerateTreeNodeIds(nodeDto);
+            HardwareDefineWorkflowViewModel.RegenerateNodeIds(nodeDto);
 
             // Assert
             nodeDto.Id.Should().NotBe(originalId);
@@ -35,26 +35,26 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public void RegenerateTreeNodeIds_RecursivelyGeneratesNewIdsForAllChildren()
+        public void RegenerateNodeIds_RecursivelyGeneratesNewIdsForAllChildren()
         {
             // Arrange
             var rootId = "root-id";
             var childId = "child-id";
             var grandchildId = "grandchild-id";
 
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 Id = rootId,
                 HardwareType = HardwareType.Equipment,
-                Children = new List<TreeNodeDataDto>
+                Children = new List<HardwareDefinition>
                 {
-                    new TreeNodeDataDto
+                    new HardwareDefinition
                     {
                         Id = childId,
                         HardwareType = HardwareType.System,
-                        Children = new List<TreeNodeDataDto>
+                        Children = new List<HardwareDefinition>
                         {
-                            new TreeNodeDataDto
+                            new HardwareDefinition
                             {
                                 Id = grandchildId,
                                 HardwareType = HardwareType.Unit
@@ -65,7 +65,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.RegenerateTreeNodeIds(nodeDto);
+            HardwareDefineWorkflowViewModel.RegenerateNodeIds(nodeDto);
 
             // Assert
             nodeDto.Id.Should().NotBe(rootId);
@@ -74,22 +74,22 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public void RegenerateTreeNodeIds_AllGeneratedIdsAreUnique()
+        public void RegenerateNodeIds_AllGeneratedIdsAreUnique()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 Id = "id1",
                 HardwareType = HardwareType.Equipment,
-                Children = new List<TreeNodeDataDto>
+                Children = new List<HardwareDefinition>
                 {
-                    new TreeNodeDataDto { Id = "id2", HardwareType = HardwareType.System },
-                    new TreeNodeDataDto { Id = "id3", HardwareType = HardwareType.System }
+                    new HardwareDefinition { Id = "id2", HardwareType = HardwareType.System },
+                    new HardwareDefinition { Id = "id3", HardwareType = HardwareType.System }
                 }
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.RegenerateTreeNodeIds(nodeDto);
+            HardwareDefineWorkflowViewModel.RegenerateNodeIds(nodeDto);
 
             // Assert
             var allIds = new List<string> { nodeDto.Id, nodeDto.Children[0].Id, nodeDto.Children[1].Id };
@@ -97,122 +97,122 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public void RegenerateTreeNodeIds_HandlesEmptyChildrenCollection()
+        public void RegenerateNodeIds_HandlesEmptyChildrenCollection()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 Id = "original-id",
                 HardwareType = HardwareType.Device,
-                Children = new List<TreeNodeDataDto>()
+                Children = new List<HardwareDefinition>()
             };
 
             // Act & Assert - should not throw
-            HardwareDefineWorkflowViewModel.RegenerateTreeNodeIds(nodeDto);
+            HardwareDefineWorkflowViewModel.RegenerateNodeIds(nodeDto);
             nodeDto.Id.Should().NotBe("original-id");
         }
 
         #endregion
 
-        #region ApplyCopySuffixToRootNode Tests
+        #region ApplyCopySuffixToNode Tests
 
         [Fact]
-        public void ApplyCopySuffixToRootNode_Equipment_AppliesCopySuffix()
+        public void ApplyCopySuffixToNode_Equipment_AppliesCopySuffix()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 HardwareType = HardwareType.Equipment,
-                EquipmentData = new EquipmentDto { Name = "MyEquipment" }
+                Name = "MyEquipment"
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.ApplyCopySuffixToRootNode(nodeDto);
+            HardwareDefineWorkflowViewModel.ApplyCopySuffixToNode(nodeDto);
 
             // Assert
-            nodeDto.EquipmentData.Name.Should().Be("MyEquipment - copy");
+            nodeDto.Name.Should().Be("MyEquipment - copy");
         }
 
         [Fact]
-        public void ApplyCopySuffixToRootNode_System_AppliesCopySuffix()
+        public void ApplyCopySuffixToNode_System_AppliesCopySuffix()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 HardwareType = HardwareType.System,
-                SystemData = new SystemDto { Name = "MySystem" }
+                Name = "MySystem"
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.ApplyCopySuffixToRootNode(nodeDto);
+            HardwareDefineWorkflowViewModel.ApplyCopySuffixToNode(nodeDto);
 
             // Assert
-            nodeDto.SystemData.Name.Should().Be("MySystem - copy");
+            nodeDto.Name.Should().Be("MySystem - copy");
         }
 
         [Fact]
-        public void ApplyCopySuffixToRootNode_Unit_AppliesCopySuffix()
+        public void ApplyCopySuffixToNode_Unit_AppliesCopySuffix()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 HardwareType = HardwareType.Unit,
-                UnitData = new UnitDto { Name = "MyUnit" }
+                Name = "MyUnit"
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.ApplyCopySuffixToRootNode(nodeDto);
+            HardwareDefineWorkflowViewModel.ApplyCopySuffixToNode(nodeDto);
 
             // Assert
-            nodeDto.UnitData.Name.Should().Be("MyUnit - copy");
+            nodeDto.Name.Should().Be("MyUnit - copy");
         }
 
         [Fact]
-        public void ApplyCopySuffixToRootNode_Device_AppliesCopySuffix()
+        public void ApplyCopySuffixToNode_Device_AppliesCopySuffix()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 HardwareType = HardwareType.Device,
-                DeviceData = new DeviceDto { Name = "MyDevice" }
+                Name = "MyDevice"
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.ApplyCopySuffixToRootNode(nodeDto);
+            HardwareDefineWorkflowViewModel.ApplyCopySuffixToNode(nodeDto);
 
             // Assert
-            nodeDto.DeviceData.Name.Should().Be("MyDevice - copy");
+            nodeDto.Name.Should().Be("MyDevice - copy");
         }
 
         [Fact]
-        public void ApplyCopySuffixToRootNode_IncrementsCopySuffixWhenAlreadyHasSuffix()
+        public void ApplyCopySuffixToNode_IncrementsCopySuffixWhenAlreadyHasSuffix()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 HardwareType = HardwareType.Equipment,
-                EquipmentData = new EquipmentDto { Name = "MyEquipment - copy" }
+                Name = "MyEquipment - copy"
             };
 
             // Act
-            HardwareDefineWorkflowViewModel.ApplyCopySuffixToRootNode(nodeDto);
+            HardwareDefineWorkflowViewModel.ApplyCopySuffixToNode(nodeDto);
 
             // Assert
-            nodeDto.EquipmentData.Name.Should().Be("MyEquipment - copy 2");
+            nodeDto.Name.Should().Be("MyEquipment - copy 2");
         }
 
         [Fact]
-        public void ApplyCopySuffixToRootNode_HandlesNullDataGracefully()
+        public void ApplyCopySuffixToNode_HandlesNullNameGracefully()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 HardwareType = HardwareType.Equipment,
-                EquipmentData = null
+                Name = null
             };
 
             // Act & Assert - should not throw
-            HardwareDefineWorkflowViewModel.ApplyCopySuffixToRootNode(nodeDto);
+            HardwareDefineWorkflowViewModel.ApplyCopySuffixToNode(nodeDto);
         }
 
         #endregion
@@ -294,14 +294,13 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             var sessionDto = viewModel.ToHardwareDefinition();
-            var originalRootNodeId = sessionDto.TreeNodes.FirstOrDefault()?.Id;
+            var originalRootNodeId = sessionDto.Id;
 
             // Act
             var newSessionDto = HardwareDefineWorkflowViewModel.CreateCopySession(sessionDto);
 
             // Assert
-            var newRootNodeId = newSessionDto.TreeNodes.FirstOrDefault()?.Id;
-            newRootNodeId.Should().NotBe(originalRootNodeId);
+            newSessionDto.Id.Should().NotBe(originalRootNodeId);
         }
 
         [Fact]
@@ -322,8 +321,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var newSessionDto = HardwareDefineWorkflowViewModel.CreateCopySession(sessionDto);
 
             // Assert
-            var rootNode = newSessionDto.TreeNodes.FirstOrDefault();
-            rootNode?.EquipmentData?.Name.Should().Be("TestEquipment - copy");
+            newSessionDto.Name.Should().Be("TestEquipment - copy");
         }
 
         #endregion

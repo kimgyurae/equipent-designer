@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using EquipmentDesigner.Models;
 
 namespace EquipmentDesigner.Services
@@ -48,7 +49,7 @@ namespace EquipmentDesigner.Services
     /// Repository interface for incomplete workflow data.
     /// Used to differentiate from uploaded workflow repository.
     /// </summary>
-    public interface IWorkflowRepository : ITypedDataRepository<HardwareDefinitionDataStore>
+    public interface IWorkflowRepository : ITypedDataRepository<List<HardwareDefinition>>
     {
     }
 
@@ -56,7 +57,7 @@ namespace EquipmentDesigner.Services
     /// Repository interface for uploaded workflow data.
     /// Used to differentiate from incomplete workflow repository.
     /// </summary>
-    public interface IUploadedWorkflowRepository : ITypedDataRepository<HardwareDefinitionDataStore>
+    public interface IUploadedWorkflowRepository : ITypedDataRepository<List<HardwareDefinition>>
     {
     }
 }

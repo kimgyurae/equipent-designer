@@ -71,14 +71,11 @@ namespace EquipmentDesigner.ViewModels
 
                 foreach (var session in response.Data)
                 {
-                    var rootNode = session.TreeNodes?.FirstOrDefault();
-                    if (rootNode == null) continue;
-
-                    var (name, description) = ExtractComponentInfo(rootNode);
+                    // HardwareDefinition is itself the root node with flat properties
                     var componentItem = CreateComponentItem(
                         session.Id,
-                        name ?? $"Unnamed {session.HardwareType}",
-                        description ?? "",
+                        session.Name ?? $"Unnamed {session.HardwareType}",
+                        session.Description ?? "",
                         session.Version,
                         session.State,
                         session.HardwareType,
@@ -114,18 +111,6 @@ namespace EquipmentDesigner.ViewModels
             {
                 // Silently fail - view will show empty state
             }
-        }
-
-        private (string name, string description) ExtractComponentInfo(TreeNodeDataDto node)
-        {
-            return node.HardwareType switch
-            {
-                HardwareType.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description),
-                HardwareType.System => (node.SystemData?.Name, node.SystemData?.Description),
-                HardwareType.Unit => (node.UnitData?.Name, node.UnitData?.Description),
-                HardwareType.Device => (node.DeviceData?.Name, node.DeviceData?.Description),
-                _ => (null, null)
-            };
         }
 
         private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareType hardwareType, string hardwareKey)

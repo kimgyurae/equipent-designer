@@ -31,6 +31,11 @@ namespace EquipmentDesigner.Controls
         /// </summary>
         private const int SubMenuCloseDelay = 300;
 
+        /// <summary>
+        /// Width multiplier applied when menu contains items with shortcuts.
+        /// </summary>
+        private const double ShortcutWidthMultiplier = 1.7;
+
         #endregion
 
         #region Dependency Properties
@@ -270,6 +275,12 @@ namespace EquipmentDesigner.Controls
 
             BuildMenuItems(_itemsPanel, Items, 0);
 
+            // Apply width multiplier if any item has a shortcut
+            bool hasAnyShortcut = CheckForShortcuts(Items);
+            _menuContainer.MinWidth = hasAnyShortcut 
+                ? MinMenuWidth * ShortcutWidthMultiplier 
+                : MinMenuWidth;
+
             // Measure the menu to get its size
             _menuContainer.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             var menuSize = _menuContainer.DesiredSize;
@@ -414,10 +425,11 @@ namespace EquipmentDesigner.Controls
             };
 
             var grid = new Grid();
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // Header
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Shortcut
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Chevron
 
-            // Text
+            // Text (Column 0)
             var textBlock = new TextBlock
             {
                 Text = item.Header,
@@ -435,7 +447,25 @@ namespace EquipmentDesigner.Controls
             Grid.SetColumn(textBlock, 0);
             grid.Children.Add(textBlock);
 
-            // Chevron for items with children (and within depth limit)
+            // Shortcut text (Column 1)
+            if (item.HasShortcut)
+            {
+                var shortcutText = new TextBlock
+                {
+                    Text = item.Shortcut,
+                    Style = (Style)FindResource("ContextMenuShortcutTextStyle")
+                };
+
+                if (!item.IsEnabled)
+                {
+                    shortcutText.Foreground = (Brush)FindResource("Brush.Text.Disabled");
+                }
+
+                Grid.SetColumn(shortcutText, 1);
+                grid.Children.Add(shortcutText);
+            }
+
+            // Chevron for items with children (Column 2)
             if (item.HasChildren && depth < MaxDepth - 1)
             {
                 var chevronContainer = new Border
@@ -451,7 +481,7 @@ namespace EquipmentDesigner.Controls
                 };
 
                 chevronContainer.Child = chevron;
-                Grid.SetColumn(chevronContainer, 1);
+                Grid.SetColumn(chevronContainer, 2);
                 grid.Children.Add(chevronContainer);
             }
 
@@ -596,10 +626,15 @@ namespace EquipmentDesigner.Controls
             BuildMenuItems(subMenuPanel, parentItem.Children, depth + 1);
             subMenuScrollViewer.Content = subMenuPanel;
 
+            // Check if any child item has a shortcut for width adjustment
+            bool subMenuHasShortcut = CheckForShortcuts(parentItem.Children, recursive: false);
+
             var subMenuContainer = new Border
             {
                 Style = (Style)FindResource("ContextMenuContainerStyle"),
-                MinWidth = MinMenuWidth,
+                MinWidth = subMenuHasShortcut 
+                    ? MinMenuWidth * ShortcutWidthMultiplier 
+                    : MinMenuWidth,
                 Child = subMenuScrollViewer
             };
 
@@ -847,6 +882,29 @@ namespace EquipmentDesigner.Controls
                 }
             }
 
+            return false;
+        }
+
+        #endregion
+
+        #region Private Methods - Shortcut Helpers
+
+        /// <summary>
+        /// Checks if any items in the collection have shortcuts defined.
+        /// </summary>
+        /// <param name="items">The collection of menu items to check.</param>
+        /// <param name="recursive">If true, also checks nested children. Default is true.</param>
+        /// <returns>True if any item has a shortcut.</returns>
+        private bool CheckForShortcuts(IEnumerable<CustomContextMenuItem> items, bool recursive = true)
+        {
+            if (items == null) return false;
+
+            foreach (var item in items)
+            {
+                if (item.HasShortcut) return true;
+                if (recursive && item.HasChildren && CheckForShortcuts(item.Children, recursive))
+                    return true;
+            }
             return false;
         }
 

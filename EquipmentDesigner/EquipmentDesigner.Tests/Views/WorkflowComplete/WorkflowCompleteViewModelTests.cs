@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models;
-using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
@@ -22,37 +20,33 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
                 HardwareType = HardwareType.Equipment,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now,
-                TreeNodes = new List<TreeNodeDataDto>
+                Name = "Test Equipment",
+                Description = "Equipment Description",
+                Children = new List<HardwareDefinition>
                 {
-                    new TreeNodeDataDto
+                    new HardwareDefinition
                     {
-                        Id = "equipment-1",
-                        HardwareType = HardwareType.Equipment,
-                        EquipmentData = new EquipmentDto { Name = "Test Equipment", Description = "Equipment Description" },
-                        Children = new List<TreeNodeDataDto>
+                        Id = "system-1",
+                        HardwareType = HardwareType.System,
+                        Name = "Test System",
+                        Description = "System Description",
+                        Children = new List<HardwareDefinition>
                         {
-                            new TreeNodeDataDto
+                            new HardwareDefinition
                             {
-                                Id = "system-1",
-                                HardwareType = HardwareType.System,
-                                SystemData = new SystemDto { Name = "Test System", Description = "System Description" },
-                                Children = new List<TreeNodeDataDto>
+                                Id = "unit-1",
+                                HardwareType = HardwareType.Unit,
+                                Name = "Test Unit",
+                                Description = "Unit Description",
+                                Children = new List<HardwareDefinition>
                                 {
-                                    new TreeNodeDataDto
+                                    new HardwareDefinition
                                     {
-                                        Id = "unit-1",
-                                        HardwareType = HardwareType.Unit,
-                                        UnitData = new UnitDto { Name = "Test Unit", Description = "Unit Description" },
-                                        Children = new List<TreeNodeDataDto>
-                                        {
-                                            new TreeNodeDataDto
-                                            {
-                                                Id = "device-1",
-                                                HardwareType = HardwareType.Device,
-                                                DeviceData = new DeviceDto { Name = "Test Device", Description = "Device Description" },
-                                                Children = new List<TreeNodeDataDto>()
-                                            }
-                                        }
+                                        Id = "device-1",
+                                        HardwareType = HardwareType.Device,
+                                        Name = "Test Device",
+                                        Description = "Device Description",
+                                        Children = new List<HardwareDefinition>()
                                     }
                                 }
                             }
@@ -137,14 +131,14 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var sessionDto = CreateValidSessionDto();
-            sessionDto.TreeNodes = null;
+            sessionDto.Children = null;
 
             // Act
             var viewModel = new WorkflowCompleteViewModel(sessionDto);
 
             // Assert
             viewModel.TreeNodes.Should().NotBeNull();
-            viewModel.TreeNodes.Should().BeEmpty();
+            viewModel.TreeNodes.Should().HaveCount(1); // root node still exists
         }
 
         #endregion
@@ -228,13 +222,14 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var sessionDto = CreateValidSessionDto();
-            sessionDto.TreeNodes = new List<TreeNodeDataDto>();
+            sessionDto.Children = new List<HardwareDefinition>();
 
             // Act
             var viewModel = new WorkflowCompleteViewModel(sessionDto);
 
             // Assert
-            viewModel.TreeNodes.Should().BeEmpty();
+            // root node still exists, but children are empty
+            viewModel.TreeNodes.First().Children.Should().BeEmpty();
         }
 
         [Fact]

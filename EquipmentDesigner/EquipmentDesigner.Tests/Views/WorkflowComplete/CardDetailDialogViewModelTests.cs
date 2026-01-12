@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models;
-using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
@@ -13,93 +11,77 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
     {
         #region Test Helpers
 
-        private TreeNodeDataDto CreateEquipmentNodeDto()
+        private HardwareDefinition CreateEquipmentNodeDto()
         {
-            return new TreeNodeDataDto
+            return new HardwareDefinition
             {
                 Id = "equipment-1",
                 HardwareType = HardwareType.Equipment,
-                EquipmentData = new EquipmentDto
+                Name = "Test Equipment",
+                DisplayName = "Primary Reactor A1",
+                Description = "Main production equipment",
+                EquipmentType = "Reactor",
+                Customer = "ACME Corporation",
+                ProcessId = "Chemical Processing",
+                AttachedDocumentsIds = new List<string>
                 {
-                    Id = "eq-001",
-                    Name = "Test Equipment",
-                    DisplayName = "Primary Reactor A1",
-                    Description = "Main production equipment",
-                    EquipmentType = "Reactor",
-                    Customer = "ACME Corporation",
-                    Process = "Chemical Processing",
-                    AttachedDocuments = new List<string>
-                    {
-                        "Design_Specification_v2.pdf",
-                        "Installation_Manual.pdf"
-                    }
+                    "Design_Specification_v2.pdf",
+                    "Installation_Manual.pdf"
                 }
             };
         }
 
-        private TreeNodeDataDto CreateSystemNodeDto()
+        private HardwareDefinition CreateSystemNodeDto()
         {
-            return new TreeNodeDataDto
+            return new HardwareDefinition
             {
                 Id = "system-1",
                 HardwareType = HardwareType.System,
-                SystemData = new SystemDto
+                Name = "Test System",
+                DisplayName = "Control System",
+                Description = "Main control system",
+                ProcessInfo = "Temperature Control Process",
+                Commands = new List<CommandDto>
                 {
-                    Id = "sys-001",
-                    Name = "Test System",
-                    DisplayName = "Control System",
-                    Description = "Main control system",
-                    ProcessInfo = "Temperature Control Process",
-                    Commands = new List<CommandDto>
-                    {
-                        new CommandDto { Name = "Start", Description = "Start the system" }
-                    }
+                    new CommandDto { Name = "Start", Description = "Start the system" }
                 }
             };
         }
 
-        private TreeNodeDataDto CreateUnitNodeDto()
+        private HardwareDefinition CreateUnitNodeDto()
         {
-            return new TreeNodeDataDto
+            return new HardwareDefinition
             {
                 Id = "unit-1",
                 HardwareType = HardwareType.Unit,
-                UnitData = new UnitDto
+                Name = "Test Unit",
+                DisplayName = "Processing Unit",
+                Description = "Main processing unit",
+                ProcessInfo = "Batch Processing",
+                Commands = new List<CommandDto>
                 {
-                    Id = "unit-001",
-                    Name = "Test Unit",
-                    DisplayName = "Processing Unit",
-                    Description = "Main processing unit",
-                    ProcessInfo = "Batch Processing",
-                    Commands = new List<CommandDto>
-                    {
-                        new CommandDto { Name = "Initialize", Description = "Initialize unit" }
-                    }
+                    new CommandDto { Name = "Initialize", Description = "Initialize unit" }
                 }
             };
         }
 
-        private TreeNodeDataDto CreateDeviceNodeDto()
+        private HardwareDefinition CreateDeviceNodeDto()
         {
-            return new TreeNodeDataDto
+            return new HardwareDefinition
             {
                 Id = "device-1",
                 HardwareType = HardwareType.Device,
-                DeviceData = new DeviceDto
+                Name = "Test Device",
+                DisplayName = "Temperature Sensor",
+                Description = "Main temperature sensor",
+                DeviceType = "Sensor",
+                IoInfo = new List<IoInfoDto>
                 {
-                    Id = "dev-001",
-                    Name = "Test Device",
-                    DisplayName = "Temperature Sensor",
-                    Description = "Main temperature sensor",
-                    DeviceType = "Sensor",
-                    IoInfo = new List<IoInfoDto>
-                    {
-                        new IoInfoDto { Name = "TempInput", IoType = "AnalogInput", Address = "0x0010" }
-                    },
-                    Commands = new List<CommandDto>
-                    {
-                        new CommandDto { Name = "Calibrate", Description = "Calibrate sensor" }
-                    }
+                    new IoInfoDto { Name = "TempInput", IoType = "AnalogInput", Address = "0x0010" }
+                },
+                Commands = new List<CommandDto>
+                {
+                    new CommandDto { Name = "Calibrate", Description = "Calibrate sensor" }
                 }
             };
         }
@@ -129,7 +111,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
 
             // Assert
             act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("treeNodeData");
+                .WithParameterName("hardwareData");
         }
 
         [Fact]
@@ -298,11 +280,13 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         public void Properties_ReturnEmptyString_WhenSourceDataIsNull()
         {
             // Arrange
-            var nodeDto = new TreeNodeDataDto
+            var nodeDto = new HardwareDefinition
             {
                 Id = "empty-1",
                 HardwareType = HardwareType.Equipment,
-                EquipmentData = null
+                Name = null,
+                DisplayName = null,
+                Description = null
             };
 
             // Act
@@ -376,7 +360,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var nodeDto = CreateEquipmentNodeDto();
-            nodeDto.EquipmentData.AttachedDocuments = null;
+            nodeDto.AttachedDocumentsIds = null;
 
             // Act
             var viewModel = new CardDetailDialogViewModel(nodeDto);
@@ -511,7 +495,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var nodeDto = CreateDeviceNodeDto();
-            nodeDto.DeviceData.IoInfo = null;
+            nodeDto.IoInfo = null;
 
             // Act
             var viewModel = new CardDetailDialogViewModel(nodeDto);
@@ -622,7 +606,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var nodeDto = CreateEquipmentNodeDto();
-            nodeDto.EquipmentData.AttachedDocuments = new List<string>();
+            nodeDto.AttachedDocumentsIds = new List<string>();
 
             // Act
             var viewModel = new CardDetailDialogViewModel(nodeDto);

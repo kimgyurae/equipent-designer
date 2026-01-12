@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -27,39 +28,17 @@ namespace EquipmentDesigner.Tests.Services.Storage
             }
         }
 
-        #region HardwareDefinitionDataStore Structure Tests
+        #region HardwareDefinition Structure Tests
 
         [Fact]
-        public void HardwareDefinitionDataStore_Version_HasDefaultValue1Point0()
+        public void HardwareDefinition_Children_IsInitializedAsEmptyList()
         {
             // Arrange & Act
-            var dataStore = new HardwareDefinitionDataStore();
+            var definition = new HardwareDefinition();
 
             // Assert
-            dataStore.Version.Should().Be("1.0");
-        }
-
-        [Fact]
-        public void HardwareDefinitionDataStore_LastSavedAt_IsDateTimeProperty()
-        {
-            // Arrange & Act
-            var dataStore = new HardwareDefinitionDataStore();
-            var testTime = DateTime.Now;
-            dataStore.LastSavedAt = testTime;
-
-            // Assert
-            dataStore.LastSavedAt.Should().Be(testTime);
-        }
-
-        [Fact]
-        public void HardwareDefinitionDataStore_WorkflowSessions_IsInitializedAsEmptyList()
-        {
-            // Arrange & Act
-            var dataStore = new HardwareDefinitionDataStore();
-
-            // Assert
-            dataStore.WorkflowSessions.Should().NotBeNull();
-            dataStore.WorkflowSessions.Should().BeEmpty();
+            definition.Children.Should().NotBeNull();
+            definition.Children.Should().BeEmpty();
         }
 
         #endregion
@@ -99,9 +78,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
 
             // Assert
             result.Should().NotBeNull();
-            result.Version.Should().Be("1.0");
-            result.WorkflowSessions.Should().NotBeNull();
-            result.WorkflowSessions.Should().BeEmpty();
+            result.Should().BeEmpty();
         }
 
         [Fact]
@@ -115,53 +92,53 @@ namespace EquipmentDesigner.Tests.Services.Storage
 
             // Assert
             result.Should().NotBeNull();
-            result.Version.Should().Be("1.0");
-            result.WorkflowSessions.Should().BeEmpty();
+            result.Should().BeEmpty();
         }
 
         [Fact]
-        public async Task LoadAsync_DeserializesNestedTreeNodeDataDtoStructure()
+        public async Task LoadAsync_DeserializesNestedHardwareDefinitionStructure()
         {
             // Arrange
-            var dataStore = new HardwareDefinitionDataStore();
+            var dataStore = new List<HardwareDefinition>();
             var session = new HardwareDefinition
             {
                 Id = "wf-tree",
                 HardwareType = HardwareType.Equipment,
                 State = ComponentState.Uploaded,
-                TreeNodes = new System.Collections.Generic.List<TreeNodeDataDto>
+                Name = "TestEquipment",
+                Children = new List<HardwareDefinition>
                 {
-                    new TreeNodeDataDto
+                    new HardwareDefinition
                     {
                         Id = "node-1",
                         HardwareType = HardwareType.Equipment,
-                        EquipmentData = new EquipmentDto { Name = "TestEquipment" },
-                        Children = new System.Collections.Generic.List<TreeNodeDataDto>
+                        Name = "TestEquipmentChild",
+                        Children = new List<HardwareDefinition>
                         {
-                            new TreeNodeDataDto
+                            new HardwareDefinition
                             {
                                 Id = "node-2",
                                 HardwareType = HardwareType.System,
-                                SystemData = new SystemDto { Name = "TestSystem" }
+                                Name = "TestSystem"
                             }
                         }
                     }
                 }
             };
-            dataStore.WorkflowSessions.Add(session);
+            dataStore.Add(session);
             await _repository.SaveAsync(dataStore);
 
             // Act
             var loaded = await _repository.LoadAsync();
 
             // Assert
-            loaded.WorkflowSessions.Should().HaveCount(1);
-            loaded.WorkflowSessions[0].TreeNodes.Should().HaveCount(1);
-            loaded.WorkflowSessions[0].TreeNodes[0].Id.Should().Be("node-1");
-            loaded.WorkflowSessions[0].TreeNodes[0].EquipmentData.Name.Should().Be("TestEquipment");
-            loaded.WorkflowSessions[0].TreeNodes[0].Children.Should().HaveCount(1);
-            loaded.WorkflowSessions[0].TreeNodes[0].Children[0].Id.Should().Be("node-2");
-            loaded.WorkflowSessions[0].TreeNodes[0].Children[0].SystemData.Name.Should().Be("TestSystem");
+            loaded.Should().HaveCount(1);
+            loaded[0].Children.Should().HaveCount(1);
+            loaded[0].Children[0].Id.Should().Be("node-1");
+            loaded[0].Children[0].Name.Should().Be("TestEquipmentChild");
+            loaded[0].Children[0].Children.Should().HaveCount(1);
+            loaded[0].Children[0].Children[0].Id.Should().Be("node-2");
+            loaded[0].Children[0].Children[0].Name.Should().Be("TestSystem");
         }
 
         #endregion
@@ -174,7 +151,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             // Arrange
             var nestedPath = Path.Combine(Path.GetTempPath(), $"nested_{Guid.NewGuid()}", "data", "uploaded-hardwares.json");
             var repository = new UploadedWorkflowRepository(nestedPath);
-            var dataStore = new HardwareDefinitionDataStore();
+            var dataStore = new List<HardwareDefinition>();
 
             try
             {
@@ -197,7 +174,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task SaveAsync_UpdatesLastSavedAtTimestamp()
         {
             // Arrange
-            var dataStore = new HardwareDefinitionDataStore();
+            var dataStore = new List<HardwareDefinition>();
             var beforeSave = DateTime.Now.AddSeconds(-1);
 
             // Act
@@ -205,15 +182,16 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var loaded = await _repository.LoadAsync();
 
             // Assert
-            loaded.LastSavedAt.Should().BeAfter(beforeSave);
+            // Note: List<HardwareDefinition>는 LastSavedAt 속성이 없으므로 파일 존재 여부로 검증
+            File.Exists(_testFilePath).Should().BeTrue();
         }
 
         [Fact]
         public async Task SaveAsync_SerializesWithCamelCaseAndIndented()
         {
             // Arrange
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new HardwareDefinition
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(new HardwareDefinition
             {
                 Id = "test-workflow-1",
                 HardwareType = HardwareType.Equipment,
@@ -225,8 +203,8 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var json = await File.ReadAllTextAsync(_testFilePath);
 
             // Assert - camelCase property names
-            json.Should().Contain("workflowId");
-            json.Should().Contain("startType");
+            json.Should().Contain("id");
+            json.Should().Contain("hardwareType");
             // Assert - indented (contains newlines)
             json.Should().Contain("\n");
         }
@@ -239,15 +217,15 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task SaveAndLoad_PreservesWorkflowSessionsWithUploadedState()
         {
             // Arrange
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new HardwareDefinition
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(new HardwareDefinition
             {
                 Id = "wf-001",
                 HardwareType = HardwareType.Equipment,
                 State = ComponentState.Uploaded,
                 LastModifiedAt = DateTime.Now
             });
-            dataStore.WorkflowSessions.Add(new HardwareDefinition
+            dataStore.Add(new HardwareDefinition
             {
                 Id = "wf-002",
                 HardwareType = HardwareType.System,
@@ -260,26 +238,26 @@ namespace EquipmentDesigner.Tests.Services.Storage
             var loaded = await _repository.LoadAsync();
 
             // Assert
-            loaded.WorkflowSessions.Should().HaveCount(2);
-            loaded.WorkflowSessions[0].Id.Should().Be("wf-001");
-            loaded.WorkflowSessions[0].State.Should().Be(ComponentState.Uploaded);
-            loaded.WorkflowSessions[1].Id.Should().Be("wf-002");
-            loaded.WorkflowSessions[1].State.Should().Be(ComponentState.Validated);
+            loaded.Should().HaveCount(2);
+            loaded[0].Id.Should().Be("wf-001");
+            loaded[0].State.Should().Be(ComponentState.Uploaded);
+            loaded[1].Id.Should().Be("wf-002");
+            loaded[1].State.Should().Be(ComponentState.Validated);
         }
 
         [Fact]
         public async Task FindWorkflowById_ReturnsCorrectSession()
         {
             // Arrange
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-001", State = ComponentState.Uploaded });
-            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-002", State = ComponentState.Uploaded });
-            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-003", State = ComponentState.Uploaded });
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(new HardwareDefinition { Id = "wf-001", State = ComponentState.Uploaded });
+            dataStore.Add(new HardwareDefinition { Id = "wf-002", State = ComponentState.Uploaded });
+            dataStore.Add(new HardwareDefinition { Id = "wf-003", State = ComponentState.Uploaded });
             await _repository.SaveAsync(dataStore);
 
             // Act
             var loaded = await _repository.LoadAsync();
-            var found = loaded.WorkflowSessions.Find(s => s.Id == "wf-002");
+            var found = loaded.Find(s => s.Id == "wf-002");
 
             // Assert
             found.Should().NotBeNull();
@@ -290,13 +268,13 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public async Task UpdateExistingSession_ReplacesOnlyThatSession()
         {
             // Arrange
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new HardwareDefinition
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(new HardwareDefinition
             {
                 Id = "wf-update",
                 State = ComponentState.Uploaded
             });
-            dataStore.WorkflowSessions.Add(new HardwareDefinition
+            dataStore.Add(new HardwareDefinition
             {
                 Id = "wf-unchanged",
                 State = ComponentState.Uploaded
@@ -305,15 +283,15 @@ namespace EquipmentDesigner.Tests.Services.Storage
 
             // Act - load, update, save
             var loaded = await _repository.LoadAsync();
-            var existingIndex = loaded.WorkflowSessions.FindIndex(s => s.Id == "wf-update");
-            loaded.WorkflowSessions[existingIndex].State = ComponentState.Validated;
+            var existingIndex = loaded.FindIndex(s => s.Id == "wf-update");
+            loaded[existingIndex].State = ComponentState.Validated;
             await _repository.SaveAsync(loaded);
 
             // Assert
             var reloaded = await _repository.LoadAsync();
-            reloaded.WorkflowSessions.Find(s => s.Id == "wf-update").State
+            reloaded.Find(s => s.Id == "wf-update").State
                 .Should().Be(ComponentState.Validated);
-            reloaded.WorkflowSessions.Find(s => s.Id == "wf-unchanged").State
+            reloaded.Find(s => s.Id == "wf-unchanged").State
                 .Should().Be(ComponentState.Uploaded);
         }
 

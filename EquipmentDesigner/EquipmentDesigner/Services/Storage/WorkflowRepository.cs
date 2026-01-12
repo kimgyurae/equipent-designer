@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using EquipmentDesigner.Models;
 
@@ -8,7 +9,7 @@ namespace EquipmentDesigner.Services
     /// Repository for managing incomplete workflow data.
     /// Persists to workflows.json in LocalApplicationData folder.
     /// </summary>
-    public class WorkflowRepository : TypedJsonFileRepository<HardwareDefinitionDataStore>, IWorkflowRepository
+    public class WorkflowRepository : TypedJsonFileRepository<List<HardwareDefinition>>, IWorkflowRepository
     {
         public WorkflowRepository() : base(null)
         {
@@ -25,9 +26,10 @@ namespace EquipmentDesigner.Services
             return Path.Combine(appFolder, "workflows.json");
         }
 
-        protected override void UpdateLastSavedAt(HardwareDefinitionDataStore dataStore, DateTime timestamp)
+        protected override void UpdateLastSavedAt(List<HardwareDefinition> dataStore, DateTime timestamp)
         {
-            dataStore.LastSavedAt = timestamp;
+            // No-op: List<HardwareDefinition> doesn't have LastSavedAt property
+            // Individual items can track their own LastModifiedAt if needed
         }
     }
 }

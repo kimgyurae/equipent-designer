@@ -11,14 +11,14 @@ namespace EquipmentDesigner.Views
     public partial class CardDetailDialog : Window
     {
         /// <summary>
-        /// Creates a new CardDetailDialog with the given tree node data.
+        /// Creates a new CardDetailDialog with the given hardware data.
         /// </summary>
-        /// <param name="treeNodeData">The tree node data to display.</param>
-        public CardDetailDialog(TreeNodeDataDto treeNodeData)
+        /// <param name="hardwareData">The hardware data to display.</param>
+        public CardDetailDialog(HardwareDefinition hardwareData)
         {
             InitializeComponent();
 
-            var viewModel = new CardDetailDialogViewModel(treeNodeData);
+            var viewModel = new CardDetailDialogViewModel(hardwareData);
             viewModel.RequestClose += OnRequestClose;
             DataContext = viewModel;
         }

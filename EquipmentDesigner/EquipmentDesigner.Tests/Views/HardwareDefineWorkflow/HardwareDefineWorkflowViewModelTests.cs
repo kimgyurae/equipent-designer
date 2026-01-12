@@ -1,10 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EquipmentDesigner.Models;
-using EquipmentDesigner.Models;
-using EquipmentDesigner.Models;
-using EquipmentDesigner.Services;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.ViewModels;
 using FluentAssertions;
@@ -609,11 +607,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepository.LoadAsync();
+            var sessions = await workflowRepository.LoadAsync();
 
-            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
+            var savedWorkflow = sessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
-            savedWorkflow.TreeNodes.Should().NotBeEmpty();
+            savedWorkflow.Children.Should().NotBeEmpty();
             savedWorkflow.HardwareType.Should().Be(HardwareType.Equipment);
         }
 
@@ -634,9 +632,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepository.LoadAsync();
+            var sessions = await workflowRepository.LoadAsync();
 
-            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
+            var savedWorkflow = sessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
             savedWorkflow.HardwareType.Should().Be(HardwareType.System);
         }
@@ -656,9 +654,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Assert - CompleteWorkflowAsync saves to HardwareDefinitionDataStore
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepository.LoadAsync();
+            var sessions = await workflowRepository.LoadAsync();
 
-            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
+            var savedWorkflow = sessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
             savedWorkflow.HardwareType.Should().Be(HardwareType.Device);
         }
@@ -681,9 +679,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Assert - CompleteWorkflowAsync now saves to HardwareDefinitionDataStore with Defined state
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepository.LoadAsync();
+            var sessions = await workflowRepository.LoadAsync();
 
-            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
+            var savedWorkflow = sessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
             savedWorkflow.State.Should().Be(ComponentState.Ready);
         }
@@ -706,11 +704,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Assert - Workflow should contain tree nodes
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepository.LoadAsync();
+            var sessions = await workflowRepository.LoadAsync();
 
-            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
+            var savedWorkflow = sessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
-            savedWorkflow.TreeNodes.Should().NotBeEmpty();
+            savedWorkflow.Children.Should().NotBeEmpty();
         }
 
         [Fact]
@@ -736,9 +734,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Assert - Should update, not create duplicate
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepository.LoadAsync();
+            var sessions = await workflowRepository.LoadAsync();
 
-            workflowData.WorkflowSessions.Count(w => w.Id == viewModel.WorkflowId).Should().Be(1);
+            sessions.Count(w => w.Id == viewModel.WorkflowId).Should().Be(1);
         }
 
         [Fact]
@@ -757,9 +755,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             // Assert
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepository.LoadAsync();
+            var sessions = await workflowRepository.LoadAsync();
 
-            var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
+            var savedWorkflow = sessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
             savedWorkflow.LastModifiedAt.Should().BeOnOrAfter(beforeComplete);
         }
@@ -991,11 +989,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert - Check UploadedWorkflowDataStore (unified structure)
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-            var uploadedData = await uploadedRepo.LoadAsync();
+            var uploadedSessions = await uploadedRepo.LoadAsync();
             
-            uploadedData.WorkflowSessions.Should().HaveCount(1);
-            uploadedData.WorkflowSessions[0].HardwareType.Should().Be(HardwareType.Equipment);
-            uploadedData.WorkflowSessions[0].TreeNodes.Should().NotBeNullOrEmpty();
+            uploadedSessions.Should().HaveCount(1);
+            uploadedSessions[0].HardwareType.Should().Be(HardwareType.Equipment);
+            uploadedSessions[0].Children.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
@@ -1017,10 +1015,10 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-            var uploadedData = await uploadedRepo.LoadAsync();
+            var uploadedSessions = await uploadedRepo.LoadAsync();
             
-            uploadedData.WorkflowSessions.Should().HaveCount(1);
-            uploadedData.WorkflowSessions[0].State.Should().Be(ComponentState.Uploaded);
+            uploadedSessions.Should().HaveCount(1);
+            uploadedSessions[0].State.Should().Be(ComponentState.Uploaded);
         }
 
         [Fact]
@@ -1045,14 +1043,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert - Check that tree structure preserves hierarchy
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-            var uploadedData = await uploadedRepo.LoadAsync();
+            var uploadedSessions = await uploadedRepo.LoadAsync();
             
-            var session = uploadedData.WorkflowSessions[0];
-            session.TreeNodes.Should().NotBeNullOrEmpty();
-            var rootNode = session.TreeNodes[0];
-            rootNode.HardwareType.Should().Be(HardwareType.Equipment);
-            rootNode.EquipmentData.Should().NotBeNull();
-            rootNode.EquipmentData.Name.Should().Be("TestEquipment");
+            var session = uploadedSessions[0];
+            session.HardwareType.Should().Be(HardwareType.Equipment);
+            session.Name.Should().Be("TestEquipment");
         }
 
         [Fact]
@@ -1066,14 +1061,14 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Pre-populate workflow repository
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Add(new HardwareDefinition
+            var sessions = await workflowRepo.LoadAsync();
+            sessions.Add(new HardwareDefinition
             {
                 Id = viewModel.WorkflowId,
                 HardwareType = HardwareType.Device,
                 State = ComponentState.Ready
             });
-            await workflowRepo.SaveAsync(workflowData);
+            await workflowRepo.SaveAsync(sessions);
             
             // Complete workflow
             viewModel.CompleteWorkflowCommand.Execute(null);
@@ -1085,13 +1080,13 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert - UploadedWorkflowDataStore updated with unified structure
             var uploadedRepo = ServiceLocator.GetService<IUploadedWorkflowRepository>();
-            var uploadedData = await uploadedRepo.LoadAsync();
-            uploadedData.WorkflowSessions.Should().HaveCount(1);
-            uploadedData.WorkflowSessions[0].State.Should().Be(ComponentState.Uploaded);
+            var uploadedSessions = await uploadedRepo.LoadAsync();
+            uploadedSessions.Should().HaveCount(1);
+            uploadedSessions[0].State.Should().Be(ComponentState.Uploaded);
             
             // Workflow should be removed from IncompleteWorkflowDataStore after successful upload
-            workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Any(s => s.Id == viewModel.WorkflowId).Should().BeFalse();
+            sessions = await workflowRepo.LoadAsync();
+            sessions.Any(s => s.Id == viewModel.WorkflowId).Should().BeFalse();
         }
 
         [Fact]
@@ -1105,14 +1100,14 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Pre-populate workflow repository with a session
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Add(new HardwareDefinition
+            var sessions = await workflowRepo.LoadAsync();
+            sessions.Add(new HardwareDefinition
             {
                 Id = viewModel.WorkflowId,
                 HardwareType = HardwareType.Device,
                 State = ComponentState.Ready
             });
-            await workflowRepo.SaveAsync(workflowData);
+            await workflowRepo.SaveAsync(sessions);
             
             // Complete workflow
             viewModel.CompleteWorkflowCommand.Execute(null);
@@ -1123,8 +1118,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             await Task.Delay(1000);
             
             // Assert - Workflow should be removed from IncompleteWorkflowDataStore
-            workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Any(s => s.Id == viewModel.WorkflowId).Should().BeFalse();
+            sessions = await workflowRepo.LoadAsync();
+            sessions.Any(s => s.Id == viewModel.WorkflowId).Should().BeFalse();
         }
 
         #endregion
@@ -1146,10 +1141,10 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert - Check WorkflowRepository was used
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
             
-            workflowData.WorkflowSessions.Should().HaveCount(1);
-            workflowData.WorkflowSessions.First().Id.Should().Be(viewModel.WorkflowId);
+            sessions.Should().HaveCount(1);
+            sessions.First().Id.Should().Be(viewModel.WorkflowId);
         }
 
         [Fact]
@@ -1167,9 +1162,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
             
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
+            var session = sessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
             session.Should().NotBeNull();
             session.HardwareType.Should().Be(HardwareType.Equipment);
             session.State.Should().Be(ComponentState.Draft);
@@ -1193,18 +1188,15 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
             
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
+            var session = sessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
             session.Should().NotBeNull();
-            session.TreeNodes.Should().NotBeEmpty();
+            session.Children.Should().NotBeEmpty();
             
             // Verify Equipment is at root
-            var equipmentNode = session.TreeNodes.FirstOrDefault();
-            equipmentNode.Should().NotBeNull();
-            equipmentNode.HardwareType.Should().Be(HardwareType.Equipment);
-            equipmentNode.EquipmentData.Should().NotBeNull();
-            equipmentNode.EquipmentData.Name.Should().Be("TestEquipment");
+            session.HardwareType.Should().Be(HardwareType.Equipment);
+            session.Name.Should().Be("TestEquipment");
         }
 
         [Fact]
@@ -1227,13 +1219,13 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
             
             // Should still only have 1 session (updated, not duplicated)
-            workflowData.WorkflowSessions.Count(s => s.Id == viewModel.WorkflowId).Should().Be(1);
+            sessions.Count(s => s.Id == viewModel.WorkflowId).Should().Be(1);
             
-            var session = workflowData.WorkflowSessions.First(s => s.Id == viewModel.WorkflowId);
-            session.TreeNodes.First().DeviceData.Name.Should().Be("UpdatedName");
+            var session = sessions.First(s => s.Id == viewModel.WorkflowId);
+            session.Name.Should().Be("UpdatedName");
         }
 
         [Fact]
@@ -1251,9 +1243,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
             
-            var session = workflowData.WorkflowSessions.First(s => s.Id == viewModel.WorkflowId);
+            var session = sessions.First(s => s.Id == viewModel.WorkflowId);
             session.State.Should().Be(ComponentState.Ready);
         }
 
@@ -1272,9 +1264,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
             
-            var session = workflowData.WorkflowSessions.First(s => s.Id == viewModel.WorkflowId);
+            var session = sessions.First(s => s.Id == viewModel.WorkflowId);
             session.State.Should().Be(ComponentState.Draft);
         }
 
@@ -1294,9 +1286,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             // Assert
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
             
-            var session = workflowData.WorkflowSessions.First(s => s.Id == viewModel.WorkflowId);
+            var session = sessions.First(s => s.Id == viewModel.WorkflowId);
             session.LastModifiedAt.Should().BeCloseTo(beforeSave, TimeSpan.FromSeconds(5));
         }
 

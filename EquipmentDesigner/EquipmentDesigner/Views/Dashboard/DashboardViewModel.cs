@@ -172,13 +172,13 @@ namespace EquipmentDesigner.ViewModels
             try
             {
                 var repository = ServiceLocator.GetService<IWorkflowRepository>();
-                var dataStore = await repository.LoadAsync();
+                var sessions = await repository.LoadAsync();
 
                 IncompleteWorkflows.Clear();
 
-                if (dataStore?.WorkflowSessions != null)
+                if (sessions != null)
                 {
-                    foreach (var session in dataStore.WorkflowSessions)
+                    foreach (var session in sessions)
                     {
                         IncompleteWorkflows.Add(new WorkflowItem
                         {
@@ -322,16 +322,9 @@ namespace EquipmentDesigner.ViewModels
             try
             {
                 var repository = ServiceLocator.GetService<IWorkflowRepository>();
-                var dataStore = await repository.LoadAsync();
 
-                if (dataStore?.WorkflowSessions != null)
-                {
-                    // Clear all workflow sessions
-                    dataStore.WorkflowSessions.Clear();
-                }
-
-                // Save changes
-                await repository.SaveAsync(dataStore);
+                // Clear all workflow sessions by saving an empty list
+                await repository.SaveAsync(new System.Collections.Generic.List<HardwareDefinition>());
 
                 // Refresh the list
                 RefreshAsync();
@@ -434,20 +427,20 @@ namespace EquipmentDesigner.ViewModels
             try
             {
                 var repository = ServiceLocator.GetService<IWorkflowRepository>();
-                var dataStore = await repository.LoadAsync();
+                var sessions = await repository.LoadAsync();
 
-                // Remove from WorkflowSessions
-                if (dataStore?.WorkflowSessions != null)
+                // Remove from sessions
+                if (sessions != null)
                 {
-                    var sessionToRemove = dataStore.WorkflowSessions.FirstOrDefault(s => s.Id == workflowId);
+                    var sessionToRemove = sessions.FirstOrDefault(s => s.Id == workflowId);
                     if (sessionToRemove != null)
                     {
-                        dataStore.WorkflowSessions.Remove(sessionToRemove);
+                        sessions.Remove(sessionToRemove);
                     }
                 }
 
                 // Save changes
-                await repository.SaveAsync(dataStore);
+                await repository.SaveAsync(sessions);
 
                 // Refresh the list
                 RefreshAsync();

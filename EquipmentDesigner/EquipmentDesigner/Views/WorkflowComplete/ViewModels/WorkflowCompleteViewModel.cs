@@ -20,10 +20,10 @@ namespace EquipmentDesigner.ViewModels
         public HardwareType HardwareType { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public TreeNodeDataDto SourceDto { get; set; }
+        public HardwareDefinition SourceDto { get; set; }
         public ObservableCollection<HardwareNodeDisplayModel> Children { get; set; } = new ObservableCollection<HardwareNodeDisplayModel>();
 
-        public static HardwareNodeDisplayModel FromTreeNodeDataDto(TreeNodeDataDto dto)
+        public static HardwareNodeDisplayModel FromHardwareDefinition(HardwareDefinition dto)
         {
             if (dto == null) return null;
 
@@ -31,36 +31,17 @@ namespace EquipmentDesigner.ViewModels
             {
                 NodeId = dto.Id,
                 HardwareType = dto.HardwareType,
-                SourceDto = dto
+                SourceDto = dto,
+                Name = dto.Name ?? string.Empty,
+                Description = dto.Description ?? string.Empty
             };
-
-            // Extract name and description based on hardware layer
-            switch (dto.HardwareType)
-            {
-                case HardwareType.Equipment:
-                    model.Name = dto.EquipmentData?.Name ?? string.Empty;
-                    model.Description = dto.EquipmentData?.Description ?? string.Empty;
-                    break;
-                case HardwareType.System:
-                    model.Name = dto.SystemData?.Name ?? string.Empty;
-                    model.Description = dto.SystemData?.Description ?? string.Empty;
-                    break;
-                case HardwareType.Unit:
-                    model.Name = dto.UnitData?.Name ?? string.Empty;
-                    model.Description = dto.UnitData?.Description ?? string.Empty;
-                    break;
-                case HardwareType.Device:
-                    model.Name = dto.DeviceData?.Name ?? string.Empty;
-                    model.Description = dto.DeviceData?.Description ?? string.Empty;
-                    break;
-            }
 
             // Recursively convert children
             if (dto.Children != null)
             {
                 foreach (var child in dto.Children)
                 {
-                    var childModel = FromTreeNodeDataDto(child);
+                    var childModel = FromHardwareDefinition(child);
                     if (childModel != null)
                     {
                         model.Children.Add(childModel);
@@ -89,7 +70,7 @@ namespace EquipmentDesigner.ViewModels
         public WorkflowCompleteViewModel(HardwareDefinition sessionDto)
         {
             _sessionDto = sessionDto ?? throw new ArgumentNullException(nameof(sessionDto));
-            
+
             // Set state to Ready
             _sessionDto.State = ComponentState.Ready;
 
@@ -177,16 +158,14 @@ namespace EquipmentDesigner.ViewModels
         {
             _treeNodes = new ObservableCollection<HardwareNodeDisplayModel>();
 
-            if (_sessionDto?.TreeNodes == null)
+            if (_sessionDto == null)
                 return;
 
-            foreach (var nodeDto in _sessionDto.TreeNodes)
+            // The session itself is the root node
+            var displayModel = HardwareNodeDisplayModel.FromHardwareDefinition(_sessionDto);
+            if (displayModel != null)
             {
-                var displayModel = HardwareNodeDisplayModel.FromTreeNodeDataDto(nodeDto);
-                if (displayModel != null)
-                {
-                    _treeNodes.Add(displayModel);
-                }
+                _treeNodes.Add(displayModel);
             }
         }
 
@@ -241,13 +220,13 @@ namespace EquipmentDesigner.ViewModels
 
             // Remove workflow from WorkflowRepository after successful upload
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
 
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == _sessionDto.Id);
+            var session = sessions.FirstOrDefault(s => s.Id == _sessionDto.Id);
             if (session != null)
             {
-                workflowData.WorkflowSessions.Remove(session);
-                await workflowRepo.SaveAsync(workflowData);
+                sessions.Remove(session);
+                await workflowRepo.SaveAsync(sessions);
             }
 
             // Show success toast
@@ -277,15 +256,15 @@ namespace EquipmentDesigner.ViewModels
 
             // Save current state to WorkflowRepository
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
 
-            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == _sessionDto.Id);
+            var existingIndex = sessions.FindIndex(s => s.Id == _sessionDto.Id);
             if (existingIndex >= 0)
-                workflowData.WorkflowSessions[existingIndex] = _sessionDto;
+                sessions[existingIndex] = _sessionDto;
             else
-                workflowData.WorkflowSessions.Add(_sessionDto);
+                sessions.Add(_sessionDto);
 
-            await workflowRepo.SaveAsync(workflowData);
+            await workflowRepo.SaveAsync(sessions);
 
             // Navigate to dashboard
             NavigationService.Instance.NavigateToDashboard();

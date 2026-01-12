@@ -570,9 +570,9 @@ namespace EquipmentDesigner.ViewModels
 
                 // 3. Save to WorkflowRepository
                 var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-                var workflowData = await workflowRepo.LoadAsync();
-                workflowData.WorkflowSessions.Add(copiedSession);
-                await workflowRepo.SaveAsync(workflowData);
+                var sessions = await workflowRepo.LoadAsync();
+                sessions.Add(copiedSession);
+                await workflowRepo.SaveAsync(sessions);
 
                 // 4. Navigate to the copied workflow
                 NavigationService.Instance.ResumeWorkflow(copiedSession.Id);
@@ -602,9 +602,9 @@ namespace EquipmentDesigner.ViewModels
 
                 // 3. Save to WorkflowRepository
                 var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-                var workflowData = await workflowRepo.LoadAsync();
-                workflowData.WorkflowSessions.Add(copiedSession);
-                await workflowRepo.SaveAsync(workflowData);
+                var sessions = await workflowRepo.LoadAsync();
+                sessions.Add(copiedSession);
+                await workflowRepo.SaveAsync(sessions);
 
                 // 4. Navigate to the copied workflow
                 NavigationService.Instance.ResumeWorkflow(copiedSession.Id);
@@ -619,40 +619,26 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Recursively regenerates all node IDs in a TreeNodeDataDto tree.
+        /// Recursively regenerates all node IDs in a HardwareDefinition tree.
         /// </summary>
-        /// <param name="nodeDto">The root node to regenerate IDs for.</param>
-        public static void RegenerateTreeNodeIds(TreeNodeDataDto nodeDto)
+        /// <param name="node">The root node to regenerate IDs for.</param>
+        public static void RegenerateNodeIds(HardwareDefinition node)
         {
-            nodeDto.Id = Guid.NewGuid().ToString();
-            foreach (var child in nodeDto.Children)
+            node.Id = Guid.NewGuid().ToString();
+            foreach (var child in node.Children ?? new List<HardwareDefinition>())
             {
-                RegenerateTreeNodeIds(child);
+                RegenerateNodeIds(child);
             }
         }
 
         /// <summary>
-        /// Applies copy suffix to the root node's name.
+        /// Applies copy suffix to the node's name.
         /// Uses the existing GenerateCopyName logic from HardwareTreeNodeViewModel.
         /// </summary>
-        /// <param name="nodeDto">The root node to apply copy suffix to.</param>
-        public static void ApplyCopySuffixToRootNode(TreeNodeDataDto nodeDto)
+        /// <param name="node">The node to apply copy suffix to.</param>
+        public static void ApplyCopySuffixToNode(HardwareDefinition node)
         {
-            switch (nodeDto.HardwareType)
-            {
-                case HardwareType.Equipment when nodeDto.EquipmentData != null:
-                    nodeDto.EquipmentData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.EquipmentData.Name);
-                    break;
-                case HardwareType.System when nodeDto.SystemData != null:
-                    nodeDto.SystemData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.SystemData.Name);
-                    break;
-                case HardwareType.Unit when nodeDto.UnitData != null:
-                    nodeDto.UnitData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.UnitData.Name);
-                    break;
-                case HardwareType.Device when nodeDto.DeviceData != null:
-                    nodeDto.DeviceData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.DeviceData.Name);
-                    break;
-            }
+            node.Name = HardwareTreeNodeViewModel.GenerateCopyName(node.Name);
         }
 
         /// <summary>
@@ -663,27 +649,17 @@ namespace EquipmentDesigner.ViewModels
         /// <returns>A new HardwareDefinition with regenerated IDs and copy suffix.</returns>
         public static HardwareDefinition CreateCopySession(HardwareDefinition originalSession)
         {
-            // Create a deep copy by creating a new DTO
-            var copiedSession = new HardwareDefinition
-            {
-                Id = Guid.NewGuid().ToString(),
-                HardwareType = originalSession.HardwareType,
-                State = ComponentState.Draft,
-                LastModifiedAt = DateTime.Now,
-                TreeNodes = originalSession.TreeNodes.Select(DeepCopyTreeNode).ToList()
-            };
+            // Create a deep copy
+            var copiedSession = DeepCopyHardwareDefinition(originalSession);
+            copiedSession.Id = Guid.NewGuid().ToString();
+            copiedSession.State = ComponentState.Draft;
+            copiedSession.LastModifiedAt = DateTime.Now;
 
-            // Regenerate all tree node IDs
-            foreach (var rootNode in copiedSession.TreeNodes)
-            {
-                RegenerateTreeNodeIds(rootNode);
-            }
+            // Regenerate all node IDs
+            RegenerateNodeIds(copiedSession);
 
-            // Apply copy suffix to root node names only
-            foreach (var rootNode in copiedSession.TreeNodes)
-            {
-                ApplyCopySuffixToRootNode(rootNode);
-            }
+            // Apply copy suffix to root node name
+            ApplyCopySuffixToNode(copiedSession);
 
             return copiedSession;
         }
@@ -697,27 +673,15 @@ namespace EquipmentDesigner.ViewModels
         /// <returns>A new HardwareDefinition with updated version.</returns>
         public static HardwareDefinition CreateNewVersionSession(HardwareDefinition originalSession, string newVersion)
         {
-            // Create a deep copy by creating a new DTO
-            var copiedSession = new HardwareDefinition
-            {
-                Id = Guid.NewGuid().ToString(),
-                HardwareType = originalSession.HardwareType,
-                State = ComponentState.Draft,
-                LastModifiedAt = DateTime.Now,
-                TreeNodes = originalSession.TreeNodes.Select(DeepCopyTreeNode).ToList()
-            };
+            // Create a deep copy
+            var copiedSession = DeepCopyHardwareDefinition(originalSession);
+            copiedSession.Id = Guid.NewGuid().ToString();
+            copiedSession.State = ComponentState.Draft;
+            copiedSession.LastModifiedAt = DateTime.Now;
+            copiedSession.Version = newVersion;
 
-            // Regenerate all tree node IDs but preserve HardwareKey
-            foreach (var rootNode in copiedSession.TreeNodes)
-            {
-                RegenerateTreeNodeIds(rootNode);
-            }
-
-            // Update version in root node(s)
-            foreach (var rootNode in copiedSession.TreeNodes)
-            {
-                UpdateRootNodeVersion(rootNode, newVersion);
-            }
+            // Regenerate all node IDs but preserve HardwareKey
+            RegenerateNodeIds(copiedSession);
 
             return copiedSession;
         }
@@ -730,150 +694,51 @@ namespace EquipmentDesigner.ViewModels
         /// <returns>A new HardwareDefinition with new HardwareKey and IDs.</returns>
         public static HardwareDefinition CreateNewHardwareSession(HardwareDefinition originalSession)
         {
-            // Create a deep copy by creating a new DTO
-            var copiedSession = new HardwareDefinition
-            {
-                Id = Guid.NewGuid().ToString(),
-                HardwareType = originalSession.HardwareType,
-                State = ComponentState.Draft,
-                LastModifiedAt = DateTime.Now,
-                TreeNodes = originalSession.TreeNodes.Select(DeepCopyTreeNode).ToList()
-            };
+            // Create a deep copy
+            var copiedSession = DeepCopyHardwareDefinition(originalSession);
+            copiedSession.Id = Guid.NewGuid().ToString();
+            copiedSession.State = ComponentState.Draft;
+            copiedSession.LastModifiedAt = DateTime.Now;
+            copiedSession.HardwareKey = Guid.NewGuid().ToString();
 
-            // Regenerate all tree node IDs
-            foreach (var rootNode in copiedSession.TreeNodes)
-            {
-                RegenerateTreeNodeIds(rootNode);
-            }
+            // Regenerate all node IDs
+            RegenerateNodeIds(copiedSession);
 
-            // Regenerate HardwareKey for root nodes (creates new hardware identity)
-            foreach (var rootNode in copiedSession.TreeNodes)
-            {
-                RegenerateHardwareKey(rootNode);
-            }
-
-            // Apply copy suffix to root node names
-            foreach (var rootNode in copiedSession.TreeNodes)
-            {
-                ApplyCopySuffixToRootNode(rootNode);
-            }
+            // Apply copy suffix to root node name
+            ApplyCopySuffixToNode(copiedSession);
 
             return copiedSession;
         }
 
         /// <summary>
-        /// Updates the version in the root node's data.
+        /// Creates a deep copy of a HardwareDefinition including all children.
         /// </summary>
-        /// <param name="nodeDto">The root node to update.</param>
-        /// <param name="newVersion">The new version string.</param>
-        public static void UpdateRootNodeVersion(TreeNodeDataDto nodeDto, string newVersion)
+        private static HardwareDefinition DeepCopyHardwareDefinition(HardwareDefinition original)
         {
-            switch (nodeDto.HardwareType)
-            {
-                case HardwareType.Equipment when nodeDto.EquipmentData != null:
-                    nodeDto.EquipmentData.Version = newVersion;
-                    break;
-                case HardwareType.System when nodeDto.SystemData != null:
-                    nodeDto.SystemData.Version = newVersion;
-                    break;
-                case HardwareType.Unit when nodeDto.UnitData != null:
-                    nodeDto.UnitData.Version = newVersion;
-                    break;
-                case HardwareType.Device when nodeDto.DeviceData != null:
-                    nodeDto.DeviceData.Version = newVersion;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Regenerates the HardwareKey in the root node's data, creating a new hardware identity.
-        /// </summary>
-        /// <param name="nodeDto">The root node to regenerate HardwareKey for.</param>
-        public static void RegenerateHardwareKey(TreeNodeDataDto nodeDto)
-        {
-            var newHardwareKey = Guid.NewGuid().ToString();
-            switch (nodeDto.HardwareType)
-            {
-                case HardwareType.Equipment when nodeDto.EquipmentData != null:
-                    nodeDto.EquipmentData.HardwareKey = newHardwareKey;
-                    break;
-                case HardwareType.System when nodeDto.SystemData != null:
-                    nodeDto.SystemData.HardwareKey = newHardwareKey;
-                    break;
-                case HardwareType.Unit when nodeDto.UnitData != null:
-                    nodeDto.UnitData.HardwareKey = newHardwareKey;
-                    break;
-                case HardwareType.Device when nodeDto.DeviceData != null:
-                    nodeDto.DeviceData.HardwareKey = newHardwareKey;
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Creates a deep copy of a TreeNodeDataDto including all children.
-        /// </summary>
-        private static TreeNodeDataDto DeepCopyTreeNode(TreeNodeDataDto original)
-        {
-            return new TreeNodeDataDto
+            return new HardwareDefinition
             {
                 Id = original.Id,
+                HardwareKey = original.HardwareKey,
                 HardwareType = original.HardwareType,
-                EquipmentData = original.EquipmentData != null ? CopyEquipmentDto(original.EquipmentData) : null,
-                SystemData = original.SystemData != null ? CopySystemDto(original.SystemData) : null,
-                UnitData = original.UnitData != null ? CopyUnitDto(original.UnitData) : null,
-                DeviceData = original.DeviceData != null ? CopyDeviceDto(original.DeviceData) : null,
-                Children = original.Children.Select(DeepCopyTreeNode).ToList()
-            };
-        }
-
-        private static EquipmentDto CopyEquipmentDto(EquipmentDto original)
-        {
-            return new EquipmentDto
-            {
+                Version = original.Version,
+                State = original.State,
                 Name = original.Name,
-                EquipmentType = original.EquipmentType,
                 DisplayName = original.DisplayName,
                 Description = original.Description,
                 Customer = original.Customer,
-                Process = original.Process
-            };
-        }
-
-        private static SystemDto CopySystemDto(SystemDto original)
-        {
-            return new SystemDto
-            {
-                Name = original.Name,
-                DisplayName = original.DisplayName,
-                Description = original.Description,
-                ImplementationInstructions = original.ImplementationInstructions?.ToList() ?? new List<string>(),
-                Commands = original.Commands?.Select(CopyCommandDto).ToList() ?? new List<CommandDto>()
-            };
-        }
-
-        private static UnitDto CopyUnitDto(UnitDto original)
-        {
-            return new UnitDto
-            {
-                Name = original.Name,
-                DisplayName = original.DisplayName,
-                Description = original.Description,
-                ImplementationInstructions = original.ImplementationInstructions?.ToList() ?? new List<string>(),
-                Commands = original.Commands?.Select(CopyCommandDto).ToList() ?? new List<CommandDto>()
-            };
-        }
-
-        private static DeviceDto CopyDeviceDto(DeviceDto original)
-        {
-            return new DeviceDto
-            {
-                Name = original.Name,
-                DisplayName = original.DisplayName,
-                Description = original.Description,
+                ProcessId = original.ProcessId,
+                ProcessInfo = original.ProcessInfo,
+                EquipmentType = original.EquipmentType,
                 DeviceType = original.DeviceType,
                 ImplementationInstructions = original.ImplementationInstructions?.ToList() ?? new List<string>(),
                 Commands = original.Commands?.Select(CopyCommandDto).ToList() ?? new List<CommandDto>(),
-                IoInfo = original.IoInfo?.Select(CopyIoInfoDto).ToList() ?? new List<IoInfoDto>()
+                IoInfo = original.IoInfo?.Select(CopyIoInfoDto).ToList() ?? new List<IoInfoDto>(),
+                AttachedDocumentsIds = original.AttachedDocumentsIds?.ToList() ?? new List<string>(),
+                ProgramRoot = original.ProgramRoot,
+                CreatedAt = original.CreatedAt,
+                UpdatedAt = original.UpdatedAt,
+                LastModifiedAt = original.LastModifiedAt,
+                Children = original.Children?.Select(DeepCopyHardwareDefinition).ToList() ?? new List<HardwareDefinition>()
             };
         }
 
@@ -943,11 +808,11 @@ namespace EquipmentDesigner.ViewModels
         {
             // Save workflow state before navigating (explicit save, no indicator)
             await SaveWorkflowStateAsync(showAutosaveIndicator: false);
-            
+
             // Create session DTO with Ready state for the complete view
             var sessionDto = ToHardwareDefinition();
             sessionDto.State = ComponentState.Ready;
-            
+
             NavigationService.Instance.NavigateToWorkflowComplete(sessionDto);
         }
 
@@ -987,13 +852,13 @@ namespace EquipmentDesigner.ViewModels
 
             // Remove workflow from WorkflowRepository after successful upload
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
 
-            var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == WorkflowId);
+            var session = sessions.FirstOrDefault(s => s.Id == WorkflowId);
             if (session != null)
             {
-                workflowData.WorkflowSessions.Remove(session);
-                await workflowRepo.SaveAsync(workflowData);
+                sessions.Remove(session);
+                await workflowRepo.SaveAsync(sessions);
             }
 
             // Show success toast
@@ -1030,18 +895,18 @@ namespace EquipmentDesigner.ViewModels
         private async Task SaveWorkflowStateAsync(bool showAutosaveIndicator = true)
         {
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
 
             // Create or update HardwareDefinition
             var sessionDto = ToHardwareDefinition();
-            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == WorkflowId);
+            var existingIndex = sessions.FindIndex(s => s.Id == WorkflowId);
 
             if (existingIndex >= 0)
-                workflowData.WorkflowSessions[existingIndex] = sessionDto;
+                sessions[existingIndex] = sessionDto;
             else
-                workflowData.WorkflowSessions.Add(sessionDto);
+                sessions.Add(sessionDto);
 
-            await workflowRepo.SaveAsync(workflowData);
+            await workflowRepo.SaveAsync(sessions);
             _isDirty = false;
             _firstDirtyTime = null; // Reset first dirty time after successful save
 
@@ -1248,48 +1113,86 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public HardwareDefinition ToHardwareDefinition()
         {
-            return new HardwareDefinition
+            // For single root node (most common case)
+            var rootNode = TreeRootNodes.FirstOrDefault();
+            if (rootNode == null)
             {
-                Id = WorkflowId,
-                HardwareType = StartType,
-                HardwareKey = HardwareKey,
-                Version = Version,
-                State = ComponentState.Draft,
-                LastModifiedAt = DateTime.Now,
-                TreeNodes = TreeRootNodes.Select(SerializeNode).ToList()
-            };
+                return new HardwareDefinition
+                {
+                    Id = WorkflowId,
+                    HardwareType = StartType,
+                    HardwareKey = HardwareKey,
+                    Version = Version,
+                    State = ComponentState.Draft,
+                    LastModifiedAt = DateTime.Now,
+                    CreatedAt = DateTime.Now
+                };
+            }
+
+            var hw = SerializeToHardwareDefinition(rootNode);
+            hw.Id = WorkflowId;
+            hw.HardwareKey = HardwareKey;
+            hw.Version = Version;
+            hw.State = ComponentState.Draft;
+            hw.LastModifiedAt = DateTime.Now;
+            return hw;
         }
 
         /// <summary>
-        /// Serializes a tree node and its children to TreeNodeDataDto.
+        /// Serializes a tree node and its children to HardwareDefinition.
         /// </summary>
-        private TreeNodeDataDto SerializeNode(HardwareTreeNodeViewModel node)
+        private HardwareDefinition SerializeToHardwareDefinition(HardwareTreeNodeViewModel node)
         {
-            var dto = new TreeNodeDataDto
+            var hw = new HardwareDefinition
             {
                 Id = node.NodeId,
                 HardwareType = node.HardwareType,
-                Children = node.Children.Select(SerializeNode).ToList()
+                CreatedAt = DateTime.Now,
+                LastModifiedAt = DateTime.Now,
+                Children = node.Children.Select(SerializeToHardwareDefinition).ToList()
             };
 
-            // Save ViewModel data based on type
-            switch (node.HardwareType)
+            // Copy properties from DataViewModel based on type
+            if (node.DataViewModel != null)
             {
-                case HardwareType.Equipment:
-                    dto.EquipmentData = (node.DataViewModel as EquipmentDefineViewModel)?.ToDto();
-                    break;
-                case HardwareType.System:
-                    dto.SystemData = (node.DataViewModel as SystemDefineViewModel)?.ToDto();
-                    break;
-                case HardwareType.Unit:
-                    dto.UnitData = (node.DataViewModel as UnitDefineViewModel)?.ToDto();
-                    break;
-                case HardwareType.Device:
-                    dto.DeviceData = (node.DataViewModel as DeviceDefineViewModel)?.ToDto();
-                    break;
+                hw.Name = node.DataViewModel.Name;
+                hw.Version = node.DataViewModel.Version;
+
+                switch (node.HardwareType)
+                {
+                    case HardwareType.Equipment when node.DataViewModel is EquipmentDefineViewModel eqVm:
+                        hw.DisplayName = eqVm.DisplayName;
+                        hw.Description = eqVm.Description;
+                        hw.EquipmentType = eqVm.EquipmentType;
+                        hw.Customer = eqVm.Customer;
+                        hw.ProcessId = eqVm.Process;
+                        hw.AttachedDocumentsIds = eqVm.AttachedDocuments?.ToList() ?? new List<string>();
+                        break;
+                    case HardwareType.System when node.DataViewModel is SystemDefineViewModel sysVm:
+                        hw.DisplayName = sysVm.DisplayName;
+                        hw.Description = sysVm.Description;
+                        hw.ProcessInfo = sysVm.Process;
+                        hw.ImplementationInstructions = ParseImplementationGuidelines(sysVm.ImplementationGuidelines);
+                        hw.Commands = sysVm.Commands?.Select(c => c.ToDto()).ToList() ?? new List<CommandDto>();
+                        break;
+                    case HardwareType.Unit when node.DataViewModel is UnitDefineViewModel unitVm:
+                        hw.DisplayName = unitVm.DisplayName;
+                        hw.Description = unitVm.Description;
+                        hw.ProcessInfo = unitVm.Process;
+                        hw.ImplementationInstructions = ParseImplementationGuidelines(unitVm.ImplementationGuidelines);
+                        hw.Commands = unitVm.Commands?.Select(c => c.ToDto()).ToList() ?? new List<CommandDto>();
+                        break;
+                    case HardwareType.Device when node.DataViewModel is DeviceDefineViewModel devVm:
+                        hw.DisplayName = devVm.DisplayName;
+                        hw.Description = devVm.Description;
+                        hw.ImplementationInstructions = ParseImplementationGuidelines(devVm.ImplementationGuidelines);
+                        hw.Commands = devVm.Commands?.Select(c => c.ToDto()).ToList() ?? new List<CommandDto>();
+                        hw.IoInfo = devVm.IoConfigurations?.Select(i => i.ToDto()).ToList() ?? new List<IoInfoDto>();
+                        break;
+                }
             }
 
-            return dto;
+            return hw;
         }
 
         /// <summary>
@@ -1300,16 +1203,10 @@ namespace EquipmentDesigner.ViewModels
         {
             var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id, dto.HardwareKey, dto.Version ?? "1.0.0");
 
-            // Rebuild tree from TreeNodes
-            if (dto.TreeNodes != null && dto.TreeNodes.Count > 0)
-            {
-                viewModel.TreeRootNodes.Clear();
-                foreach (var nodeDto in dto.TreeNodes)
-                {
-                    var node = DeserializeNode(nodeDto, null);
-                    viewModel.TreeRootNodes.Add(node);
-                }
-            }
+            // Rebuild tree from the HardwareDefinition itself (it is the root node)
+            viewModel.TreeRootNodes.Clear();
+            var rootNode = DeserializeFromHardwareDefinition(dto, null);
+            viewModel.TreeRootNodes.Add(rootNode);
 
             // Select first node
             if (viewModel.TreeRootNodes.Count > 0)
@@ -1330,36 +1227,124 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Deserializes a TreeNodeDataDto to a HardwareTreeNodeViewModel.
+        /// Deserializes a HardwareDefinition to a HardwareTreeNodeViewModel.
         /// </summary>
-        private static HardwareTreeNodeViewModel DeserializeNode(TreeNodeDataDto dto, HardwareTreeNodeViewModel parent)
+        private static HardwareTreeNodeViewModel DeserializeFromHardwareDefinition(HardwareDefinition dto, HardwareTreeNodeViewModel parent)
         {
-            IHardwareDefineViewModel dataViewModel = dto.HardwareType switch
-            {
-                HardwareType.Equipment => dto.EquipmentData != null
-                    ? EquipmentDefineViewModel.FromDto(dto.EquipmentData)
-                    : new EquipmentDefineViewModel(),
-                HardwareType.System => dto.SystemData != null
-                    ? SystemDefineViewModel.FromDto(dto.SystemData)
-                    : new SystemDefineViewModel(),
-                HardwareType.Unit => dto.UnitData != null
-                    ? UnitDefineViewModel.FromDto(dto.UnitData)
-                    : new UnitDefineViewModel(),
-                HardwareType.Device => dto.DeviceData != null
-                    ? DeviceDefineViewModel.FromDto(dto.DeviceData)
-                    : new DeviceDefineViewModel(),
-                _ => null
-            };
+            IHardwareDefineViewModel dataViewModel = CreateViewModelFromHardwareDefinition(dto);
 
             var node = new HardwareTreeNodeViewModel(dto.HardwareType, parent, dataViewModel);
 
-            foreach (var childDto in dto.Children)
+            foreach (var childDto in dto.Children ?? new List<HardwareDefinition>())
             {
-                var childNode = DeserializeNode(childDto, node);
+                var childNode = DeserializeFromHardwareDefinition(childDto, node);
                 node.Children.Add(childNode);
             }
 
             return node;
+        }
+
+        /// <summary>
+        /// Creates an appropriate IHardwareDefineViewModel from HardwareDefinition data.
+        /// </summary>
+        private static IHardwareDefineViewModel CreateViewModelFromHardwareDefinition(HardwareDefinition dto)
+        {
+            switch (dto.HardwareType)
+            {
+                case HardwareType.Equipment:
+                    var eqVm = new EquipmentDefineViewModel
+                    {
+                        Name = dto.Name,
+                        DisplayName = dto.DisplayName,
+                        Description = dto.Description,
+                        EquipmentType = dto.EquipmentType,
+                        Customer = dto.Customer,
+                        Process = dto.ProcessId
+                    };
+                    if (dto.AttachedDocumentsIds != null)
+                    {
+                        foreach (var doc in dto.AttachedDocumentsIds)
+                            eqVm.AttachedDocuments.Add(doc);
+                    }
+                    return eqVm;
+
+                case HardwareType.System:
+                    var sysVm = new SystemDefineViewModel
+                    {
+                        Name = dto.Name,
+                        DisplayName = dto.DisplayName,
+                        Description = dto.Description,
+                        Process = dto.ProcessInfo,
+                        ImplementationGuidelines = JoinImplementationInstructions(dto.ImplementationInstructions)
+                    };
+                    if (dto.Commands != null)
+                    {
+                        foreach (var cmd in dto.Commands)
+                            sysVm.Commands.Add(CommandViewModel.FromDto(cmd));
+                    }
+                    return sysVm;
+
+                case HardwareType.Unit:
+                    var unitVm = new UnitDefineViewModel
+                    {
+                        Name = dto.Name,
+                        DisplayName = dto.DisplayName,
+                        Description = dto.Description,
+                        Process = dto.ProcessInfo,
+                        ImplementationGuidelines = JoinImplementationInstructions(dto.ImplementationInstructions)
+                    };
+                    if (dto.Commands != null)
+                    {
+                        foreach (var cmd in dto.Commands)
+                            unitVm.Commands.Add(CommandViewModel.FromDto(cmd));
+                    }
+                    return unitVm;
+
+                case HardwareType.Device:
+                    var devVm = new DeviceDefineViewModel
+                    {
+                        Name = dto.Name,
+                        DisplayName = dto.DisplayName,
+                        Description = dto.Description,
+                        ImplementationGuidelines = JoinImplementationInstructions(dto.ImplementationInstructions)
+                    };
+                    if (dto.Commands != null)
+                    {
+                        foreach (var cmd in dto.Commands)
+                            devVm.Commands.Add(CommandViewModel.FromDto(cmd));
+                    }
+                    if (dto.IoInfo != null)
+                    {
+                        foreach (var io in dto.IoInfo)
+                            devVm.IoConfigurations.Add(IoConfigurationViewModel.FromDto(io));
+                    }
+                    return devVm;
+
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Parses implementation guidelines string into a list.
+        /// </summary>
+        private static List<string> ParseImplementationGuidelines(string guidelines)
+        {
+            if (string.IsNullOrEmpty(guidelines))
+                return new List<string>();
+
+            return guidelines.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        }
+
+        /// <summary>
+        /// Joins implementation instructions list into a single string.
+        /// </summary>
+        private static string JoinImplementationInstructions(List<string> instructions)
+        {
+            if (instructions == null || instructions.Count == 0)
+                return string.Empty;
+
+            return string.Join("\n", instructions);
         }
        
         /// <summary>
@@ -1450,20 +1435,20 @@ namespace EquipmentDesigner.ViewModels
         private async Task CompleteWorkflowAsync()
         {
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
-            var workflowData = await workflowRepo.LoadAsync();
+            var sessions = await workflowRepo.LoadAsync();
 
             // Create or update HardwareDefinition with Defined state
             var sessionDto = ToHardwareDefinition();
             sessionDto.State = ComponentState.Ready;
-            
-            var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == WorkflowId);
+
+            var existingIndex = sessions.FindIndex(s => s.Id == WorkflowId);
 
             if (existingIndex >= 0)
-                workflowData.WorkflowSessions[existingIndex] = sessionDto;
+                sessions[existingIndex] = sessionDto;
             else
-                workflowData.WorkflowSessions.Add(sessionDto);
+                sessions.Add(sessionDto);
 
-            await workflowRepo.SaveAsync(workflowData);
+            await workflowRepo.SaveAsync(sessions);
         }
 
         /// <summary>

@@ -56,14 +56,21 @@ namespace EquipmentDesigner.Views
             var builder = Controls.ContextMenuService.Instance.Create();
 
             // ========================================
-            // Section 1: Basic Items (Action overload)
+            // Section 1: Basic Items (Action overload) - With Shortcuts Demo
             // ========================================
             builder.BeginSection("BasicActions");
-            for (int i = 1; i <= 10; i++)
-            {
-                int index = i;
-                builder.AddItem($"Basic Action Item {i}", () => Debug.WriteLine($"Basic Action {index} clicked"));
-            }
+            // Items with keyboard shortcuts (display only)
+            builder.AddItem("Copy", () => Debug.WriteLine("Copy clicked"), "Ctrl+C");
+            builder.AddItem("Paste", () => Debug.WriteLine("Paste clicked"), "Ctrl+V");
+            builder.AddItem("Cut", () => Debug.WriteLine("Cut clicked"), "Ctrl+X");
+            builder.AddItem("Undo", () => Debug.WriteLine("Undo clicked"), "Ctrl+Z");
+            builder.AddItem("Redo", () => Debug.WriteLine("Redo clicked"), "Ctrl+Y");
+            builder.AddItem("Select All", () => Debug.WriteLine("Select All clicked"), "Ctrl+A");
+            builder.AddItem("Save", () => Debug.WriteLine("Save clicked"), "Ctrl+S");
+            // Items without shortcuts for comparison
+            builder.AddItem("Basic Action 8", () => Debug.WriteLine("Basic Action 8 clicked"));
+            builder.AddItem("Basic Action 9", () => Debug.WriteLine("Basic Action 9 clicked"));
+            builder.AddItem("Basic Action 10", () => Debug.WriteLine("Basic Action 10 clicked"));
 
             // ========================================
             // Section 2: Items with isEnabled testing
@@ -90,9 +97,9 @@ namespace EquipmentDesigner.Views
             // Section 4: Destructive Items
             // ========================================
             builder.BeginSection("DestructiveActions");
-            builder.AddDestructiveItem("Delete All (Enabled)", () => Debug.WriteLine("Delete All clicked"), isEnabled: true);
+            builder.AddDestructiveItem("Delete All (Enabled)", () => Debug.WriteLine("Delete All clicked"), "Del", isEnabled: true);
             builder.AddDestructiveItem("Remove Selection (Disabled)", () => Debug.WriteLine("Should not execute"), isEnabled: false);
-            builder.AddDestructiveItem("Clear Cache", () => Debug.WriteLine("Clear Cache clicked"));
+            builder.AddDestructiveItem("Clear Cache", () => Debug.WriteLine("Clear Cache clicked"), "Ctrl+Shift+Del");
             builder.AddDestructiveItem("Reset Settings (Disabled)", () => Debug.WriteLine("Should not execute"), isEnabled: false);
             builder.AddDestructiveItem("Purge Data", () => Debug.WriteLine("Purge Data clicked"));
 
@@ -108,7 +115,18 @@ namespace EquipmentDesigner.Views
             // Section 6: SubMenus with Depth 2
             // ========================================
             builder.BeginSection("SubMenusDepth2");
-            for (int i = 1; i <= 5; i++)
+            // First submenu with shortcuts to demonstrate the feature
+            builder.AddSubMenu("Edit Operations", sub1 =>
+            {
+                sub1.AddItem("Find", () => Debug.WriteLine("Find clicked"), "Ctrl+F");
+                sub1.AddItem("Find Next", () => Debug.WriteLine("Find Next clicked"), "F3");
+                sub1.AddItem("Replace", () => Debug.WriteLine("Replace clicked"), "Ctrl+H");
+                sub1.AddItem("Go To Line", () => Debug.WriteLine("Go To Line clicked"), "Ctrl+G");
+                sub1.AddSeparator();
+                sub1.AddDestructiveItem("Delete Line", () => Debug.WriteLine("Delete Line clicked"), "Ctrl+Shift+K");
+            });
+            // Other submenus without shortcuts
+            for (int i = 2; i <= 5; i++)
             {
                 int subIndex = i;
                 builder.AddSubMenu($"SubMenu Level 1 - {i}", sub1 =>

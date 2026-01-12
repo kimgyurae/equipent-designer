@@ -108,6 +108,18 @@
     </Style>
 
     <!-- ============================================================
+         Menu Text Style - Shortcut (small, secondary color)
+         ============================================================ -->
+    <Style x:Key="ContextMenuShortcutTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Font.Family.Primary}"/>
+        <Setter Property="FontSize" Value="{StaticResource Font.Size.SM}"/>
+        <Setter Property="FontWeight" Value="{StaticResource Font.Weight.Regular}"/>
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text.Secondary}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="16,0,0,0"/>
+    </Style>
+
+    <!-- ============================================================
          Main Context Menu Container Style
          ============================================================ -->
     <Style x:Key="ContextMenuContainerStyle" TargetType="Border">

@@ -27,7 +27,7 @@ namespace EquipmentDesigner.ViewModels
     /// </summary>
     public class CardDetailDialogViewModel : ViewModelBase
     {
-        private readonly TreeNodeDataDto _treeNodeData;
+        private readonly HardwareDefinition _hardwareData;
 
         /// <summary>
         /// Event raised when the dialog should be closed.
@@ -37,13 +37,13 @@ namespace EquipmentDesigner.ViewModels
         #region Constructors
 
         /// <summary>
-        /// Creates a new CardDetailDialogViewModel with the given tree node data.
+        /// Creates a new CardDetailDialogViewModel with the given hardware data.
         /// </summary>
-        /// <param name="treeNodeData">The tree node data containing hardware information.</param>
-        /// <exception cref="ArgumentNullException">Thrown when treeNodeData is null.</exception>
-        public CardDetailDialogViewModel(TreeNodeDataDto treeNodeData)
+        /// <param name="hardwareData">The hardware data to display.</param>
+        /// <exception cref="ArgumentNullException">Thrown when hardwareData is null.</exception>
+        public CardDetailDialogViewModel(HardwareDefinition hardwareData)
         {
-            _treeNodeData = treeNodeData ?? throw new ArgumentNullException(nameof(treeNodeData));
+            _hardwareData = hardwareData ?? throw new ArgumentNullException(nameof(hardwareData));
             InitializeCommands();
         }
 
@@ -52,7 +52,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public CardDetailDialogViewModel()
         {
-            _treeNodeData = null;
+            _hardwareData = null;
             InitializeCommands();
         }
 
@@ -82,7 +82,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Gets the hardware layer type.
         /// </summary>
-        public HardwareType HardwareType => _treeNodeData?.HardwareType ?? HardwareType.Equipment;
+        public HardwareType HardwareType => _hardwareData?.HardwareType ?? HardwareType.Equipment;
 
         /// <summary>
         /// Gets the display text for the hardware layer.
@@ -96,55 +96,22 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Gets the name of the hardware component.
         /// </summary>
-        public string Name => GetCommonProperty(
-            e => e?.Name,
-            s => s?.Name,
-            u => u?.Name,
-            d => d?.Name
-        );
+        public string Name => _hardwareData?.Name ?? string.Empty;
 
         /// <summary>
         /// Gets the display name of the hardware component.
         /// </summary>
-        public string DisplayName => GetCommonProperty(
-            e => e?.DisplayName,
-            s => s?.DisplayName,
-            u => u?.DisplayName,
-            d => d?.DisplayName
-        );
+        public string DisplayName => _hardwareData?.DisplayName ?? string.Empty;
 
         /// <summary>
         /// Gets the description of the hardware component.
         /// </summary>
-        public string Description => GetCommonProperty(
-            e => e?.Description,
-            s => s?.Description,
-            u => u?.Description,
-            d => d?.Description
-        );
+        public string Description => _hardwareData?.Description ?? string.Empty;
 
         /// <summary>
         /// Gets the dialog title (same as Name).
         /// </summary>
         public string DialogTitle => Name;
-
-        private string GetCommonProperty(
-            Func<EquipmentDto, string> equipmentSelector,
-            Func<SystemDto, string> systemSelector,
-            Func<UnitDto, string> unitSelector,
-            Func<DeviceDto, string> deviceSelector)
-        {
-            if (_treeNodeData == null) return string.Empty;
-
-            return HardwareType switch
-            {
-                HardwareType.Equipment => equipmentSelector(_treeNodeData.EquipmentData) ?? string.Empty,
-                HardwareType.System => systemSelector(_treeNodeData.SystemData) ?? string.Empty,
-                HardwareType.Unit => unitSelector(_treeNodeData.UnitData) ?? string.Empty,
-                HardwareType.Device => deviceSelector(_treeNodeData.DeviceData) ?? string.Empty,
-                _ => string.Empty
-            };
-        }
 
         #endregion
 
@@ -155,7 +122,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public string EquipmentType =>
             HardwareType == HardwareType.Equipment
-                ? _treeNodeData?.EquipmentData?.EquipmentType ?? string.Empty
+                ? _hardwareData?.EquipmentType ?? string.Empty
                 : string.Empty;
 
         /// <summary>
@@ -163,7 +130,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public string Customer =>
             HardwareType == HardwareType.Equipment
-                ? _treeNodeData?.EquipmentData?.Customer ?? string.Empty
+                ? _hardwareData?.Customer ?? string.Empty
                 : string.Empty;
 
         /// <summary>
@@ -171,7 +138,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public string Process =>
             HardwareType == HardwareType.Equipment
-                ? _treeNodeData?.EquipmentData?.Process ?? string.Empty
+                ? _hardwareData?.ProcessId ?? string.Empty
                 : string.Empty;
 
         /// <summary>
@@ -179,7 +146,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public IReadOnlyList<string> AttachedDocuments =>
             HardwareType == HardwareType.Equipment
-                ? _treeNodeData?.EquipmentData?.AttachedDocuments ?? new List<string>()
+                ? _hardwareData?.AttachedDocumentsIds ?? new List<string>()
                 : new List<string>();
 
         #endregion
@@ -189,39 +156,13 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Gets the process info (System/Unit layers).
         /// </summary>
-        public string ProcessInfo
-        {
-            get
-            {
-                if (_treeNodeData == null) return string.Empty;
-
-                return HardwareType switch
-                {
-                    HardwareType.System => _treeNodeData.SystemData?.ProcessInfo ?? string.Empty,
-                    HardwareType.Unit => _treeNodeData.UnitData?.ProcessInfo ?? string.Empty,
-                    _ => string.Empty
-                };
-            }
-        }
+        public string ProcessInfo => _hardwareData?.ProcessInfo ?? string.Empty;
 
         /// <summary>
         /// Gets the commands list (System/Unit/Device layers).
         /// </summary>
-        public IReadOnlyList<CommandDto> Commands
-        {
-            get
-            {
-                if (_treeNodeData == null) return new List<CommandDto>();
-
-                return HardwareType switch
-                {
-                    HardwareType.System => _treeNodeData.SystemData?.Commands ?? new List<CommandDto>(),
-                    HardwareType.Unit => _treeNodeData.UnitData?.Commands ?? new List<CommandDto>(),
-                    HardwareType.Device => _treeNodeData.DeviceData?.Commands ?? new List<CommandDto>(),
-                    _ => new List<CommandDto>()
-                };
-            }
-        }
+        public IReadOnlyList<CommandDto> Commands =>
+            _hardwareData?.Commands ?? new List<CommandDto>();
 
         #endregion
 
@@ -232,7 +173,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public string DeviceType =>
             HardwareType == HardwareType.Device
-                ? _treeNodeData?.DeviceData?.DeviceType ?? string.Empty
+                ? _hardwareData?.DeviceType ?? string.Empty
                 : string.Empty;
 
         /// <summary>
@@ -240,7 +181,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public IReadOnlyList<IoInfoDto> IoInfo =>
             HardwareType == HardwareType.Device
-                ? _treeNodeData?.DeviceData?.IoInfo ?? new List<IoInfoDto>()
+                ? _hardwareData?.IoInfo ?? new List<IoInfoDto>()
                 : new List<IoInfoDto>();
 
         #endregion

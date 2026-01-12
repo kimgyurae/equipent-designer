@@ -17,72 +17,25 @@ namespace EquipmentDesigner.Tests.Services.Api
     {
         #region Helper Methods
 
-        private HardwareDefinition CreateWorkflowSession(
+        private HardwareDefinition CreateHardwareDefinition(
             string id,
-            HardwareType layer,
+            HardwareType hardwareType,
             string hardwareKey,
             string name,
             string version,
             ComponentState state,
             DateTime lastModifiedAt)
         {
-            var session = new HardwareDefinition
+            return new HardwareDefinition
             {
                 Id = id,
-                HardwareType = layer,
+                HardwareType = hardwareType,
+                HardwareKey = hardwareKey,
+                Name = name,
+                Version = version,
                 State = state,
-                LastModifiedAt = lastModifiedAt,
-                TreeNodes = new List<TreeNodeDataDto>()
+                LastModifiedAt = lastModifiedAt
             };
-
-            var treeNode = new TreeNodeDataDto
-            {
-                Id = $"node-{id}",
-                HardwareType = layer
-            };
-
-            switch (layer)
-            {
-                case HardwareType.Equipment:
-                    treeNode.EquipmentData = new EquipmentDto
-                    {
-                        Id = $"eq-{id}",
-                        Name = name,
-                        HardwareKey = hardwareKey,
-                        Version = version
-                    };
-                    break;
-                case HardwareType.System:
-                    treeNode.SystemData = new SystemDto
-                    {
-                        Id = $"sys-{id}",
-                        Name = name,
-                        HardwareKey = hardwareKey,
-                        Version = version
-                    };
-                    break;
-                case HardwareType.Unit:
-                    treeNode.UnitData = new UnitDto
-                    {
-                        Id = $"unit-{id}",
-                        Name = name,
-                        HardwareKey = hardwareKey,
-                        Version = version
-                    };
-                    break;
-                case HardwareType.Device:
-                    treeNode.DeviceData = new DeviceDto
-                    {
-                        Id = $"dev-{id}",
-                        Name = name,
-                        HardwareKey = hardwareKey,
-                        Version = version
-                    };
-                    break;
-            }
-
-            session.TreeNodes.Add(treeNode);
-            return session;
         }
 
         #endregion
@@ -129,11 +82,11 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "v2.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "1.0.0", ComponentState.Uploaded, DateTime.Now.AddDays(-30)));
             await repository.SaveAsync(dataStore);
@@ -169,12 +122,12 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
+            var dataStore = new List<HardwareDefinition>();
             // Same HardwareKey but different layers
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "test-key", "Test",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.System, "test-key", "Test",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -194,14 +147,14 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "v2.7.1", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-3", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "v2.7.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -223,11 +176,11 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "v2.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "1.0.0", ComponentState.Validated, DateTime.Now.AddDays(-30)));
             await repository.SaveAsync(dataStore);
@@ -247,9 +200,9 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
+            var dataStore = new List<HardwareDefinition>();
             // Create session with null HardwareKey - should use Name as fallback
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, null, "Auto Assembler",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -268,10 +221,18 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
-                "wf-1", HardwareType.Equipment, "auto-assembler", "Auto Assembler Display",
-                "1.0.0", ComponentState.Validated, DateTime.Now));
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(new HardwareDefinition
+            {
+                Id = "wf-1",
+                HardwareType = HardwareType.Equipment,
+                HardwareKey = "auto-assembler",
+                Name = "Auto Assembler",
+                DisplayName = "Auto Assembler Display",
+                Version = "1.0.0",
+                State = ComponentState.Validated,
+                LastModifiedAt = DateTime.Now
+            });
             await repository.SaveAsync(dataStore);
             var service = new MockHardwareApiService(repository);
 
@@ -288,14 +249,14 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "v3.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "v2.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-3", HardwareType.Equipment, "auto-assembler", "Auto Assembler",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -333,14 +294,14 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "key-a", "Item A",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.Equipment, "key-b", "Item B",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-3", HardwareType.Equipment, "key-a", "Item A",
                 "v2.0.0", ComponentState.Validated, DateTime.Now)); // Same key, different version
             await repository.SaveAsync(dataStore);
@@ -361,8 +322,8 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, null, "Item Name",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -381,11 +342,11 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "eq-key", "Equipment",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.System, "sys-key", "System",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -410,8 +371,8 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "test-key", "Test",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -430,8 +391,8 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "test-key", "Test",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);
@@ -450,11 +411,11 @@ namespace EquipmentDesigner.Tests.Services.Api
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
-            var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            var dataStore = new List<HardwareDefinition>();
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-1", HardwareType.Equipment, "test-key", "Test",
                 "v1.0", ComponentState.Validated, DateTime.Now));
-            dataStore.WorkflowSessions.Add(CreateWorkflowSession(
+            dataStore.Add(CreateHardwareDefinition(
                 "wf-2", HardwareType.Equipment, "test-key", "Test",
                 "1.0.0", ComponentState.Validated, DateTime.Now));
             await repository.SaveAsync(dataStore);

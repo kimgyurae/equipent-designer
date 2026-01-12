@@ -2,10 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
-using EquipmentDesigner.ViewModels;
-using EquipmentDesigner.ViewModels;
-using EquipmentDesigner.ViewModels;
-using EquipmentDesigner.ViewModels;
 using FluentAssertions;
 using Xunit;
 

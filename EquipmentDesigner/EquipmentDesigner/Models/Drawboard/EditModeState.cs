@@ -43,6 +43,11 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Multiple elements are being resized together proportionally.
         /// </summary>
-        MultiResizing
+        MultiResizing,
+
+        /// <summary>
+        /// Canvas is being panned using the Hand tool.
+        /// </summary>
+        Panning
     }
 }

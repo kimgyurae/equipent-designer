@@ -92,6 +92,10 @@ namespace EquipmentDesigner.ViewModels
                 newElement.ZIndex = _nextZIndex++;
                 Elements.Add(newElement);
                 newElements.Add(newElement);
+
+                // Update snapshot coordinates for cumulative offset on next paste
+                snapshot.X += offset;
+                snapshot.Y += offset;
             }
 
             // Auto-select the newly created elements
@@ -402,8 +406,8 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         private class DrawingElementSnapshot
         {
-            public double X { get; }
-            public double Y { get; }
+            public double X { get; set; }
+            public double Y { get; set; }
             public double Width { get; }
             public double Height { get; }
             public double Opacity { get; }

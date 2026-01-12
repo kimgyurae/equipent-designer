@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using EquipmentDesigner.Models;
 
 namespace EquipmentDesigner.Services
@@ -51,7 +52,7 @@ namespace EquipmentDesigner.Services
     /// Memory-based workflow repository for testing purposes.
     /// Implements IWorkflowRepository for incomplete workflow data.
     /// </summary>
-    public class MemoryWorkflowRepository : MemoryTypedRepository<HardwareDefinitionDataStore>, IWorkflowRepository
+    public class MemoryWorkflowRepository : MemoryTypedRepository<List<HardwareDefinition>>, IWorkflowRepository
     {
     }
 
@@ -59,7 +60,7 @@ namespace EquipmentDesigner.Services
     /// Memory-based uploaded workflow repository for testing purposes.
     /// Implements IUploadedWorkflowRepository for uploaded workflow data.
     /// </summary>
-    public class MemoryUploadedWorkflowRepository : MemoryTypedRepository<HardwareDefinitionDataStore>, IUploadedWorkflowRepository
+    public class MemoryUploadedWorkflowRepository : MemoryTypedRepository<List<HardwareDefinition>>, IUploadedWorkflowRepository
     {
     }
 }

@@ -292,6 +292,27 @@ namespace EquipmentDesigner.Controls
         }
 
         /// <summary>
+        /// Adds a menu item with a click action and keyboard shortcut display.
+        /// </summary>
+        /// <param name="header">The display text.</param>
+        /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="shortcut">Keyboard shortcut to display (e.g., "Ctrl+C"). Display only.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public ContextMenuBuilder AddItem(string header, Action onClick, string shortcut, bool isEnabled = true)
+        {
+            var command = new RelayCommand(_ => onClick());
+            var item = new CustomContextMenuItem(header, command, null)
+            {
+                Section = _currentSection,
+                IsEnabled = isEnabled,
+                Shortcut = shortcut
+            };
+            _items.Add(item);
+            return this;
+        }
+
+        /// <summary>
         /// Adds a menu item with a parameterized click action.
         /// </summary>
         /// <param name="header">The display text.</param>
@@ -333,6 +354,25 @@ namespace EquipmentDesigner.Controls
         {
             var command = new RelayCommand(_ => onClick());
             return AddDestructiveItem(header, command, null, isEnabled);
+        }
+
+        /// <summary>
+        /// Adds a destructive (danger) menu item with a click action and keyboard shortcut display.
+        /// </summary>
+        /// <param name="header">The display text.</param>
+        /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="shortcut">Keyboard shortcut to display (e.g., "Del"). Display only.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public ContextMenuBuilder AddDestructiveItem(string header, Action onClick, string shortcut, bool isEnabled = true)
+        {
+            var command = new RelayCommand(_ => onClick());
+            var item = CustomContextMenuItem.CreateDestructive(header, command, null);
+            item.Section = _currentSection;
+            item.IsEnabled = isEnabled;
+            item.Shortcut = shortcut;
+            _items.Add(item);
+            return this;
         }
 
         /// <summary>
@@ -471,6 +511,27 @@ namespace EquipmentDesigner.Controls
         }
 
         /// <summary>
+        /// Adds a menu item with a click action and keyboard shortcut display.
+        /// </summary>
+        /// <param name="header">The display text.</param>
+        /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="shortcut">Keyboard shortcut to display (e.g., "Ctrl+C"). Display only.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public SubMenuBuilder AddItem(string header, Action onClick, string shortcut, bool isEnabled = true)
+        {
+            var command = new RelayCommand(_ => onClick());
+            var item = new CustomContextMenuItem(header, command, null)
+            {
+                Section = _currentSection,
+                IsEnabled = isEnabled,
+                Shortcut = shortcut
+            };
+            _parentItem.Children.Add(item);
+            return this;
+        }
+
+        /// <summary>
         /// Adds a destructive menu item.
         /// </summary>
         /// <param name="header">The display text.</param>
@@ -498,6 +559,25 @@ namespace EquipmentDesigner.Controls
         {
             var command = new RelayCommand(_ => onClick());
             return AddDestructiveItem(header, command, null, isEnabled);
+        }
+
+        /// <summary>
+        /// Adds a destructive menu item with a click action and keyboard shortcut display.
+        /// </summary>
+        /// <param name="header">The display text.</param>
+        /// <param name="onClick">Action to execute on click.</param>
+        /// <param name="shortcut">Keyboard shortcut to display (e.g., "Del"). Display only.</param>
+        /// <param name="isEnabled">Whether the menu item is enabled. Default is true.</param>
+        /// <returns>This builder for chaining.</returns>
+        public SubMenuBuilder AddDestructiveItem(string header, Action onClick, string shortcut, bool isEnabled = true)
+        {
+            var command = new RelayCommand(_ => onClick());
+            var item = CustomContextMenuItem.CreateDestructive(header, command, null);
+            item.Section = _currentSection;
+            item.IsEnabled = isEnabled;
+            item.Shortcut = shortcut;
+            _parentItem.Children.Add(item);
+            return this;
         }
 
         /// <summary>
