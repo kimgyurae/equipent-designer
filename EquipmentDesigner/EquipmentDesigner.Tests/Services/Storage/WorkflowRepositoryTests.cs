@@ -125,10 +125,10 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "test-workflow-1",
-                HardwareType = HardwareLayer.Equipment
+                HardwareType = HardwareType.Equipment
             });
 
             // Act
@@ -182,17 +182,17 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var originalDataStore = new HardwareDefinitionDataStore();
-            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            originalDataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-001",
-                HardwareType = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now
             });
-            originalDataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            originalDataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-002",
-                HardwareType = HardwareLayer.System,
+                HardwareType = HardwareType.System,
                 State = ComponentState.Ready,
                 LastModifiedAt = DateTime.Now
             });
@@ -204,7 +204,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
             // Assert
             loaded.WorkflowSessions.Should().HaveCount(2);
             loaded.WorkflowSessions[0].Id.Should().Be("wf-001");
-            loaded.WorkflowSessions[0].HardwareType.Should().Be(HardwareLayer.Equipment);
+            loaded.WorkflowSessions[0].HardwareType.Should().Be(HardwareType.Equipment);
             loaded.WorkflowSessions[1].Id.Should().Be("wf-002");
             loaded.WorkflowSessions[1].State.Should().Be(ComponentState.Ready);
         }
@@ -214,22 +214,22 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            var session = new WorkflowSessionDto
+            var session = new HardwareDefinition
             {
                 Id = "wf-tree",
-                HardwareType = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 TreeNodes = new System.Collections.Generic.List<TreeNodeDataDto>
                 {
                     new TreeNodeDataDto
                     {
                         Id = "node-1",
-                        HardwareLayer = HardwareLayer.Equipment,
+                        HardwareType = HardwareType.Equipment,
                         Children = new System.Collections.Generic.List<TreeNodeDataDto>
                         {
                             new TreeNodeDataDto
                             {
                                 Id = "node-2",
-                                HardwareLayer = HardwareLayer.System
+                                HardwareType = HardwareType.System
                             }
                         }
                     }
@@ -254,9 +254,9 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-001" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-002" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-003" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-001" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-002" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-003" });
             await _repository.SaveAsync(dataStore);
 
             // Act
@@ -273,13 +273,13 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange - save initial data
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "existing-1" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "existing-2" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "existing-1" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "existing-2" });
             await _repository.SaveAsync(dataStore);
 
             // Act - load, add new, save
             var loaded = await _repository.LoadAsync();
-            loaded.WorkflowSessions.Add(new WorkflowSessionDto { Id = "new-session" });
+            loaded.WorkflowSessions.Add(new HardwareDefinition { Id = "new-session" });
             await _repository.SaveAsync(loaded);
 
             // Assert - reload and verify
@@ -295,12 +295,12 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-update",
                 State = ComponentState.Draft
             });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-unchanged",
                 State = ComponentState.Draft
@@ -326,9 +326,9 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-keep-1" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-remove" });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-keep-2" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-keep-1" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-remove" });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-keep-2" });
             await _repository.SaveAsync(dataStore);
 
             // Act - load, remove, save

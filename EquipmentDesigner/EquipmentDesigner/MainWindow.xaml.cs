@@ -100,7 +100,7 @@ namespace EquipmentDesigner
 
                 if (sessionDto != null)
                 {
-                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto(sessionDto);
+                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromHardwareDefinition(sessionDto);
                     var workflowView = new HardwareDefineWorkflowView
                     {
                         DataContext = workflowViewModel
@@ -127,8 +127,8 @@ namespace EquipmentDesigner
 
                 if (response.Success && response.Data != null)
                 {
-                    // Use FromWorkflowSessionDto to rebuild the workflow
-                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromWorkflowSessionDto(response.Data);
+                    // Use FromHardwareDefinition to rebuild the workflow
+                    var workflowViewModel = HardwareDefineWorkflowViewModel.FromHardwareDefinition(response.Data);
                     workflowViewModel.IsReadOnly = true;  // Set read-only mode
 
                     var workflowView = new HardwareDefineWorkflowView

@@ -4,19 +4,19 @@ using System.Collections.Generic;
 namespace EquipmentDesigner.Models
 {
     /// <summary>
-    /// 워크플로우 세션 DTO - 미완료 워크플로우의 전체 상태 저장
+    /// 하드웨어 DTO
     /// </summary>
-    public class WorkflowSessionDto: IIdentifiable
+    public class HardwareDefinition : IIdentifiable
     {
         /// <summary>
-        /// 워크플로우 세션 고유 식별자
+        /// 정의된 하드웨어 조립체 아이디
         /// </summary>
         public string Id { get; set; }
 
         /// <summary>
-        /// 워크플로우 시작 레이어 (Equipment, System, Unit, Device)
+        /// 하드웨어 타입 (Equipment, System, Unit, Device)
         /// </summary>
-        public HardwareLayer HardwareType { get; set; }
+        public HardwareType HardwareType { get; set; }
 
         /// <summary>
         /// 하드웨어 고유 식별 키 - 같은 하드웨어의 모든 버전이 동일한 키를 공유

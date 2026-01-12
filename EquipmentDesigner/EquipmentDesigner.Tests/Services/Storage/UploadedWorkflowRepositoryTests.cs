@@ -124,24 +124,24 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            var session = new WorkflowSessionDto
+            var session = new HardwareDefinition
             {
                 Id = "wf-tree",
-                HardwareType = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 State = ComponentState.Uploaded,
                 TreeNodes = new System.Collections.Generic.List<TreeNodeDataDto>
                 {
                     new TreeNodeDataDto
                     {
                         Id = "node-1",
-                        HardwareLayer = HardwareLayer.Equipment,
+                        HardwareType = HardwareType.Equipment,
                         EquipmentData = new EquipmentDto { Name = "TestEquipment" },
                         Children = new System.Collections.Generic.List<TreeNodeDataDto>
                         {
                             new TreeNodeDataDto
                             {
                                 Id = "node-2",
-                                HardwareLayer = HardwareLayer.System,
+                                HardwareType = HardwareType.System,
                                 SystemData = new SystemDto { Name = "TestSystem" }
                             }
                         }
@@ -213,10 +213,10 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "test-workflow-1",
-                HardwareType = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 State = ComponentState.Uploaded
             });
 
@@ -240,17 +240,17 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-001",
-                HardwareType = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 State = ComponentState.Uploaded,
                 LastModifiedAt = DateTime.Now
             });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-002",
-                HardwareType = HardwareLayer.System,
+                HardwareType = HardwareType.System,
                 State = ComponentState.Validated,
                 LastModifiedAt = DateTime.Now
             });
@@ -272,9 +272,9 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-001", State = ComponentState.Uploaded });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-002", State = ComponentState.Uploaded });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto { Id = "wf-003", State = ComponentState.Uploaded });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-001", State = ComponentState.Uploaded });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-002", State = ComponentState.Uploaded });
+            dataStore.WorkflowSessions.Add(new HardwareDefinition { Id = "wf-003", State = ComponentState.Uploaded });
             await _repository.SaveAsync(dataStore);
 
             // Act
@@ -291,12 +291,12 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var dataStore = new HardwareDefinitionDataStore();
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-update",
                 State = ComponentState.Uploaded
             });
-            dataStore.WorkflowSessions.Add(new WorkflowSessionDto
+            dataStore.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = "wf-unchanged",
                 State = ComponentState.Uploaded

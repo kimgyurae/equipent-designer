@@ -285,17 +285,12 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void OnCanvasPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            
             if (_viewModel == null)
             {
                 return;
             }
 
-            // Skip if clicking on the floating unlock button (let button handle the click)
-            if (IsClickOnUnlockButton(e.OriginalSource as DependencyObject))
-            {
-                return;
-            }
+            // Note: Unlock button is now outside ZoomableGrid, so no need to check for it here
 
             // Only handle selection when Selection tool is active
             if (!_viewModel.IsSelectionToolActive)
@@ -955,23 +950,20 @@ namespace EquipmentDesigner.Views
         #region Helper Methods
 
         /// <summary>
-        /// Checks if the clicked element is part of the floating unlock button.
-        /// Walks up the visual tree to find the UnlockFloatingButton.
+        /// Handles ScrollViewer scroll changes to update unlock button position.
         /// </summary>
-        private bool IsClickOnUnlockButton(DependencyObject source)
+        private void OnScrollViewerScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            if (source == null) return false;
+            _viewModel?.UpdateScrollOffset(e.HorizontalOffset, e.VerticalOffset);
+        }
 
-            DependencyObject current = source;
-            while (current != null)
-            {
-                if (current == UnlockFloatingButton)
-                {
-                    return true;
-                }
-                current = VisualTreeHelper.GetParent(current);
-            }
-            return false;
+        /// <summary>
+        /// Handles the floating unlock button click event.
+        /// </summary>
+        private void OnUnlockFloatingButtonClick(object sender, RoutedEventArgs e)
+        {
+            _viewModel?.UnlockSingleSelectedElement();
+            e.Handled = true;  // Prevent event bubbling
         }
 
         #endregion

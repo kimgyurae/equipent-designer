@@ -21,14 +21,14 @@ namespace EquipmentDesigner.ViewModels
         private string _componentName = string.Empty;
         private IHardwareDefineViewModel _dataViewModel;
 
-        public HardwareTreeNodeViewModel(HardwareLayer hardwareLayer, HardwareTreeNodeViewModel parent = null)
-            : this(hardwareLayer, parent, CreateDefaultViewModel(hardwareLayer))
+        public HardwareTreeNodeViewModel(HardwareType hardwareType, HardwareTreeNodeViewModel parent = null)
+            : this(hardwareType, parent, CreateDefaultViewModel(hardwareType))
         {
         }
 
-        public HardwareTreeNodeViewModel(HardwareLayer hardwareLayer, HardwareTreeNodeViewModel parent, IHardwareDefineViewModel dataViewModel)
+        public HardwareTreeNodeViewModel(HardwareType hardwareType, HardwareTreeNodeViewModel parent, IHardwareDefineViewModel dataViewModel)
         {
-            HardwareLayer = hardwareLayer;
+            HardwareType = hardwareType;
             Parent = parent;
             Children = new ObservableCollection<HardwareTreeNodeViewModel>();
             NodeId = Guid.NewGuid().ToString();
@@ -38,14 +38,14 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Creates a default ViewModel instance based on the hardware layer type.
         /// </summary>
-        private static IHardwareDefineViewModel CreateDefaultViewModel(HardwareLayer layer)
+        private static IHardwareDefineViewModel CreateDefaultViewModel(HardwareType layer)
         {
             return layer switch
             {
-                HardwareLayer.Equipment => new EquipmentDefineViewModel(),
-                HardwareLayer.System => new SystemDefineViewModel(),
-                HardwareLayer.Unit => new UnitDefineViewModel(),
-                HardwareLayer.Device => new DeviceDefineViewModel(),
+                HardwareType.Equipment => new EquipmentDefineViewModel(),
+                HardwareType.System => new SystemDefineViewModel(),
+                HardwareType.Unit => new UnitDefineViewModel(),
+                HardwareType.Device => new DeviceDefineViewModel(),
                 _ => null
             };
         }
@@ -58,7 +58,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// The hardware layer type (Equipment, System, Unit, Device).
         /// </summary>
-        public HardwareLayer HardwareLayer { get; }
+        public HardwareType HardwareType { get; }
 
         /// <summary>
         /// Parent node in the hierarchy (null for root Equipment node).
@@ -86,10 +86,10 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Display name for the node: shows ComponentName if set, otherwise "New {HardwareLayer}".
+        /// Display name for the node: shows ComponentName if set, otherwise "New {HardwareType}".
         /// </summary>
         public string DisplayName => string.IsNullOrWhiteSpace(ComponentName)
-            ? $"New {HardwareLayer}"
+            ? $"New {HardwareType}"
             : ComponentName;
 
         /// <summary>
@@ -216,34 +216,34 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Whether this node can have children (Equipment, System, Unit can have children).
         /// </summary>
-        public bool CanHaveChildren => HardwareLayer != HardwareLayer.Device;
+        public bool CanHaveChildren => HardwareType != HardwareType.Device;
 
         /// <summary>
         /// Whether this node allows adding new child items.
         /// Equipment level doesn't allow adding (only 1 Equipment per workflow).
         /// </summary>
-        public bool CanAddChild => HardwareLayer != HardwareLayer.Device;
+        public bool CanAddChild => HardwareType != HardwareType.Device;
 
         /// <summary>
         /// Text to display on the add child button (e.g., "New System", "New Unit", "New Device").
         /// </summary>
-        public string AddChildButtonText => ChildHardwareLayer.HasValue
-            ? $"New {ChildHardwareLayer.Value}"
+        public string AddChildButtonText => ChildHardwareType.HasValue
+            ? $"New {ChildHardwareType.Value}"
             : string.Empty;
 
         /// <summary>
         /// Gets the child hardware layer type.
         /// </summary>
-        public HardwareLayer? ChildHardwareLayer
+        public HardwareType? ChildHardwareType
         {
             get
             {
-                return HardwareLayer switch
+                return HardwareType switch
                 {
-                    HardwareLayer.Equipment => Models.HardwareLayer.System,
-                    HardwareLayer.System => Models.HardwareLayer.Unit,
-                    HardwareLayer.Unit => Models.HardwareLayer.Device,
-                    HardwareLayer.Device => null,
+                    HardwareType.Equipment => Models.HardwareType.System,
+                    HardwareType.System => Models.HardwareType.Unit,
+                    HardwareType.Unit => Models.HardwareType.Device,
+                    HardwareType.Device => null,
                     _ => null
                 };
             }
@@ -272,12 +272,12 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public HardwareTreeNodeViewModel AddChild()
         {
-            if (!CanHaveChildren || ChildHardwareLayer == null)
+            if (!CanHaveChildren || ChildHardwareType == null)
                 return null;
 
             // Create new ViewModel for the child
-            var childViewModel = CreateDefaultViewModel(ChildHardwareLayer.Value);
-            var child = new HardwareTreeNodeViewModel(ChildHardwareLayer.Value, this, childViewModel);
+            var childViewModel = CreateDefaultViewModel(ChildHardwareType.Value);
+            var child = new HardwareTreeNodeViewModel(ChildHardwareType.Value, this, childViewModel);
             Children.Add(child);
             IsExpanded = true;
             return child;
@@ -290,7 +290,7 @@ namespace EquipmentDesigner.ViewModels
         /// <returns>The newly created child node.</returns>
         public HardwareTreeNodeViewModel AddChildWithFullHierarchy()
         {
-            if (!CanHaveChildren || ChildHardwareLayer == null)
+            if (!CanHaveChildren || ChildHardwareType == null)
                 return null;
 
             var child = AddChild();
@@ -391,7 +391,7 @@ namespace EquipmentDesigner.ViewModels
             }
 
             // Create new node with cloned data
-            var copiedNode = new HardwareTreeNodeViewModel(this.HardwareLayer, newParent, clonedDataViewModel);
+            var copiedNode = new HardwareTreeNodeViewModel(this.HardwareType, newParent, clonedDataViewModel);
 
             // Recursively copy all children
             foreach (var child in this.Children)

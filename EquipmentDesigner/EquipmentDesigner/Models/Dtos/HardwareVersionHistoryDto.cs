@@ -15,7 +15,7 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// 하드웨어 레이어 (Equipment, System, Unit, Device)
         /// </summary>
-        public HardwareLayer HardwareLayer { get; set; }
+        public HardwareType HardwareType { get; set; }
 
         /// <summary>
         /// 화면 표시용 이름 (예: "AutoAssembler")

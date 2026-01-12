@@ -23,7 +23,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var nodeDto = new TreeNodeDataDto
             {
                 Id = originalId,
-                HardwareLayer = HardwareLayer.Equipment
+                HardwareType = HardwareType.Equipment
             };
 
             // Act
@@ -45,19 +45,19 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var nodeDto = new TreeNodeDataDto
             {
                 Id = rootId,
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 Children = new List<TreeNodeDataDto>
                 {
                     new TreeNodeDataDto
                     {
                         Id = childId,
-                        HardwareLayer = HardwareLayer.System,
+                        HardwareType = HardwareType.System,
                         Children = new List<TreeNodeDataDto>
                         {
                             new TreeNodeDataDto
                             {
                                 Id = grandchildId,
-                                HardwareLayer = HardwareLayer.Unit
+                                HardwareType = HardwareType.Unit
                             }
                         }
                     }
@@ -80,11 +80,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var nodeDto = new TreeNodeDataDto
             {
                 Id = "id1",
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 Children = new List<TreeNodeDataDto>
                 {
-                    new TreeNodeDataDto { Id = "id2", HardwareLayer = HardwareLayer.System },
-                    new TreeNodeDataDto { Id = "id3", HardwareLayer = HardwareLayer.System }
+                    new TreeNodeDataDto { Id = "id2", HardwareType = HardwareType.System },
+                    new TreeNodeDataDto { Id = "id3", HardwareType = HardwareType.System }
                 }
             };
 
@@ -103,7 +103,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var nodeDto = new TreeNodeDataDto
             {
                 Id = "original-id",
-                HardwareLayer = HardwareLayer.Device,
+                HardwareType = HardwareType.Device,
                 Children = new List<TreeNodeDataDto>()
             };
 
@@ -122,7 +122,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             var nodeDto = new TreeNodeDataDto
             {
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 EquipmentData = new EquipmentDto { Name = "MyEquipment" }
             };
 
@@ -139,7 +139,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             var nodeDto = new TreeNodeDataDto
             {
-                HardwareLayer = HardwareLayer.System,
+                HardwareType = HardwareType.System,
                 SystemData = new SystemDto { Name = "MySystem" }
             };
 
@@ -156,7 +156,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             var nodeDto = new TreeNodeDataDto
             {
-                HardwareLayer = HardwareLayer.Unit,
+                HardwareType = HardwareType.Unit,
                 UnitData = new UnitDto { Name = "MyUnit" }
             };
 
@@ -173,7 +173,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             var nodeDto = new TreeNodeDataDto
             {
-                HardwareLayer = HardwareLayer.Device,
+                HardwareType = HardwareType.Device,
                 DeviceData = new DeviceDto { Name = "MyDevice" }
             };
 
@@ -190,7 +190,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             var nodeDto = new TreeNodeDataDto
             {
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 EquipmentData = new EquipmentDto { Name = "MyEquipment - copy" }
             };
 
@@ -207,7 +207,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             var nodeDto = new TreeNodeDataDto
             {
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 EquipmentData = null
             };
 
@@ -223,7 +223,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DirectEdit_SetsIsReadOnlyToFalse()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             // Force read-only mode (simulating a loaded component)
             viewModel.GetType().GetProperty("IsReadOnly").SetValue(viewModel, true);
             viewModel.IsReadOnly.Should().BeTrue("Precondition: should start in read-only mode");
@@ -241,7 +241,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DirectEdit_PreservesWorkflowId()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             var originalWorkflowId = viewModel.WorkflowId;
 
             // Act
@@ -261,11 +261,11 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void CreateCopySession_CreatesNewWorkflowId()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             var originalWorkflowId = viewModel.WorkflowId;
 
             // Act
-            var sessionDto = viewModel.ToWorkflowSessionDto();
+            var sessionDto = viewModel.ToHardwareDefinition();
             var newSessionDto = HardwareDefineWorkflowViewModel.CreateCopySession(sessionDto);
 
             // Assert
@@ -277,8 +277,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void CreateCopySession_SetsDraftState()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
-            var sessionDto = viewModel.ToWorkflowSessionDto();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
+            var sessionDto = viewModel.ToHardwareDefinition();
             sessionDto.State = ComponentState.Uploaded;
 
             // Act
@@ -292,8 +292,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void CreateCopySession_RegeneratesAllTreeNodeIds()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
-            var sessionDto = viewModel.ToWorkflowSessionDto();
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
+            var sessionDto = viewModel.ToHardwareDefinition();
             var originalRootNodeId = sessionDto.TreeNodes.FirstOrDefault()?.Id;
 
             // Act
@@ -308,7 +308,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void CreateCopySession_AppliesCopySuffixToRootNodeName()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             
             // Set the equipment name
             if (viewModel.TreeRootNodes.FirstOrDefault()?.DataViewModel is EquipmentDefineViewModel equipmentVm)
@@ -316,7 +316,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
                 equipmentVm.Name = "TestEquipment";
             }
             
-            var sessionDto = viewModel.ToWorkflowSessionDto();
+            var sessionDto = viewModel.ToHardwareDefinition();
 
             // Act
             var newSessionDto = HardwareDefineWorkflowViewModel.CreateCopySession(sessionDto);

@@ -17,10 +17,10 @@
              d:DesignHeight="800" d:DesignWidth="1200">
 
     <UserControl.Resources>
-        <converters:HardwareLayerToBackgroundConverter x:Key="HardwareLayerToBackgroundConverter"/>
-        <converters:HardwareLayerToForegroundConverter x:Key="HardwareLayerToForegroundConverter"/>
-        <converters:HardwareLayerToCardBackgroundConverter x:Key="HardwareLayerToCardBackgroundConverter"/>
-        <converters:HardwareLayerToCardBorderConverter x:Key="HardwareLayerToCardBorderConverter"/>
+        <converters:HardwareTypeToBackgroundConverter x:Key="HardwareTypeToBackgroundConverter"/>
+        <converters:HardwareTypeToForegroundConverter x:Key="HardwareTypeToForegroundConverter"/>
+        <converters:HardwareTypeToCardBackgroundConverter x:Key="HardwareTypeToCardBackgroundConverter"/>
+        <converters:HardwareTypeToCardBorderConverter x:Key="HardwareTypeToCardBorderConverter"/>
 
         <!-- Hierarchical Card Template -->
         <DataTemplate x:Key="HierarchicalCardTemplate" DataType="{x:Type vm:HardwareNodeDisplayModel}">
@@ -29,8 +29,8 @@
                     CornerRadius="{StaticResource Radius.LG}"
                     BorderThickness="2"
                     Cursor="Hand"
-                    Background="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToCardBackgroundConverter}}"
-                    BorderBrush="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToCardBorderConverter}}">
+                    Background="{Binding HardwareType, Converter={StaticResource HardwareTypeToCardBackgroundConverter}}"
+                    BorderBrush="{Binding HardwareType, Converter={StaticResource HardwareTypeToCardBorderConverter}}">
                 <Border.InputBindings>
                     <MouseBinding MouseAction="LeftClick"
                                   Command="{Binding DataContext.CardClickCommand, RelativeSource={RelativeSource AncestorType=local:WorkflowCompleteView}}"
@@ -47,9 +47,9 @@
 
                         <!-- Hardware Layer Chip -->
                         <controls:StateChip Grid.Column="0"
-                                            Text="{Binding HardwareLayer}"
-                                            ChipBackground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToBackgroundConverter}}"
-                                            ChipForeground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToForegroundConverter}}"
+                                            Text="{Binding HardwareType}"
+                                            ChipBackground="{Binding HardwareType, Converter={StaticResource HardwareTypeToBackgroundConverter}}"
+                                            ChipForeground="{Binding HardwareType, Converter={StaticResource HardwareTypeToForegroundConverter}}"
                                             VerticalAlignment="Center"/>
 
                         <!-- Name -->
@@ -95,7 +95,7 @@
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                     <!-- When parent is Unit, use 2-column grid for Device children -->
-                                    <DataTrigger Binding="{Binding HardwareLayer}" Value="{x:Static models:HardwareLayer.Unit}">
+                                    <DataTrigger Binding="{Binding HardwareType}" Value="{x:Static models:HardwareType.Unit}">
                                         <Setter Property="ItemsPanel">
                                             <Setter.Value>
                                                 <ItemsPanelTemplate>

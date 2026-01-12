@@ -30,7 +30,7 @@ namespace EquipmentDesigner.ViewModels
             element.IsSelected = true;
             SelectedElement = element;
             EditModeState = EditModeState.Selected;
-            NotifyUnlockButtonPropertiesChanged();
+            DeferNotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace EquipmentDesigner.ViewModels
             }
             EditModeState = EditModeState.None;
             ActiveResizeHandle = ResizeHandleType.None;
-            NotifyUnlockButtonPropertiesChanged();
+            DeferNotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace EquipmentDesigner.ViewModels
 
             OnPropertyChanged(nameof(IsMultiSelectionMode));
             OnPropertyChanged(nameof(GroupBounds));
-            NotifyUnlockButtonPropertiesChanged();
+            DeferNotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>

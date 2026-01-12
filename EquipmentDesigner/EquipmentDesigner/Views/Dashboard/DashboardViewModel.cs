@@ -41,10 +41,10 @@ namespace EquipmentDesigner.ViewModels
         public DashboardViewModel()
         {
             // Initialize navigation commands
-            CreateEquipmentCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Equipment));
-            CreateSystemCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.System));
-            CreateUnitCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Unit));
-            CreateDeviceCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareLayer.Device));
+            CreateEquipmentCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareType.Equipment));
+            CreateSystemCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareType.System));
+            CreateUnitCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareType.Unit));
+            CreateDeviceCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToHardwareDefineWorkflow(HardwareType.Device));
 
             // Navigation commands for new views
             NavigateToCreateNewComponentCommand = new RelayCommand(_ => NavigationService.Instance.NavigateToCreateNewComponent());
@@ -200,30 +200,16 @@ namespace EquipmentDesigner.ViewModels
             }
         }
 
-        /// <summary>
-        /// Extracts name and description from a tree node based on its hardware layer.
-        /// </summary>
-        private (string name, string description, string version, string equipmentType, string hardwareKey) ExtractComponentInfo(TreeNodeDataDto node)
-        {
-            return node.HardwareLayer switch
-            {
-                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description, node.EquipmentData?.Version, node.EquipmentData?.EquipmentType, node.EquipmentData?.HardwareKey ?? node.EquipmentData?.Name),
-                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description, node.SystemData?.Version, null, node.SystemData?.HardwareKey ?? node.SystemData?.Name),
-                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description, node.UnitData?.Version, null, node.UnitData?.HardwareKey ?? node.UnitData?.Name),
-                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description, node.DeviceData?.Version, null, node.DeviceData?.HardwareKey ?? node.DeviceData?.Name),
-                _ => (null, null, null, null, null)
-            };
-        }
 
         /// <summary>
         /// Creates a ComponentItem with the given state.
         /// </summary>
-        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareLayer hardwareLayer, string equipmentType, string hardwareKey)
+        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareType hardwareType, string equipmentType, string hardwareKey)
         {
             return new ComponentItem
             {
                 Id = id,
-                HardwareLayer = hardwareLayer,
+                HardwareType = hardwareType,
                 Name = name,
                 Description = description,
                 Version = version ?? "undefined",
@@ -437,7 +423,7 @@ namespace EquipmentDesigner.ViewModels
             if (item == null || string.IsNullOrEmpty(item.Id))
                 return;
 
-            NavigationService.Instance.ViewComponent(item.Id, item.HardwareLayer);
+            NavigationService.Instance.ViewComponent(item.Id, item.HardwareType);
         }
 
         /// <summary>
@@ -518,7 +504,7 @@ namespace EquipmentDesigner.ViewModels
     public class ComponentItem
     {
         public string Id { get; set; }
-        public HardwareLayer HardwareLayer { get; set; }
+        public HardwareType HardwareType { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string Version { get; set; }

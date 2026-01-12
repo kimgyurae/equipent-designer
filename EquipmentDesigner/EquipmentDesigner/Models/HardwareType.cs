@@ -3,7 +3,7 @@ namespace EquipmentDesigner.Models
     /// <summary>
     /// Defines the starting point of the hardware definition workflow.
     /// </summary>
-    public enum HardwareLayer
+    public enum HardwareType
     {
         /// <summary>
         /// Start from Equipment definition (Equipment → System → Unit → Device).

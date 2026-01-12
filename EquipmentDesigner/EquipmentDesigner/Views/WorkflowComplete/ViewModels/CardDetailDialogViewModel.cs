@@ -82,12 +82,12 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Gets the hardware layer type.
         /// </summary>
-        public HardwareLayer HardwareLayer => _treeNodeData?.HardwareLayer ?? HardwareLayer.Equipment;
+        public HardwareType HardwareType => _treeNodeData?.HardwareType ?? HardwareType.Equipment;
 
         /// <summary>
         /// Gets the display text for the hardware layer.
         /// </summary>
-        public string HardwareLayerDisplayText => HardwareLayer.ToString();
+        public string HardwareTypeDisplayText => HardwareType.ToString();
 
         #endregion
 
@@ -136,12 +136,12 @@ namespace EquipmentDesigner.ViewModels
         {
             if (_treeNodeData == null) return string.Empty;
 
-            return HardwareLayer switch
+            return HardwareType switch
             {
-                HardwareLayer.Equipment => equipmentSelector(_treeNodeData.EquipmentData) ?? string.Empty,
-                HardwareLayer.System => systemSelector(_treeNodeData.SystemData) ?? string.Empty,
-                HardwareLayer.Unit => unitSelector(_treeNodeData.UnitData) ?? string.Empty,
-                HardwareLayer.Device => deviceSelector(_treeNodeData.DeviceData) ?? string.Empty,
+                HardwareType.Equipment => equipmentSelector(_treeNodeData.EquipmentData) ?? string.Empty,
+                HardwareType.System => systemSelector(_treeNodeData.SystemData) ?? string.Empty,
+                HardwareType.Unit => unitSelector(_treeNodeData.UnitData) ?? string.Empty,
+                HardwareType.Device => deviceSelector(_treeNodeData.DeviceData) ?? string.Empty,
                 _ => string.Empty
             };
         }
@@ -154,7 +154,7 @@ namespace EquipmentDesigner.ViewModels
         /// Gets the equipment type (Equipment layer only).
         /// </summary>
         public string EquipmentType =>
-            HardwareLayer == HardwareLayer.Equipment
+            HardwareType == HardwareType.Equipment
                 ? _treeNodeData?.EquipmentData?.EquipmentType ?? string.Empty
                 : string.Empty;
 
@@ -162,7 +162,7 @@ namespace EquipmentDesigner.ViewModels
         /// Gets the customer name (Equipment layer only).
         /// </summary>
         public string Customer =>
-            HardwareLayer == HardwareLayer.Equipment
+            HardwareType == HardwareType.Equipment
                 ? _treeNodeData?.EquipmentData?.Customer ?? string.Empty
                 : string.Empty;
 
@@ -170,7 +170,7 @@ namespace EquipmentDesigner.ViewModels
         /// Gets the process name (Equipment layer only).
         /// </summary>
         public string Process =>
-            HardwareLayer == HardwareLayer.Equipment
+            HardwareType == HardwareType.Equipment
                 ? _treeNodeData?.EquipmentData?.Process ?? string.Empty
                 : string.Empty;
 
@@ -178,7 +178,7 @@ namespace EquipmentDesigner.ViewModels
         /// Gets the list of attached documents (Equipment layer only).
         /// </summary>
         public IReadOnlyList<string> AttachedDocuments =>
-            HardwareLayer == HardwareLayer.Equipment
+            HardwareType == HardwareType.Equipment
                 ? _treeNodeData?.EquipmentData?.AttachedDocuments ?? new List<string>()
                 : new List<string>();
 
@@ -195,10 +195,10 @@ namespace EquipmentDesigner.ViewModels
             {
                 if (_treeNodeData == null) return string.Empty;
 
-                return HardwareLayer switch
+                return HardwareType switch
                 {
-                    HardwareLayer.System => _treeNodeData.SystemData?.ProcessInfo ?? string.Empty,
-                    HardwareLayer.Unit => _treeNodeData.UnitData?.ProcessInfo ?? string.Empty,
+                    HardwareType.System => _treeNodeData.SystemData?.ProcessInfo ?? string.Empty,
+                    HardwareType.Unit => _treeNodeData.UnitData?.ProcessInfo ?? string.Empty,
                     _ => string.Empty
                 };
             }
@@ -213,11 +213,11 @@ namespace EquipmentDesigner.ViewModels
             {
                 if (_treeNodeData == null) return new List<CommandDto>();
 
-                return HardwareLayer switch
+                return HardwareType switch
                 {
-                    HardwareLayer.System => _treeNodeData.SystemData?.Commands ?? new List<CommandDto>(),
-                    HardwareLayer.Unit => _treeNodeData.UnitData?.Commands ?? new List<CommandDto>(),
-                    HardwareLayer.Device => _treeNodeData.DeviceData?.Commands ?? new List<CommandDto>(),
+                    HardwareType.System => _treeNodeData.SystemData?.Commands ?? new List<CommandDto>(),
+                    HardwareType.Unit => _treeNodeData.UnitData?.Commands ?? new List<CommandDto>(),
+                    HardwareType.Device => _treeNodeData.DeviceData?.Commands ?? new List<CommandDto>(),
                     _ => new List<CommandDto>()
                 };
             }
@@ -231,7 +231,7 @@ namespace EquipmentDesigner.ViewModels
         /// Gets the device type (Device layer only).
         /// </summary>
         public string DeviceType =>
-            HardwareLayer == HardwareLayer.Device
+            HardwareType == HardwareType.Device
                 ? _treeNodeData?.DeviceData?.DeviceType ?? string.Empty
                 : string.Empty;
 
@@ -239,7 +239,7 @@ namespace EquipmentDesigner.ViewModels
         /// Gets the IO information list (Device layer only).
         /// </summary>
         public IReadOnlyList<IoInfoDto> IoInfo =>
-            HardwareLayer == HardwareLayer.Device
+            HardwareType == HardwareType.Device
                 ? _treeNodeData?.DeviceData?.IoInfo ?? new List<IoInfoDto>()
                 : new List<IoInfoDto>();
 
@@ -251,13 +251,13 @@ namespace EquipmentDesigner.ViewModels
         /// Gets whether equipment type should be displayed.
         /// </summary>
         public bool HasEquipmentType =>
-            HardwareLayer == HardwareLayer.Equipment && !string.IsNullOrEmpty(EquipmentType);
+            HardwareType == HardwareType.Equipment && !string.IsNullOrEmpty(EquipmentType);
 
         /// <summary>
         /// Gets whether customer should be displayed.
         /// </summary>
         public bool HasCustomer =>
-            HardwareLayer == HardwareLayer.Equipment && !string.IsNullOrEmpty(Customer);
+            HardwareType == HardwareType.Equipment && !string.IsNullOrEmpty(Customer);
 
         /// <summary>
         /// Gets whether process information should be displayed.
@@ -281,13 +281,13 @@ namespace EquipmentDesigner.ViewModels
         /// Gets whether IO info should be displayed.
         /// </summary>
         public bool HasIoInfo =>
-            HardwareLayer == HardwareLayer.Device && IoInfo.Count > 0;
+            HardwareType == HardwareType.Device && IoInfo.Count > 0;
 
         /// <summary>
         /// Gets whether device type should be displayed.
         /// </summary>
         public bool HasDeviceType =>
-            HardwareLayer == HardwareLayer.Device && !string.IsNullOrEmpty(DeviceType);
+            HardwareType == HardwareType.Device && !string.IsNullOrEmpty(DeviceType);
 
         #endregion
     }

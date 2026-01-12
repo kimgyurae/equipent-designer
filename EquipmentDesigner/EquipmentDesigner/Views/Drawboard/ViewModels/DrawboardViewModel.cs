@@ -191,6 +191,8 @@ namespace EquipmentDesigner.ViewModels
                 if (SetProperty(ref _zoomLevel, ZoomControlEngine.ClampZoomLevel(value)))
                 {
                     OnPropertyChanged(nameof(ZoomScale));
+                    OnPropertyChanged(nameof(ScreenUnlockButtonX));
+                    OnPropertyChanged(nameof(ScreenUnlockButtonY));
                 }
             }
         }
@@ -320,6 +322,30 @@ namespace EquipmentDesigner.ViewModels
         /// Shows only when a single locked element is selected (not multi-selection).
         /// </summary>
         public bool ShowUnlockButton => !IsMultiSelectionMode && SelectedElement?.IsLocked == true;
+
+        /// <summary>
+        /// Scroll offset X from View (updated via ScrollChanged event).
+        /// </summary>
+        public double ScrollOffsetX { get; set; }
+
+        /// <summary>
+        /// Scroll offset Y from View (updated via ScrollChanged event).
+        /// </summary>
+        public double ScrollOffsetY { get; set; }
+
+        /// <summary>
+        /// Gets the X position for the unlock button in screen coordinates (accounting for zoom and scroll).
+        /// </summary>
+        public double ScreenUnlockButtonX => SelectedElement != null 
+            ? SelectedElement.X * ZoomScale - ScrollOffsetX
+            : 0;
+
+        /// <summary>
+        /// Gets the Y position for the unlock button in screen coordinates (accounting for zoom and scroll).
+        /// </summary>
+        public double ScreenUnlockButtonY => SelectedElement != null 
+            ? (SelectedElement.Y - 4) * ZoomScale - ScrollOffsetY - 40
+            : 0;
 
         /// <summary>
         /// Gets the X position for the unlock button (centered above the selected element).

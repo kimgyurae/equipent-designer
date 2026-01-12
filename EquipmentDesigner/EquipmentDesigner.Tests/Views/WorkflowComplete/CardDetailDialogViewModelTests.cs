@@ -18,13 +18,12 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             return new TreeNodeDataDto
             {
                 Id = "equipment-1",
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 EquipmentData = new EquipmentDto
                 {
                     Id = "eq-001",
                     Name = "Test Equipment",
                     DisplayName = "Primary Reactor A1",
-                    Subname = "PRX-001",
                     Description = "Main production equipment",
                     EquipmentType = "Reactor",
                     Customer = "ACME Corporation",
@@ -43,7 +42,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             return new TreeNodeDataDto
             {
                 Id = "system-1",
-                HardwareLayer = HardwareLayer.System,
+                HardwareType = HardwareType.System,
                 SystemData = new SystemDto
                 {
                     Id = "sys-001",
@@ -64,7 +63,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             return new TreeNodeDataDto
             {
                 Id = "unit-1",
-                HardwareLayer = HardwareLayer.Unit,
+                HardwareType = HardwareType.Unit,
                 UnitData = new UnitDto
                 {
                     Id = "unit-001",
@@ -85,7 +84,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             return new TreeNodeDataDto
             {
                 Id = "device-1",
-                HardwareLayer = HardwareLayer.Device,
+                HardwareType = HardwareType.Device,
                 DeviceData = new DeviceDto
                 {
                     Id = "dev-001",
@@ -119,7 +118,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            viewModel.HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]
@@ -134,7 +133,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         }
 
         [Fact]
-        public void Constructor_ExtractsHardwareLayerFromTreeNodeDataDto()
+        public void Constructor_ExtractsHardwareTypeFromTreeNodeDataDto()
         {
             // Arrange
             var nodeDto = CreateSystemNodeDto();
@@ -143,7 +142,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayer.Should().Be(HardwareLayer.System);
+            viewModel.HardwareType.Should().Be(HardwareType.System);
         }
 
         [Fact]
@@ -154,7 +153,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
 
             // Assert
             viewModel.Name.Should().BeEmpty();
-            viewModel.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            viewModel.HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         #endregion
@@ -162,7 +161,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         #region Hardware Layer Detection
 
         [Fact]
-        public void HardwareLayer_ReturnsEquipment_WhenTreeNodeDataDtoHasEquipmentLayer()
+        public void HardwareType_ReturnsEquipment_WhenTreeNodeDataDtoHasEquipmentLayer()
         {
             // Arrange
             var nodeDto = CreateEquipmentNodeDto();
@@ -171,11 +170,11 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            viewModel.HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]
-        public void HardwareLayer_ReturnsSystem_WhenTreeNodeDataDtoHasSystemLayer()
+        public void HardwareType_ReturnsSystem_WhenTreeNodeDataDtoHasSystemLayer()
         {
             // Arrange
             var nodeDto = CreateSystemNodeDto();
@@ -184,11 +183,11 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayer.Should().Be(HardwareLayer.System);
+            viewModel.HardwareType.Should().Be(HardwareType.System);
         }
 
         [Fact]
-        public void HardwareLayer_ReturnsUnit_WhenTreeNodeDataDtoHasUnitLayer()
+        public void HardwareType_ReturnsUnit_WhenTreeNodeDataDtoHasUnitLayer()
         {
             // Arrange
             var nodeDto = CreateUnitNodeDto();
@@ -197,11 +196,11 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayer.Should().Be(HardwareLayer.Unit);
+            viewModel.HardwareType.Should().Be(HardwareType.Unit);
         }
 
         [Fact]
-        public void HardwareLayer_ReturnsDevice_WhenTreeNodeDataDtoHasDeviceLayer()
+        public void HardwareType_ReturnsDevice_WhenTreeNodeDataDtoHasDeviceLayer()
         {
             // Arrange
             var nodeDto = CreateDeviceNodeDto();
@@ -210,7 +209,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayer.Should().Be(HardwareLayer.Device);
+            viewModel.HardwareType.Should().Be(HardwareType.Device);
         }
 
         #endregion
@@ -302,7 +301,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var nodeDto = new TreeNodeDataDto
             {
                 Id = "empty-1",
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 EquipmentData = null
             };
 
@@ -739,7 +738,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         #region Display Text Properties
 
         [Fact]
-        public void HardwareLayerDisplayText_ReturnsLocalizedText_ForEquipmentLayer()
+        public void HardwareTypeDisplayText_ReturnsLocalizedText_ForEquipmentLayer()
         {
             // Arrange
             var nodeDto = CreateEquipmentNodeDto();
@@ -748,11 +747,11 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayerDisplayText.Should().Be("Equipment");
+            viewModel.HardwareTypeDisplayText.Should().Be("Equipment");
         }
 
         [Fact]
-        public void HardwareLayerDisplayText_ReturnsLocalizedText_ForSystemLayer()
+        public void HardwareTypeDisplayText_ReturnsLocalizedText_ForSystemLayer()
         {
             // Arrange
             var nodeDto = CreateSystemNodeDto();
@@ -761,7 +760,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new CardDetailDialogViewModel(nodeDto);
 
             // Assert
-            viewModel.HardwareLayerDisplayText.Should().Be("System");
+            viewModel.HardwareTypeDisplayText.Should().Be("System");
         }
 
         [Fact]

@@ -21,8 +21,8 @@
         ResizeMode="NoResize">
 
     <Window.Resources>
-        <converters:HardwareLayerToBackgroundConverter x:Key="HardwareLayerToBackgroundConverter"/>
-        <converters:HardwareLayerToForegroundConverter x:Key="HardwareLayerToForegroundConverter"/>
+        <converters:HardwareTypeToBackgroundConverter x:Key="HardwareTypeToBackgroundConverter"/>
+        <converters:HardwareTypeToForegroundConverter x:Key="HardwareTypeToForegroundConverter"/>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
         <!-- Read-only Field Style -->
@@ -88,9 +88,9 @@
 
                     <!-- Hardware Layer Chip + Title -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <controls:StateChip Text="{Binding HardwareLayerDisplayText}"
-                                            ChipBackground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToBackgroundConverter}}"
-                                            ChipForeground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToForegroundConverter}}"
+                        <controls:StateChip Text="{Binding HardwareTypeDisplayText}"
+                                            ChipBackground="{Binding HardwareType, Converter={StaticResource HardwareTypeToBackgroundConverter}}"
+                                            ChipForeground="{Binding HardwareType, Converter={StaticResource HardwareTypeToForegroundConverter}}"
                                             VerticalAlignment="Center"/>
 
                         <TextBlock Text="{Binding DialogTitle}"

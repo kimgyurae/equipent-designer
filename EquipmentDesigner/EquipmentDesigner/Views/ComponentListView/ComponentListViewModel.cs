@@ -86,16 +86,16 @@ namespace EquipmentDesigner.ViewModels
 
                     switch (session.HardwareType)
                     {
-                        case HardwareLayer.Equipment:
+                        case HardwareType.Equipment:
                             Equipments.Add(componentItem);
                             break;
-                        case HardwareLayer.System:
+                        case HardwareType.System:
                             Systems.Add(componentItem);
                             break;
-                        case HardwareLayer.Unit:
+                        case HardwareType.Unit:
                             Units.Add(componentItem);
                             break;
-                        case HardwareLayer.Device:
+                        case HardwareType.Device:
                             Devices.Add(componentItem);
                             break;
                     }
@@ -118,22 +118,22 @@ namespace EquipmentDesigner.ViewModels
 
         private (string name, string description) ExtractComponentInfo(TreeNodeDataDto node)
         {
-            return node.HardwareLayer switch
+            return node.HardwareType switch
             {
-                HardwareLayer.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description),
-                HardwareLayer.System => (node.SystemData?.Name, node.SystemData?.Description),
-                HardwareLayer.Unit => (node.UnitData?.Name, node.UnitData?.Description),
-                HardwareLayer.Device => (node.DeviceData?.Name, node.DeviceData?.Description),
+                HardwareType.Equipment => (node.EquipmentData?.Name, node.EquipmentData?.Description),
+                HardwareType.System => (node.SystemData?.Name, node.SystemData?.Description),
+                HardwareType.Unit => (node.UnitData?.Name, node.UnitData?.Description),
+                HardwareType.Device => (node.DeviceData?.Name, node.DeviceData?.Description),
                 _ => (null, null)
             };
         }
 
-        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareLayer hardwareLayer, string hardwareKey)
+        private ComponentItem CreateComponentItem(string id, string name, string description, string version, ComponentState state, HardwareType hardwareType, string hardwareKey)
         {
             return new ComponentItem
             {
                 Id = id,
-                HardwareLayer = hardwareLayer,
+                HardwareType = hardwareType,
                 Name = name,
                 Description = description,
                 Version = version ?? "undefined",
@@ -148,7 +148,7 @@ namespace EquipmentDesigner.ViewModels
             if (item == null || string.IsNullOrEmpty(item.Id))
                 return;
 
-            NavigationService.Instance.ViewComponent(item.Id, item.HardwareLayer);
+            NavigationService.Instance.ViewComponent(item.Id, item.HardwareType);
         }
 
         public void RefreshAsync()

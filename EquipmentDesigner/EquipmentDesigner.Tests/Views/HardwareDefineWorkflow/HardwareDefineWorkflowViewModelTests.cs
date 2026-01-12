@@ -19,29 +19,29 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void Constructor_WithEquipmentStartType_InitializesCorrectly()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
-            viewModel.StartType.Should().Be(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
+            viewModel.StartType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]
         public void Constructor_WithSystemStartType_InitializesCorrectly()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.System);
-            viewModel.StartType.Should().Be(HardwareLayer.System);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.System);
+            viewModel.StartType.Should().Be(HardwareType.System);
         }
 
         [Fact]
         public void Constructor_WithUnitStartType_InitializesCorrectly()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Unit);
-            viewModel.StartType.Should().Be(HardwareLayer.Unit);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Unit);
+            viewModel.StartType.Should().Be(HardwareType.Unit);
         }
 
         [Fact]
         public void Constructor_WithDeviceStartType_InitializesCorrectly()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
-            viewModel.StartType.Should().Be(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
+            viewModel.StartType.Should().Be(HardwareType.Device);
         }
 
         #endregion
@@ -51,7 +51,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void WorkflowSteps_WhenEquipmentStart_ReturnsEquipmentSystemUnitDevice()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             var stepNames = viewModel.WorkflowSteps.Select(s => s.StepName).ToList();
 
             stepNames.Should().HaveCount(4);
@@ -61,7 +61,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void WorkflowSteps_WhenSystemStart_ReturnsSystemUnitDevice()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.System);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.System);
             var stepNames = viewModel.WorkflowSteps.Select(s => s.StepName).ToList();
 
             stepNames.Should().HaveCount(3);
@@ -71,7 +71,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void WorkflowSteps_WhenUnitStart_ReturnsUnitDevice()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Unit);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Unit);
             var stepNames = viewModel.WorkflowSteps.Select(s => s.StepName).ToList();
 
             stepNames.Should().HaveCount(2);
@@ -81,7 +81,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void WorkflowSteps_WhenDeviceStart_ReturnsDeviceOnly()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             var stepNames = viewModel.WorkflowSteps.Select(s => s.StepName).ToList();
 
             stepNames.Should().HaveCount(1);
@@ -95,14 +95,14 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CurrentStepIndex_OnInitialization_IsZero()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.CurrentStepIndex.Should().Be(0);
         }
 
         [Fact]
         public void CurrentStep_OnInitialization_ReturnsFirstStep()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.CurrentStep.StepName.Should().Be("Equipment");
         }
 
@@ -113,7 +113,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void GoToNextStepCommand_WhenExecuted_AdvancesCurrentStepIndexByOne()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment"; // Make current step valid
 
             viewModel.GoToNextStepCommand.Execute(null);
@@ -124,7 +124,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void GoToNextStepCommand_CanExecute_WhenAtLastStep_ReturnsFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
 
             viewModel.GoToNextStepCommand.CanExecute(null).Should().BeFalse();
@@ -133,7 +133,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void GoToPreviousStepCommand_WhenExecuted_DecreasesCurrentStepIndexByOne()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null); // Move to step 1
 
@@ -145,7 +145,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void GoToPreviousStepCommand_CanExecute_WhenAtFirstStep_ReturnsFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
 
             viewModel.GoToPreviousStepCommand.CanExecute(null).Should().BeFalse();
         }
@@ -153,7 +153,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void ExitToDashboardCommand_CanExecute_AlwaysReturnsTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.ExitToDashboardCommand.CanExecute(null).Should().BeTrue();
         }
 
@@ -164,21 +164,21 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsFirstStep_WhenCurrentStepIndexIsZero_ReturnsTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.IsFirstStep.Should().BeTrue();
         }
 
         [Fact]
         public void IsLastStep_WhenCurrentStepIndexEqualsLastStepIndex_ReturnsTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsLastStep.Should().BeTrue();
         }
 
         [Fact]
         public void IsFirstStep_WhenNavigatedToSecondStep_ReturnsFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
 
@@ -192,7 +192,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CurrentStepIndex_WhenNavigating_RaisesPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             var raised = false;
             viewModel.PropertyChanged += (s, e) =>
@@ -209,7 +209,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CurrentStep_WhenNavigating_RaisesPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             var raised = false;
             viewModel.PropertyChanged += (s, e) =>
@@ -226,7 +226,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsFirstStep_WhenNavigating_RaisesPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             var raised = false;
             viewModel.PropertyChanged += (s, e) =>
@@ -243,7 +243,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsLastStep_WhenNavigating_RaisesPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             var raised = false;
             viewModel.PropertyChanged += (s, e) =>
@@ -265,7 +265,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void WorkflowSteps_HaveCorrectStepNumbers()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
 
             // Equipment workflow has 4 steps: Equipment(1), System(2), Unit(3), Device(4)
             viewModel.WorkflowSteps[0].StepNumber.Should().Be(1);
@@ -281,7 +281,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CurrentStep_IsActive_WhenIsCurrentStep()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.WorkflowSteps[0].IsActive.Should().BeTrue();
             viewModel.WorkflowSteps[1].IsActive.Should().BeFalse();
         }
@@ -289,7 +289,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void PreviousSteps_AreCompleted_WhenNavigatedPast()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null); // Move to step 1 (System)
 
@@ -305,14 +305,14 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStepCommand_OnInitialization_IsNotNull()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.NavigateToStepCommand.Should().NotBeNull();
         }
 
         [Fact]
         public void NavigateToStepCommand_CanExecute_WithNullParameter_ReturnsFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.NavigateToStepCommand.CanExecute(null).Should().BeFalse();
         }
 
@@ -323,7 +323,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenStepIsCompleted_ChangesCurrentStepIndexToTargetStep()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null); // Move to step 1 (System)
             viewModel.SystemViewModel.Name = "TestSystem";
@@ -337,7 +337,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenStepIsCompleted_UpdatesIsActiveCorrectly()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null); // Move to step 1
 
@@ -350,7 +350,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenStepIsCompleted_PreservesCompletedStatesForPreviousSteps()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             viewModel.SystemViewModel.Name = "TestSystem";
@@ -366,7 +366,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenNavigatingBackTwoSteps_SetsCorrectCurrentStepIndex()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             viewModel.SystemViewModel.Name = "TestSystem";
@@ -386,7 +386,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenStepIsActive_CurrentStepIndexRemainsUnchanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             var initialIndex = viewModel.CurrentStepIndex;
 
             viewModel.NavigateToStepCommand.Execute(viewModel.WorkflowSteps[0]); // Navigate to current step
@@ -397,7 +397,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenStepIsActive_NoPropertyChangedEventFired()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             var propertyChangedFired = false;
             viewModel.PropertyChanged += (s, e) =>
             {
@@ -419,7 +419,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CanNavigateTo_WhenStepIsCompleted_ReturnsTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null); // Move to step 1
 
@@ -429,7 +429,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CanNavigateTo_WhenStepIsActive_ReturnsTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
 
             viewModel.WorkflowSteps[0].CanNavigateTo.Should().BeTrue();
         }
@@ -437,7 +437,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CanNavigateTo_WhenStepBecomesCompleted_UpdatesToTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.WorkflowSteps[0].CanNavigateTo.Should().BeTrue(); // Active
 
             viewModel.EquipmentViewModel.Name = "TestEquipment";
@@ -455,7 +455,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_AfterBackwardNavigation_StepsBeforeTargetRemainCompleted()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             viewModel.SystemViewModel.Name = "TestSystem";
@@ -475,7 +475,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenSuccessful_RaisesCurrentStepIndexPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             var raised = false;
@@ -493,7 +493,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenSuccessful_RaisesCurrentStepPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             var raised = false;
@@ -511,7 +511,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenSuccessful_RaisesIsFirstStepPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             var raised = false;
@@ -529,7 +529,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenSuccessful_RaisesIsLastStepPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             var raised = false;
@@ -551,7 +551,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WithSingleStepWorkflow_CannotNavigateAnywhere()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
 
             // Only one step, already active - CanExecute should be true but navigation does nothing
             // We can verify that the event exists and is connected
@@ -562,7 +562,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WhenAtLastStep_CanNavigateBackToAnyCompletedStep()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.GoToNextStepCommand.Execute(null);
             viewModel.SystemViewModel.Name = "TestSystem";
@@ -578,7 +578,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void NavigateToStep_WithInvalidStepNotInWorkflow_DoesNothing()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             var externalStep = new WorkflowStepViewModel(99, "External");
             var initialIndex = viewModel.CurrentStepIndex;
 
@@ -597,7 +597,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
@@ -614,7 +614,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
             savedWorkflow.TreeNodes.Should().NotBeEmpty();
-            savedWorkflow.HardwareType.Should().Be(HardwareLayer.Equipment);
+            savedWorkflow.HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]
@@ -623,7 +623,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.System);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.System);
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
             viewModel.DeviceViewModel.Name = "TestDevice";
@@ -638,7 +638,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
-            savedWorkflow.HardwareType.Should().Be(HardwareLayer.System);
+            savedWorkflow.HardwareType.Should().Be(HardwareType.System);
         }
 
         [Fact]
@@ -647,7 +647,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
 
             // Act
@@ -660,7 +660,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
 
             var savedWorkflow = workflowData.WorkflowSessions.FirstOrDefault(w => w.Id == viewModel.WorkflowId);
             savedWorkflow.Should().NotBeNull();
-            savedWorkflow.HardwareType.Should().Be(HardwareLayer.Device);
+            savedWorkflow.HardwareType.Should().Be(HardwareType.Device);
         }
 
         [Fact]
@@ -669,7 +669,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
@@ -694,7 +694,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
@@ -719,7 +719,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
@@ -747,7 +747,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             var beforeComplete = DateTime.Now;
 
@@ -771,14 +771,14 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsReadOnly_OnNewWorkflow_DefaultsToFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsReadOnly.Should().BeFalse();
         }
 
         [Fact]
         public void IsReadOnly_CanBeSetToTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsReadOnly = true;
             viewModel.IsReadOnly.Should().BeTrue();
         }
@@ -786,14 +786,14 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void EnableEditCommand_IsNotNull()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableEditCommand.Should().NotBeNull();
         }
 
         [Fact]
         public void EnableEditCommand_WhenExecuted_SetsIsReadOnlyToFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsReadOnly = true;
             
             viewModel.EnableEditCommand.Execute(null);
@@ -804,7 +804,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsEditButtonVisible_WhenIsReadOnlyTrue_ReturnsTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsReadOnly = true;
             viewModel.IsEditButtonVisible.Should().BeTrue();
         }
@@ -812,7 +812,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsEditButtonVisible_WhenIsReadOnlyFalse_ReturnsFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsReadOnly = false;
             viewModel.IsEditButtonVisible.Should().BeFalse();
         }
@@ -820,7 +820,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsReadOnly_WhenChanged_RaisesPropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             var raised = false;
             viewModel.PropertyChanged += (s, e) =>
             {
@@ -836,7 +836,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void IsReadOnly_WhenChanged_RaisesIsEditButtonVisiblePropertyChanged()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             var raised = false;
             viewModel.PropertyChanged += (s, e) =>
             {
@@ -856,14 +856,14 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CompleteWorkflowCommand_OnInitialization_IsNotNull()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.CompleteWorkflowCommand.Should().NotBeNull();
         }
 
         [Fact]
         public void CanCompleteWorkflow_WhenIsReadOnlyTrue_ReturnsFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.IsReadOnly = true;
             
@@ -876,7 +876,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Complete the workflow first
@@ -889,7 +889,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CanCompleteWorkflow_WhenRequiredFieldsNotFilled_ReturnsFalse()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             // Don't set Name - required field
             
             viewModel.CanCompleteWorkflow.Should().BeFalse();
@@ -898,7 +898,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void CanCompleteWorkflow_WhenAllConditionsMet_ReturnsTrue()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.IsReadOnly = false;
             
@@ -911,7 +911,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Act
@@ -928,7 +928,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Act
@@ -945,7 +945,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.CompleteWorkflowCommand.Execute(null);
             await Task.Delay(1000);
@@ -965,7 +965,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         [Fact]
         public void UploadToServerCommand_OnInitialization_IsNotNull()
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.UploadToServerCommand.Should().NotBeNull();
         }
 
@@ -975,7 +975,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
@@ -994,7 +994,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var uploadedData = await uploadedRepo.LoadAsync();
             
             uploadedData.WorkflowSessions.Should().HaveCount(1);
-            uploadedData.WorkflowSessions[0].HardwareType.Should().Be(HardwareLayer.Equipment);
+            uploadedData.WorkflowSessions[0].HardwareType.Should().Be(HardwareType.Equipment);
             uploadedData.WorkflowSessions[0].TreeNodes.Should().NotBeNullOrEmpty();
         }
 
@@ -1004,7 +1004,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Complete workflow first
@@ -1029,7 +1029,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
@@ -1050,7 +1050,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             var session = uploadedData.WorkflowSessions[0];
             session.TreeNodes.Should().NotBeNullOrEmpty();
             var rootNode = session.TreeNodes[0];
-            rootNode.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            rootNode.HardwareType.Should().Be(HardwareType.Equipment);
             rootNode.EquipmentData.Should().NotBeNull();
             rootNode.EquipmentData.Name.Should().Be("TestEquipment");
         }
@@ -1061,16 +1061,16 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Pre-populate workflow repository
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Add(new WorkflowSessionDto
+            workflowData.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = viewModel.WorkflowId,
-                HardwareType = HardwareLayer.Device,
+                HardwareType = HardwareType.Device,
                 State = ComponentState.Ready
             });
             await workflowRepo.SaveAsync(workflowData);
@@ -1100,16 +1100,16 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Pre-populate workflow repository with a session
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
-            workflowData.WorkflowSessions.Add(new WorkflowSessionDto
+            workflowData.WorkflowSessions.Add(new HardwareDefinition
             {
                 Id = viewModel.WorkflowId,
-                HardwareType = HardwareLayer.Device,
+                HardwareType = HardwareType.Device,
                 State = ComponentState.Ready
             });
             await workflowRepo.SaveAsync(workflowData);
@@ -1137,7 +1137,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             
             // Act - ExitToDashboard triggers SaveWorkflowStateAsync
@@ -1153,12 +1153,12 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         }
 
         [Fact]
-        public async Task SaveWorkflowStateAsync_CreatesWorkflowSessionDtoInIncompleteWorkflowDataStore()
+        public async Task SaveWorkflowStateAsync_CreatesHardwareDefinitionInIncompleteWorkflowDataStore()
         {
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             
             // Act
@@ -1171,7 +1171,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             
             var session = workflowData.WorkflowSessions.FirstOrDefault(s => s.Id == viewModel.WorkflowId);
             session.Should().NotBeNull();
-            session.HardwareType.Should().Be(HardwareLayer.Equipment);
+            session.HardwareType.Should().Be(HardwareType.Equipment);
             session.State.Should().Be(ComponentState.Draft);
         }
 
@@ -1181,7 +1181,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EquipmentViewModel.Name = "TestEquipment";
             viewModel.SystemViewModel.Name = "TestSystem";
             viewModel.UnitViewModel.Name = "TestUnit";
@@ -1202,7 +1202,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Verify Equipment is at root
             var equipmentNode = session.TreeNodes.FirstOrDefault();
             equipmentNode.Should().NotBeNull();
-            equipmentNode.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            equipmentNode.HardwareType.Should().Be(HardwareType.Equipment);
             equipmentNode.EquipmentData.Should().NotBeNull();
             equipmentNode.EquipmentData.Name.Should().Be("TestEquipment");
         }
@@ -1213,7 +1213,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "InitialName";
             
             // First save
@@ -1242,7 +1242,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice"; // Required field filled
             
             // Act
@@ -1263,7 +1263,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             // Don't set Name - required field not filled
             
             // Act
@@ -1284,7 +1284,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             var beforeSave = DateTime.Now;
             

@@ -94,12 +94,12 @@
                 </StackPanel>
 
                 <!-- Display Name -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="{lex:Loc Key=Equipment_DisplayName}"
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="{lex:Loc Key=Equipment_DisplayName}"
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              Height="{StaticResource Size.Input.Height.MD}"
                              Padding="{StaticResource Spacing.Padding.Input}"
                              Background="{StaticResource Brush.Input.Background}"
@@ -107,25 +107,9 @@
                              VerticalContentAlignment="Center"
                              IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
                              IsHitTestVisible="{Binding IsEditable}"/>
-                </StackPanel>
+                    </StackPanel>
 
-                <!-- Subname -->
-                <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="{lex:Loc Key=Equipment_Subname}"
-                               Style="{StaticResource Typography.Label}"
-                               Foreground="{StaticResource Brush.Text.Primary}"
-                               Margin="0,0,0,6"/>
-                    <TextBox Text="{Binding Subname, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Height="{StaticResource Size.Input.Height.MD}"
-                             Padding="{StaticResource Spacing.Padding.Input}"
-                             Background="{StaticResource Brush.Input.Background}"
-                             BorderBrush="{StaticResource Brush.Input.Border}"
-                             VerticalContentAlignment="Center"
-                             IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBoolConverter}}"
-                             IsHitTestVisible="{Binding IsEditable}"/>
-                </StackPanel>
-
-                <!-- Description -->
+                    <!-- Description -->
                 <StackPanel Margin="0,0,0,16">
                     <TextBlock Text="{lex:Loc Key=Equipment_DescriptionLabel}"
                                Style="{StaticResource Typography.Label}"

@@ -25,7 +25,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange - API-level test: User edits a field and expects data to be saved
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
 
             // Act - User changes a property (simulates typing in a field)
@@ -51,7 +51,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
 
             // Act - Multiple rapid changes (simulates user typing)
@@ -86,7 +86,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void OnDataChanged_WhenCalled_SetsIsDirtyToTrue()
         {
             // Arrange - Unit test isolating the root cause
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
 
             // Act - Directly call OnDataChanged (this is what child ViewModel changes trigger)
@@ -105,7 +105,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DeviceViewModelNameChange_TriggersOnNodeDataPropertyChanged()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             var onDataChangedCalled = false;
 
             // Subscribe to CanCompleteWorkflow which changes when OnDataChanged is called
@@ -133,7 +133,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void EnableAutosave_InitializesTimerWith15SecondInterval()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
 
             // Act
             viewModel.EnableAutosave();
@@ -149,7 +149,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void EnableAutosave_WhenAlreadyEnabled_DoesNothing()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
             var firstEnableState = viewModel.IsAutosaveEnabled;
 
@@ -167,7 +167,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DisableAutosave_StopsAutosaveTimer()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
 
             // Act
@@ -187,7 +187,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.EnableAutosave();
 
@@ -210,7 +210,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
 
             // Act - Change every second (less than 2s debounce), should not save yet
@@ -249,7 +249,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsReadOnly = true;
             viewModel.EnableAutosave();
 
@@ -271,7 +271,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void RestartDebounceTimer_WhenIsReadOnlyTrue_DoesNothing()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.IsReadOnly = true;
             viewModel.EnableAutosave();
 
@@ -293,7 +293,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DisableAutosave_StopsBothAutosaveAndDebounceTimers()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
             viewModel.OnDataChanged(); // Start debounce timer
 
@@ -308,7 +308,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DisableAutosave_WhenNotEnabled_DoesNothing()
         {
             // Arrange
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             // Don't enable autosave
 
             // Act - Should not throw
@@ -328,7 +328,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.EnableAutosave();
 
@@ -358,7 +358,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.EnableAutosave();
             var beforeSave = DateTime.Now;
@@ -388,7 +388,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Equipment);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
             viewModel.EnableAutosave();
 
             // Act
@@ -413,7 +413,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             // Arrange
             ServiceLocator.Reset();
             ServiceLocator.ConfigureForTesting();
-            var viewModel = new HardwareDefineWorkflowViewModel(HardwareLayer.Device);
+            var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Device);
             viewModel.EnableAutosave();
             viewModel.DeviceViewModel.Name = "TestDevice";
             viewModel.OnDataChanged();

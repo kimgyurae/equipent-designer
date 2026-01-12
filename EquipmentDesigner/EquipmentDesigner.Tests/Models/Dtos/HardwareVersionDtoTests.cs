@@ -188,13 +188,13 @@ namespace EquipmentDesigner.Tests.Models.Dtos
         }
 
         [Fact]
-        public void HardwareVersionHistoryDto_ShouldHaveHardwareLayerProperty()
+        public void HardwareVersionHistoryDto_ShouldHaveHardwareTypeProperty()
         {
             // Arrange & Act
-            var dto = new HardwareVersionHistoryDto { HardwareLayer = HardwareLayer.Equipment };
+            var dto = new HardwareVersionHistoryDto { HardwareType = HardwareType.Equipment };
 
             // Assert
-            dto.HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            dto.HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]

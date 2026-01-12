@@ -23,6 +23,6 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Workflow sessions list.
         /// </summary>
-        public List<WorkflowSessionDto> WorkflowSessions { get; set; } = new List<WorkflowSessionDto>();
+        public List<HardwareDefinition> WorkflowSessions { get; set; } = new List<HardwareDefinition>();
     }
 }

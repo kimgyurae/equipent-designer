@@ -49,7 +49,7 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// Navigate to the Hardware Define Workflow with the specified start type.
         /// </summary>
-        public void NavigateToHardwareDefineWorkflow(HardwareLayer startType)
+        public void NavigateToHardwareDefineWorkflow(HardwareType startType)
         {
             NavigationRequested?.Invoke(new NavigationTarget
             {
@@ -83,14 +83,14 @@ namespace EquipmentDesigner.Services
         /// View an existing component in read-only mode.
         /// </summary>
         /// <param name="componentId">The unique identifier of the component to view.</param>
-        /// <param name="hardwareLayer">The type of the component.</param>
-        public void ViewComponent(string componentId, HardwareLayer hardwareLayer)
+        /// <param name="hardwareType">The type of the component.</param>
+        public void ViewComponent(string componentId, HardwareType hardwareType)
         {
             ViewComponentRequested?.Invoke(new NavigationTarget
             {
                 TargetType = NavigationTargetType.HardwareDefineWorkflow,
                 ComponentId = componentId,
-                HardwareLayer = hardwareLayer,
+                HardwareType = hardwareType,
                 IsReadOnly = true
             });
         }
@@ -99,7 +99,7 @@ namespace EquipmentDesigner.Services
         /// Navigate to the workflow complete view.
         /// </summary>
         /// <param name="sessionDto">The workflow session DTO containing the completed workflow data.</param>
-        public void NavigateToWorkflowComplete(WorkflowSessionDto sessionDto)
+        public void NavigateToWorkflowComplete(HardwareDefinition sessionDto)
         {
             WorkflowCompleteRequested?.Invoke(new NavigationTarget
             {
@@ -156,7 +156,7 @@ namespace EquipmentDesigner.Services
     public class NavigationTarget
     {
         public NavigationTargetType TargetType { get; set; }
-        public HardwareLayer StartType { get; set; }
+        public HardwareType StartType { get; set; }
         
         /// <summary>
         /// Workflow ID for resume scenarios (null for new workflows).
@@ -171,7 +171,7 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// Component type for view scenarios.
         /// </summary>
-        public HardwareLayer HardwareLayer { get; set; }
+        public HardwareType HardwareType { get; set; }
 
         /// <summary>
         /// Whether to open in read-only mode.
@@ -181,7 +181,7 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// Workflow session data for workflow complete scenarios.
         /// </summary>
-        public WorkflowSessionDto SessionDto { get; set; }
+        public HardwareDefinition SessionDto { get; set; }
     }
 
     /// <summary>

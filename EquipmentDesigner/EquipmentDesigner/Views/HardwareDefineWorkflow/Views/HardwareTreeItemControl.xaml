@@ -19,8 +19,8 @@
         <!-- Chevron Path Data -->
         <PathGeometry x:Key="ChevronDownPath" Figures="M6 9l6 6 6-6"/>
         <PathGeometry x:Key="ChevronRightPath" Figures="M9 18l6-6-6-6"/>
-        <converters:HardwareLayerToBackgroundConverter x:Key="HardwareLayerToBackgroundConverter"/>
-        <converters:HardwareLayerToForegroundConverter x:Key="HardwareLayerToForegroundConverter"/>
+        <converters:HardwareTypeToBackgroundConverter x:Key="HardwareTypeToBackgroundConverter"/>
+        <converters:HardwareTypeToForegroundConverter x:Key="HardwareTypeToForegroundConverter"/>
     </UserControl.Resources>
 
     <StackPanel>
@@ -99,9 +99,9 @@
 
                 <!-- Hardware Layer Type Chip -->
                 <controls:StateChip Grid.Column="1"
-                                    Text="{Binding HardwareLayer}"
-                                    ChipBackground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToBackgroundConverter}}"
-                                    ChipForeground="{Binding HardwareLayer, Converter={StaticResource HardwareLayerToForegroundConverter}}"
+                                    Text="{Binding HardwareType}"
+                                    ChipBackground="{Binding HardwareType, Converter={StaticResource HardwareTypeToBackgroundConverter}}"
+                                    ChipForeground="{Binding HardwareType, Converter={StaticResource HardwareTypeToForegroundConverter}}"
                                     VerticalAlignment="Center"
                                     Margin="4,0,0,0"/>
 

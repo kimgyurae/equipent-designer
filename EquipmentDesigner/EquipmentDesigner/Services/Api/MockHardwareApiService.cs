@@ -21,7 +21,7 @@ namespace EquipmentDesigner.Services
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
-        public async Task<ApiResponse<List<WorkflowSessionDto>>> GetAllSessionsAsync()
+        public async Task<ApiResponse<List<HardwareDefinition>>> GetAllSessionsAsync()
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -30,17 +30,17 @@ namespace EquipmentDesigner.Services
             {
                 var dataStore = await _repository.LoadAsync();
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<List<WorkflowSessionDto>>.Ok(
-                    dataStore.WorkflowSessions?.ToList() ?? new List<WorkflowSessionDto>());
+                return ApiResponse<List<HardwareDefinition>>.Ok(
+                    dataStore.WorkflowSessions?.ToList() ?? new List<HardwareDefinition>());
             }
             catch (Exception ex)
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<List<WorkflowSessionDto>>.Fail(ex.Message, "LOAD_ERROR");
+                return ApiResponse<List<HardwareDefinition>>.Fail(ex.Message, "LOAD_ERROR");
             }
         }
 
-        public async Task<ApiResponse<List<WorkflowSessionDto>>> GetSessionsByStateAsync(params ComponentState[] states)
+        public async Task<ApiResponse<List<HardwareDefinition>>> GetSessionsByStateAsync(params ComponentState[] states)
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -50,18 +50,18 @@ namespace EquipmentDesigner.Services
                 var dataStore = await _repository.LoadAsync();
                 var filtered = dataStore.WorkflowSessions?
                     .Where(s => states.Contains(s.State))
-                    .ToList() ?? new List<WorkflowSessionDto>();
+                    .ToList() ?? new List<HardwareDefinition>();
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<List<WorkflowSessionDto>>.Ok(filtered);
+                return ApiResponse<List<HardwareDefinition>>.Ok(filtered);
             }
             catch (Exception ex)
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<List<WorkflowSessionDto>>.Fail(ex.Message, "LOAD_ERROR");
+                return ApiResponse<List<HardwareDefinition>>.Fail(ex.Message, "LOAD_ERROR");
             }
         }
 
-        public async Task<ApiResponse<WorkflowSessionDto>> GetSessionByIdAsync(string workflowId)
+        public async Task<ApiResponse<HardwareDefinition>> GetSessionByIdAsync(string workflowId)
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -69,7 +69,7 @@ namespace EquipmentDesigner.Services
             if (string.IsNullOrEmpty(workflowId))
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Fail("Workflow ID is required", "INVALID_ID");
+                return ApiResponse<HardwareDefinition>.Fail("Workflow ID is required", "INVALID_ID");
             }
 
             try
@@ -80,20 +80,20 @@ namespace EquipmentDesigner.Services
                 if (session == null)
                 {
                     LoadingSpinnerService.Instance.Hide();
-                    return ApiResponse<WorkflowSessionDto>.Fail(
+                    return ApiResponse<HardwareDefinition>.Fail(
                         $"Session with ID '{workflowId}' not found", "NOT_FOUND");
                 }
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Ok(session);
+                return ApiResponse<HardwareDefinition>.Ok(session);
             }
             catch (Exception ex)
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Fail(ex.Message, "LOAD_ERROR");
+                return ApiResponse<HardwareDefinition>.Fail(ex.Message, "LOAD_ERROR");
             }
         }
 
-        public async Task<ApiResponse<WorkflowSessionDto>> SaveSessionAsync(WorkflowSessionDto session)
+        public async Task<ApiResponse<HardwareDefinition>> SaveSessionAsync(HardwareDefinition session)
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -101,13 +101,13 @@ namespace EquipmentDesigner.Services
             if (session == null)
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Fail("Session is required", "INVALID_SESSION");
+                return ApiResponse<HardwareDefinition>.Fail("Session is required", "INVALID_SESSION");
             }
 
             if (string.IsNullOrEmpty(session.Id))
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Fail("Workflow ID is required", "INVALID_ID");
+                return ApiResponse<HardwareDefinition>.Fail("Workflow ID is required", "INVALID_ID");
             }
 
             try
@@ -127,16 +127,16 @@ namespace EquipmentDesigner.Services
                 session.LastModifiedAt = DateTime.Now;
                 await _repository.SaveAsync(dataStore);
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Ok(session);
+                return ApiResponse<HardwareDefinition>.Ok(session);
             }
             catch (Exception ex)
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Fail(ex.Message, "SAVE_ERROR");
+                return ApiResponse<HardwareDefinition>.Fail(ex.Message, "SAVE_ERROR");
             }
         }
 
-        public async Task<ApiResponse<WorkflowSessionDto>> UpdateSessionStateAsync(string workflowId, ComponentState newState)
+        public async Task<ApiResponse<HardwareDefinition>> UpdateSessionStateAsync(string workflowId, ComponentState newState)
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -144,7 +144,7 @@ namespace EquipmentDesigner.Services
             if (string.IsNullOrEmpty(workflowId))
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Fail("Workflow ID is required", "INVALID_ID");
+                return ApiResponse<HardwareDefinition>.Fail("Workflow ID is required", "INVALID_ID");
             }
 
             try
@@ -155,7 +155,7 @@ namespace EquipmentDesigner.Services
                 if (session == null)
                 {
                     LoadingSpinnerService.Instance.Hide();
-                    return ApiResponse<WorkflowSessionDto>.Fail(
+                    return ApiResponse<HardwareDefinition>.Fail(
                         $"Session with ID '{workflowId}' not found", "NOT_FOUND");
                 }
 
@@ -163,12 +163,12 @@ namespace EquipmentDesigner.Services
                 session.LastModifiedAt = DateTime.Now;
                 await _repository.SaveAsync(dataStore);
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Ok(session);
+                return ApiResponse<HardwareDefinition>.Ok(session);
             }
             catch (Exception ex)
             {
                 LoadingSpinnerService.Instance.Hide();
-                return ApiResponse<WorkflowSessionDto>.Fail(ex.Message, "UPDATE_ERROR");
+                return ApiResponse<HardwareDefinition>.Fail(ex.Message, "UPDATE_ERROR");
             }
         }
 
@@ -208,7 +208,7 @@ namespace EquipmentDesigner.Services
 
         public async Task<ApiResponse<HardwareVersionHistoryDto>> GetVersionHistoryAsync(
             string hardwareKey,
-            HardwareLayer hardwareLayer)
+            HardwareType hardwareType)
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -217,12 +217,12 @@ namespace EquipmentDesigner.Services
             {
                 var dataStore = await _repository.LoadAsync();
 
-                // 같은 HardwareKey + HardwareLayer를 가진 모든 세션 필터링
+                // 같은 HardwareKey + HardwareType를 가진 모든 세션 필터링
                 var matchingSessions = dataStore.WorkflowSessions?
-                    .Where(s => s.HardwareType == hardwareLayer)
+                    .Where(s => s.HardwareType == hardwareType)
                     .Where(s => GetEffectiveHardwareKey(s) == hardwareKey)
                     .OrderByDescending(s => ParseVersion(GetVersion(s)))
-                    .ToList() ?? new List<WorkflowSessionDto>();
+                    .ToList() ?? new List<HardwareDefinition>();
 
                 if (!matchingSessions.Any())
                 {
@@ -234,7 +234,7 @@ namespace EquipmentDesigner.Services
                 var history = new HardwareVersionHistoryDto
                 {
                     HardwareKey = hardwareKey,
-                    HardwareLayer = hardwareLayer,
+                    HardwareType = hardwareType,
                     DisplayName = GetDisplayName(matchingSessions.First()),
                     TotalVersionCount = matchingSessions.Count,
                     Versions = matchingSessions.Select((s, index) => new HardwareVersionSummaryDto
@@ -258,7 +258,7 @@ namespace EquipmentDesigner.Services
             }
         }
 
-        public async Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareLayer hardwareLayer)
+        public async Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareType hardwareType)
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -268,7 +268,7 @@ namespace EquipmentDesigner.Services
                 var dataStore = await _repository.LoadAsync();
 
                 var distinctKeys = dataStore.WorkflowSessions?
-                    .Where(s => s.HardwareType == hardwareLayer)
+                    .Where(s => s.HardwareType == hardwareType)
                     .Select(s => GetEffectiveHardwareKey(s))
                     .Where(key => !string.IsNullOrEmpty(key))
                     .Distinct()
@@ -289,17 +289,17 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// 세션에서 유효한 HardwareKey를 가져옵니다. null인 경우 Name을 반환합니다.
         /// </summary>
-        private string GetEffectiveHardwareKey(WorkflowSessionDto session)
+        private string GetEffectiveHardwareKey(HardwareDefinition session)
         {
             var rootNode = session.TreeNodes?.FirstOrDefault();
             if (rootNode == null) return null;
 
             return session.HardwareType switch
             {
-                HardwareLayer.Equipment => rootNode.EquipmentData?.HardwareKey ?? rootNode.EquipmentData?.Name,
-                HardwareLayer.System => rootNode.SystemData?.HardwareKey ?? rootNode.SystemData?.Name,
-                HardwareLayer.Unit => rootNode.UnitData?.HardwareKey ?? rootNode.UnitData?.Name,
-                HardwareLayer.Device => rootNode.DeviceData?.HardwareKey ?? rootNode.DeviceData?.Name,
+                HardwareType.Equipment => rootNode.EquipmentData?.HardwareKey ?? rootNode.EquipmentData?.Name,
+                HardwareType.System => rootNode.SystemData?.HardwareKey ?? rootNode.SystemData?.Name,
+                HardwareType.Unit => rootNode.UnitData?.HardwareKey ?? rootNode.UnitData?.Name,
+                HardwareType.Device => rootNode.DeviceData?.HardwareKey ?? rootNode.DeviceData?.Name,
                 _ => null
             };
         }
@@ -307,17 +307,17 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// 세션에서 버전 정보를 가져옵니다.
         /// </summary>
-        private string GetVersion(WorkflowSessionDto session)
+        private string GetVersion(HardwareDefinition session)
         {
             var rootNode = session.TreeNodes?.FirstOrDefault();
             if (rootNode == null) return "v0.0.0";
 
             return session.HardwareType switch
             {
-                HardwareLayer.Equipment => rootNode.EquipmentData?.Version ?? "v0.0.0",
-                HardwareLayer.System => rootNode.SystemData?.Version ?? "v0.0.0",
-                HardwareLayer.Unit => rootNode.UnitData?.Version ?? "v0.0.0",
-                HardwareLayer.Device => rootNode.DeviceData?.Version ?? "v0.0.0",
+                HardwareType.Equipment => rootNode.EquipmentData?.Version ?? "v0.0.0",
+                HardwareType.System => rootNode.SystemData?.Version ?? "v0.0.0",
+                HardwareType.Unit => rootNode.UnitData?.Version ?? "v0.0.0",
+                HardwareType.Device => rootNode.DeviceData?.Version ?? "v0.0.0",
                 _ => "v0.0.0"
             };
         }
@@ -325,17 +325,17 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// 세션에서 표시용 이름을 가져옵니다.
         /// </summary>
-        private string GetDisplayName(WorkflowSessionDto session)
+        private string GetDisplayName(HardwareDefinition session)
         {
             var rootNode = session.TreeNodes?.FirstOrDefault();
             if (rootNode == null) return "Unknown";
 
             return session.HardwareType switch
             {
-                HardwareLayer.Equipment => rootNode.EquipmentData?.DisplayName ?? rootNode.EquipmentData?.Name ?? "Unknown",
-                HardwareLayer.System => rootNode.SystemData?.DisplayName ?? rootNode.SystemData?.Name ?? "Unknown",
-                HardwareLayer.Unit => rootNode.UnitData?.DisplayName ?? rootNode.UnitData?.Name ?? "Unknown",
-                HardwareLayer.Device => rootNode.DeviceData?.DisplayName ?? rootNode.DeviceData?.Name ?? "Unknown",
+                HardwareType.Equipment => rootNode.EquipmentData?.DisplayName ?? rootNode.EquipmentData?.Name ?? "Unknown",
+                HardwareType.System => rootNode.SystemData?.DisplayName ?? rootNode.SystemData?.Name ?? "Unknown",
+                HardwareType.Unit => rootNode.UnitData?.DisplayName ?? rootNode.UnitData?.Name ?? "Unknown",
+                HardwareType.Device => rootNode.DeviceData?.DisplayName ?? rootNode.DeviceData?.Name ?? "Unknown",
                 _ => "Unknown"
             };
         }
@@ -343,17 +343,17 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// 세션에서 설명을 가져옵니다.
         /// </summary>
-        private string GetDescription(WorkflowSessionDto session)
+        private string GetDescription(HardwareDefinition session)
         {
             var rootNode = session.TreeNodes?.FirstOrDefault();
             if (rootNode == null) return null;
 
             return session.HardwareType switch
             {
-                HardwareLayer.Equipment => rootNode.EquipmentData?.Description,
-                HardwareLayer.System => rootNode.SystemData?.Description,
-                HardwareLayer.Unit => rootNode.UnitData?.Description,
-                HardwareLayer.Device => rootNode.DeviceData?.Description,
+                HardwareType.Equipment => rootNode.EquipmentData?.Description,
+                HardwareType.System => rootNode.SystemData?.Description,
+                HardwareType.Unit => rootNode.UnitData?.Description,
+                HardwareType.Device => rootNode.DeviceData?.Description,
                 _ => null
             };
         }

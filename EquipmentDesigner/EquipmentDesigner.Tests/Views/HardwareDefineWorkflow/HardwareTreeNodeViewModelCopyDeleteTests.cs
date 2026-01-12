@@ -19,7 +19,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void GetAllDescendants_WhenNodeHasNoChildren_ReturnsEmptyList()
         {
             // Arrange
-            var node = new HardwareTreeNodeViewModel(HardwareLayer.Device);
+            var node = new HardwareTreeNodeViewModel(HardwareType.Device);
 
             // Act
             var descendants = node.GetAllDescendants();
@@ -32,9 +32,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void GetAllDescendants_WhenNodeHasDirectChildrenOnly_ReturnsDirectChildren()
         {
             // Arrange
-            var parent = new HardwareTreeNodeViewModel(HardwareLayer.Unit);
-            var child1 = new HardwareTreeNodeViewModel(HardwareLayer.Device, parent);
-            var child2 = new HardwareTreeNodeViewModel(HardwareLayer.Device, parent);
+            var parent = new HardwareTreeNodeViewModel(HardwareType.Unit);
+            var child1 = new HardwareTreeNodeViewModel(HardwareType.Device, parent);
+            var child2 = new HardwareTreeNodeViewModel(HardwareType.Device, parent);
             parent.Children.Add(child1);
             parent.Children.Add(child2);
 
@@ -51,10 +51,10 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void GetAllDescendants_WhenNodeHasNestedChildren_ReturnsFlatListOfAllDescendants()
         {
             // Arrange
-            var equipment = new HardwareTreeNodeViewModel(HardwareLayer.Equipment);
-            var system = new HardwareTreeNodeViewModel(HardwareLayer.System, equipment);
-            var unit = new HardwareTreeNodeViewModel(HardwareLayer.Unit, system);
-            var device = new HardwareTreeNodeViewModel(HardwareLayer.Device, unit);
+            var equipment = new HardwareTreeNodeViewModel(HardwareType.Equipment);
+            var system = new HardwareTreeNodeViewModel(HardwareType.System, equipment);
+            var unit = new HardwareTreeNodeViewModel(HardwareType.Unit, system);
+            var device = new HardwareTreeNodeViewModel(HardwareType.Device, unit);
 
             equipment.Children.Add(system);
             system.Children.Add(unit);
@@ -74,8 +74,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void GetAllDescendants_DoesNotIncludeTheNodeItself_OnlyDescendants()
         {
             // Arrange
-            var parent = new HardwareTreeNodeViewModel(HardwareLayer.Equipment);
-            var child = new HardwareTreeNodeViewModel(HardwareLayer.System, parent);
+            var parent = new HardwareTreeNodeViewModel(HardwareType.Equipment);
+            var child = new HardwareTreeNodeViewModel(HardwareType.System, parent);
             parent.Children.Add(child);
 
             // Act
@@ -155,23 +155,23 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         #region DeepCopy Tests
 
         [Fact]
-        public void DeepCopy_CreatesNewNodeWithSameHardwareLayer()
+        public void DeepCopy_CreatesNewNodeWithSameHardwareType()
         {
             // Arrange
-            var original = new HardwareTreeNodeViewModel(HardwareLayer.System);
+            var original = new HardwareTreeNodeViewModel(HardwareType.System);
 
             // Act
             var copy = original.DeepCopy(null);
 
             // Assert
-            copy.HardwareLayer.Should().Be(HardwareLayer.System);
+            copy.HardwareType.Should().Be(HardwareType.System);
         }
 
         [Fact]
         public void DeepCopy_GeneratesNewUniqueNodeId()
         {
             // Arrange
-            var original = new HardwareTreeNodeViewModel(HardwareLayer.System);
+            var original = new HardwareTreeNodeViewModel(HardwareType.System);
 
             // Act
             var copy = original.DeepCopy(null);
@@ -184,8 +184,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DeepCopy_SetsCorrectParentReference()
         {
             // Arrange
-            var parent = new HardwareTreeNodeViewModel(HardwareLayer.Equipment);
-            var original = new HardwareTreeNodeViewModel(HardwareLayer.System, parent);
+            var parent = new HardwareTreeNodeViewModel(HardwareType.Equipment);
+            var original = new HardwareTreeNodeViewModel(HardwareType.System, parent);
 
             // Act
             var copy = original.DeepCopy(parent);
@@ -198,7 +198,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DeepCopy_AppliesCopySuffixToDataViewModelName()
         {
             // Arrange
-            var original = new HardwareTreeNodeViewModel(HardwareLayer.System);
+            var original = new HardwareTreeNodeViewModel(HardwareType.System);
             original.DataViewModel.Name = "TestSystem";
 
             // Act
@@ -212,7 +212,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DeepCopy_WhenNodeHasNoChildren_ReturnsNodeWithEmptyChildren()
         {
             // Arrange
-            var original = new HardwareTreeNodeViewModel(HardwareLayer.Device);
+            var original = new HardwareTreeNodeViewModel(HardwareType.Device);
 
             // Act
             var copy = original.DeepCopy(null);
@@ -225,9 +225,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DeepCopy_WhenNodeHasChildren_RecursivelyCopiesAllChildren()
         {
             // Arrange
-            var parent = new HardwareTreeNodeViewModel(HardwareLayer.Unit);
-            var child1 = new HardwareTreeNodeViewModel(HardwareLayer.Device, parent);
-            var child2 = new HardwareTreeNodeViewModel(HardwareLayer.Device, parent);
+            var parent = new HardwareTreeNodeViewModel(HardwareType.Unit);
+            var child1 = new HardwareTreeNodeViewModel(HardwareType.Device, parent);
+            var child2 = new HardwareTreeNodeViewModel(HardwareType.Device, parent);
             parent.Children.Add(child1);
             parent.Children.Add(child2);
 
@@ -244,8 +244,8 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DeepCopy_CopiedChildrenHaveCorrectParentReferences()
         {
             // Arrange
-            var parent = new HardwareTreeNodeViewModel(HardwareLayer.Unit);
-            var child = new HardwareTreeNodeViewModel(HardwareLayer.Device, parent);
+            var parent = new HardwareTreeNodeViewModel(HardwareType.Unit);
+            var child = new HardwareTreeNodeViewModel(HardwareType.Device, parent);
             parent.Children.Add(child);
 
             // Act
@@ -259,9 +259,9 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         public void DeepCopy_AllDescendantsHaveNewUniqueNodeIds()
         {
             // Arrange
-            var equipment = new HardwareTreeNodeViewModel(HardwareLayer.Equipment);
-            var system = new HardwareTreeNodeViewModel(HardwareLayer.System, equipment);
-            var unit = new HardwareTreeNodeViewModel(HardwareLayer.Unit, system);
+            var equipment = new HardwareTreeNodeViewModel(HardwareType.Equipment);
+            var system = new HardwareTreeNodeViewModel(HardwareType.System, equipment);
+            var unit = new HardwareTreeNodeViewModel(HardwareType.Unit, system);
             equipment.Children.Add(system);
             system.Children.Add(unit);
 

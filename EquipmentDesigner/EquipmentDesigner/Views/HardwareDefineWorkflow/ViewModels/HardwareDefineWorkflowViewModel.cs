@@ -25,7 +25,7 @@ namespace EquipmentDesigner.ViewModels
         private int _currentStepIndex;
         private bool _isReadOnly;
         private string _loadedComponentId;
-        private HardwareLayer? _loadedHardwareLayer;
+        private HardwareType? _loadedHardwareType;
         private HardwareTreeNodeViewModel _selectedTreeNode;
         private bool _isWorkflowCompleted;
         private bool _hasDataChangedSinceCompletion;
@@ -45,7 +45,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Creates a new workflow with a unique ID.
         /// </summary>
-        public HardwareDefineWorkflowViewModel(HardwareLayer startType)
+        public HardwareDefineWorkflowViewModel(HardwareType startType)
             : this(startType, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "1.0.0")
         {
         }
@@ -53,7 +53,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Creates a workflow with a specific ID (for resume scenarios).
         /// </summary>
-        private HardwareDefineWorkflowViewModel(HardwareLayer startType, string workflowId, string hardwareKey, string version)
+        private HardwareDefineWorkflowViewModel(HardwareType startType, string workflowId, string hardwareKey, string version)
         {
             WorkflowId = workflowId;
             StartType = startType;
@@ -76,7 +76,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// The starting type of the workflow.
         /// </summary>
-        public HardwareLayer StartType { get; }
+        public HardwareType StartType { get; }
 
         /// <summary>
         /// Hardware unique identification key - all versions of the same hardware share this key.
@@ -172,10 +172,10 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// The type of the loaded component (when viewing an existing component).
         /// </summary>
-        public HardwareLayer? LoadedHardwareLayer
+        public HardwareType? LoadedHardwareType
         {
-            get => _loadedHardwareLayer;
-            private set => SetProperty(ref _loadedHardwareLayer, value);
+            get => _loadedHardwareType;
+            private set => SetProperty(ref _loadedHardwareType, value);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 if (SetProperty(ref _selectedTreeNode, value))
                 {
-                    OnPropertyChanged(nameof(CurrentHardwareLayer));
+                    OnPropertyChanged(nameof(CurrentHardwareType));
                     UpdateCurrentStepFromTreeNode();
                     SetupCurrentDeviceViewModelCallbacks();
                 }
@@ -312,7 +312,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// The hardware layer of the currently selected tree node.
         /// </summary>
-        public HardwareLayer? CurrentHardwareLayer => SelectedTreeNode?.HardwareLayer;
+        public HardwareType? CurrentHardwareType => SelectedTreeNode?.HardwareType;
 
         #region Convenience Properties for Tree Node ViewModels
 
@@ -321,28 +321,28 @@ namespace EquipmentDesigner.ViewModels
         /// Convenience property for backward compatibility.
         /// </summary>
         public EquipmentDefineViewModel EquipmentViewModel =>
-            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.Equipment)?.DataViewModel as EquipmentDefineViewModel;
+            GetAllNodes().FirstOrDefault(n => n.HardwareType == HardwareType.Equipment)?.DataViewModel as EquipmentDefineViewModel;
 
         /// <summary>
         /// Gets the first SystemDefineViewModel from the tree.
         /// Convenience property for backward compatibility.
         /// </summary>
         public SystemDefineViewModel SystemViewModel =>
-            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.System)?.DataViewModel as SystemDefineViewModel;
+            GetAllNodes().FirstOrDefault(n => n.HardwareType == HardwareType.System)?.DataViewModel as SystemDefineViewModel;
 
         /// <summary>
         /// Gets the first UnitDefineViewModel from the tree.
         /// Convenience property for backward compatibility.
         /// </summary>
         public UnitDefineViewModel UnitViewModel =>
-            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.Unit)?.DataViewModel as UnitDefineViewModel;
+            GetAllNodes().FirstOrDefault(n => n.HardwareType == HardwareType.Unit)?.DataViewModel as UnitDefineViewModel;
 
         /// <summary>
         /// Gets the first DeviceDefineViewModel from the tree.
         /// Convenience property for backward compatibility.
         /// </summary>
         public DeviceDefineViewModel DeviceViewModel =>
-            GetAllNodes().FirstOrDefault(n => n.HardwareLayer == HardwareLayer.Device)?.DataViewModel as DeviceDefineViewModel;
+            GetAllNodes().FirstOrDefault(n => n.HardwareType == HardwareType.Device)?.DataViewModel as DeviceDefineViewModel;
 
         /// <summary>
         /// Gets the version of the top-level component (root node).
@@ -356,17 +356,17 @@ namespace EquipmentDesigner.ViewModels
         {
             int stepNumber = 1;
 
-            if (StartType == HardwareLayer.Equipment)
+            if (StartType == HardwareType.Equipment)
             {
                 WorkflowSteps.Add(new WorkflowStepViewModel(stepNumber++, "Equipment"));
             }
 
-            if (StartType <= HardwareLayer.System)
+            if (StartType <= HardwareType.System)
             {
                 WorkflowSteps.Add(new WorkflowStepViewModel(stepNumber++, "System"));
             }
 
-            if (StartType <= HardwareLayer.Unit)
+            if (StartType <= HardwareType.Unit)
             {
                 WorkflowSteps.Add(new WorkflowStepViewModel(stepNumber++, "Unit"));
             }
@@ -388,9 +388,9 @@ namespace EquipmentDesigner.ViewModels
             HardwareTreeNodeViewModel currentParent = null;
 
             // Build tree based on StartType
-            if (StartType == HardwareLayer.Equipment)
+            if (StartType == HardwareType.Equipment)
             {
-                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.Equipment);
+                rootNode = new HardwareTreeNodeViewModel(HardwareType.Equipment);
                 TreeRootNodes.Add(rootNode);
                 currentParent = rootNode;
 
@@ -398,34 +398,34 @@ namespace EquipmentDesigner.ViewModels
                 var systemNode = currentParent.AddChild();
                 currentParent = systemNode;
             }
-            else if (StartType == HardwareLayer.System)
+            else if (StartType == HardwareType.System)
             {
-                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.System);
+                rootNode = new HardwareTreeNodeViewModel(HardwareType.System);
                 TreeRootNodes.Add(rootNode);
                 currentParent = rootNode;
             }
 
-            if (StartType <= HardwareLayer.System && currentParent != null)
+            if (StartType <= HardwareType.System && currentParent != null)
             {
                 // Add initial Unit node under System
                 var unitNode = currentParent.AddChild();
                 currentParent = unitNode;
             }
-            else if (StartType == HardwareLayer.Unit)
+            else if (StartType == HardwareType.Unit)
             {
-                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.Unit);
+                rootNode = new HardwareTreeNodeViewModel(HardwareType.Unit);
                 TreeRootNodes.Add(rootNode);
                 currentParent = rootNode;
             }
 
-            if (StartType <= HardwareLayer.Unit && currentParent != null)
+            if (StartType <= HardwareType.Unit && currentParent != null)
             {
                 // Add initial Device node under Unit
                 currentParent.AddChild();
             }
-            else if (StartType == HardwareLayer.Device)
+            else if (StartType == HardwareType.Device)
             {
-                rootNode = new HardwareTreeNodeViewModel(HardwareLayer.Device);
+                rootNode = new HardwareTreeNodeViewModel(HardwareType.Device);
                 TreeRootNodes.Add(rootNode);
             }
 
@@ -526,7 +526,7 @@ namespace EquipmentDesigner.ViewModels
             IsReadOnly = false;
             
             // If a component was loaded for viewing, change its state from Uploaded/Validated to Defined
-            if (!string.IsNullOrEmpty(LoadedComponentId) && LoadedHardwareLayer.HasValue)
+            if (!string.IsNullOrEmpty(LoadedComponentId) && LoadedHardwareType.HasValue)
             {
                 ChangeComponentStateToDefinedAsync();
             }
@@ -562,8 +562,8 @@ namespace EquipmentDesigner.ViewModels
         {
             try
             {
-                // 1. Create WorkflowSessionDto from current state
-                var sessionDto = ToWorkflowSessionDto();
+                // 1. Create HardwareDefinition from current state
+                var sessionDto = ToHardwareDefinition();
 
                 // 2. Create a copy with new session ID but same HardwareKey
                 var copiedSession = CreateNewVersionSession(sessionDto, newVersion);
@@ -594,8 +594,8 @@ namespace EquipmentDesigner.ViewModels
         {
             try
             {
-                // 1. Create WorkflowSessionDto from current state
-                var sessionDto = ToWorkflowSessionDto();
+                // 1. Create HardwareDefinition from current state
+                var sessionDto = ToHardwareDefinition();
 
                 // 2. Create a copy with new HardwareKey and regenerated IDs
                 var copiedSession = CreateNewHardwareSession(sessionDto);
@@ -638,18 +638,18 @@ namespace EquipmentDesigner.ViewModels
         /// <param name="nodeDto">The root node to apply copy suffix to.</param>
         public static void ApplyCopySuffixToRootNode(TreeNodeDataDto nodeDto)
         {
-            switch (nodeDto.HardwareLayer)
+            switch (nodeDto.HardwareType)
             {
-                case HardwareLayer.Equipment when nodeDto.EquipmentData != null:
+                case HardwareType.Equipment when nodeDto.EquipmentData != null:
                     nodeDto.EquipmentData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.EquipmentData.Name);
                     break;
-                case HardwareLayer.System when nodeDto.SystemData != null:
+                case HardwareType.System when nodeDto.SystemData != null:
                     nodeDto.SystemData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.SystemData.Name);
                     break;
-                case HardwareLayer.Unit when nodeDto.UnitData != null:
+                case HardwareType.Unit when nodeDto.UnitData != null:
                     nodeDto.UnitData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.UnitData.Name);
                     break;
-                case HardwareLayer.Device when nodeDto.DeviceData != null:
+                case HardwareType.Device when nodeDto.DeviceData != null:
                     nodeDto.DeviceData.Name = HardwareTreeNodeViewModel.GenerateCopyName(nodeDto.DeviceData.Name);
                     break;
             }
@@ -660,11 +660,11 @@ namespace EquipmentDesigner.ViewModels
         /// The copied session is set to Draft state.
         /// </summary>
         /// <param name="originalSession">The original session to copy.</param>
-        /// <returns>A new WorkflowSessionDto with regenerated IDs and copy suffix.</returns>
-        public static WorkflowSessionDto CreateCopySession(WorkflowSessionDto originalSession)
+        /// <returns>A new HardwareDefinition with regenerated IDs and copy suffix.</returns>
+        public static HardwareDefinition CreateCopySession(HardwareDefinition originalSession)
         {
             // Create a deep copy by creating a new DTO
-            var copiedSession = new WorkflowSessionDto
+            var copiedSession = new HardwareDefinition
             {
                 Id = Guid.NewGuid().ToString(),
                 HardwareType = originalSession.HardwareType,
@@ -694,11 +694,11 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         /// <param name="originalSession">The original session to copy.</param>
         /// <param name="newVersion">The new version string to apply.</param>
-        /// <returns>A new WorkflowSessionDto with updated version.</returns>
-        public static WorkflowSessionDto CreateNewVersionSession(WorkflowSessionDto originalSession, string newVersion)
+        /// <returns>A new HardwareDefinition with updated version.</returns>
+        public static HardwareDefinition CreateNewVersionSession(HardwareDefinition originalSession, string newVersion)
         {
             // Create a deep copy by creating a new DTO
-            var copiedSession = new WorkflowSessionDto
+            var copiedSession = new HardwareDefinition
             {
                 Id = Guid.NewGuid().ToString(),
                 HardwareType = originalSession.HardwareType,
@@ -727,11 +727,11 @@ namespace EquipmentDesigner.ViewModels
         /// No version history is shared with the original.
         /// </summary>
         /// <param name="originalSession">The original session to copy.</param>
-        /// <returns>A new WorkflowSessionDto with new HardwareKey and IDs.</returns>
-        public static WorkflowSessionDto CreateNewHardwareSession(WorkflowSessionDto originalSession)
+        /// <returns>A new HardwareDefinition with new HardwareKey and IDs.</returns>
+        public static HardwareDefinition CreateNewHardwareSession(HardwareDefinition originalSession)
         {
             // Create a deep copy by creating a new DTO
-            var copiedSession = new WorkflowSessionDto
+            var copiedSession = new HardwareDefinition
             {
                 Id = Guid.NewGuid().ToString(),
                 HardwareType = originalSession.HardwareType,
@@ -768,18 +768,18 @@ namespace EquipmentDesigner.ViewModels
         /// <param name="newVersion">The new version string.</param>
         public static void UpdateRootNodeVersion(TreeNodeDataDto nodeDto, string newVersion)
         {
-            switch (nodeDto.HardwareLayer)
+            switch (nodeDto.HardwareType)
             {
-                case HardwareLayer.Equipment when nodeDto.EquipmentData != null:
+                case HardwareType.Equipment when nodeDto.EquipmentData != null:
                     nodeDto.EquipmentData.Version = newVersion;
                     break;
-                case HardwareLayer.System when nodeDto.SystemData != null:
+                case HardwareType.System when nodeDto.SystemData != null:
                     nodeDto.SystemData.Version = newVersion;
                     break;
-                case HardwareLayer.Unit when nodeDto.UnitData != null:
+                case HardwareType.Unit when nodeDto.UnitData != null:
                     nodeDto.UnitData.Version = newVersion;
                     break;
-                case HardwareLayer.Device when nodeDto.DeviceData != null:
+                case HardwareType.Device when nodeDto.DeviceData != null:
                     nodeDto.DeviceData.Version = newVersion;
                     break;
             }
@@ -792,18 +792,18 @@ namespace EquipmentDesigner.ViewModels
         public static void RegenerateHardwareKey(TreeNodeDataDto nodeDto)
         {
             var newHardwareKey = Guid.NewGuid().ToString();
-            switch (nodeDto.HardwareLayer)
+            switch (nodeDto.HardwareType)
             {
-                case HardwareLayer.Equipment when nodeDto.EquipmentData != null:
+                case HardwareType.Equipment when nodeDto.EquipmentData != null:
                     nodeDto.EquipmentData.HardwareKey = newHardwareKey;
                     break;
-                case HardwareLayer.System when nodeDto.SystemData != null:
+                case HardwareType.System when nodeDto.SystemData != null:
                     nodeDto.SystemData.HardwareKey = newHardwareKey;
                     break;
-                case HardwareLayer.Unit when nodeDto.UnitData != null:
+                case HardwareType.Unit when nodeDto.UnitData != null:
                     nodeDto.UnitData.HardwareKey = newHardwareKey;
                     break;
-                case HardwareLayer.Device when nodeDto.DeviceData != null:
+                case HardwareType.Device when nodeDto.DeviceData != null:
                     nodeDto.DeviceData.HardwareKey = newHardwareKey;
                     break;
             }
@@ -817,7 +817,7 @@ namespace EquipmentDesigner.ViewModels
             return new TreeNodeDataDto
             {
                 Id = original.Id,
-                HardwareLayer = original.HardwareLayer,
+                HardwareType = original.HardwareType,
                 EquipmentData = original.EquipmentData != null ? CopyEquipmentDto(original.EquipmentData) : null,
                 SystemData = original.SystemData != null ? CopySystemDto(original.SystemData) : null,
                 UnitData = original.UnitData != null ? CopyUnitDto(original.UnitData) : null,
@@ -945,7 +945,7 @@ namespace EquipmentDesigner.ViewModels
             await SaveWorkflowStateAsync(showAutosaveIndicator: false);
             
             // Create session DTO with Ready state for the complete view
-            var sessionDto = ToWorkflowSessionDto();
+            var sessionDto = ToHardwareDefinition();
             sessionDto.State = ComponentState.Ready;
             
             NavigationService.Instance.NavigateToWorkflowComplete(sessionDto);
@@ -963,14 +963,14 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Uploads workflow data to server by:
-        /// 1. Creating WorkflowSessionDto with Uploaded state
+        /// 1. Creating HardwareDefinition with Uploaded state
         /// 2. Saving to UploadedWorkflowRepository (uploaded-hardwares.json)
         /// 3. Removing from WorkflowRepository (workflows.json)
         /// </summary>
         private async void UploadToServerAsync()
         {
             // Create session DTO with Uploaded state
-            var sessionDto = ToWorkflowSessionDto();
+            var sessionDto = ToHardwareDefinition();
             sessionDto.State = ComponentState.Uploaded;
 
             // Save to server via API service
@@ -1032,8 +1032,8 @@ namespace EquipmentDesigner.ViewModels
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
-            // Create or update WorkflowSessionDto
-            var sessionDto = ToWorkflowSessionDto();
+            // Create or update HardwareDefinition
+            var sessionDto = ToHardwareDefinition();
             var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == WorkflowId);
 
             if (existingIndex >= 0)
@@ -1243,12 +1243,12 @@ namespace EquipmentDesigner.ViewModels
         #endregion
 
         /// <summary>
-        /// Converts this ViewModel to a WorkflowSessionDto for persistence.
+        /// Converts this ViewModel to a HardwareDefinition for persistence.
         /// Serializes the entire tree structure for multi-instance support.
         /// </summary>
-        public WorkflowSessionDto ToWorkflowSessionDto()
+        public HardwareDefinition ToHardwareDefinition()
         {
-            return new WorkflowSessionDto
+            return new HardwareDefinition
             {
                 Id = WorkflowId,
                 HardwareType = StartType,
@@ -1268,23 +1268,23 @@ namespace EquipmentDesigner.ViewModels
             var dto = new TreeNodeDataDto
             {
                 Id = node.NodeId,
-                HardwareLayer = node.HardwareLayer,
+                HardwareType = node.HardwareType,
                 Children = node.Children.Select(SerializeNode).ToList()
             };
 
             // Save ViewModel data based on type
-            switch (node.HardwareLayer)
+            switch (node.HardwareType)
             {
-                case HardwareLayer.Equipment:
+                case HardwareType.Equipment:
                     dto.EquipmentData = (node.DataViewModel as EquipmentDefineViewModel)?.ToDto();
                     break;
-                case HardwareLayer.System:
+                case HardwareType.System:
                     dto.SystemData = (node.DataViewModel as SystemDefineViewModel)?.ToDto();
                     break;
-                case HardwareLayer.Unit:
+                case HardwareType.Unit:
                     dto.UnitData = (node.DataViewModel as UnitDefineViewModel)?.ToDto();
                     break;
-                case HardwareLayer.Device:
+                case HardwareType.Device:
                     dto.DeviceData = (node.DataViewModel as DeviceDefineViewModel)?.ToDto();
                     break;
             }
@@ -1293,10 +1293,10 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Creates a HardwareDefineWorkflowViewModel from a saved WorkflowSessionDto.
+        /// Creates a HardwareDefineWorkflowViewModel from a saved HardwareDefinition.
         /// Uses tree-based format exclusively.
         /// </summary>
-        public static HardwareDefineWorkflowViewModel FromWorkflowSessionDto(WorkflowSessionDto dto)
+        public static HardwareDefineWorkflowViewModel FromHardwareDefinition(HardwareDefinition dto)
         {
             var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id, dto.HardwareKey, dto.Version ?? "1.0.0");
 
@@ -1334,24 +1334,24 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         private static HardwareTreeNodeViewModel DeserializeNode(TreeNodeDataDto dto, HardwareTreeNodeViewModel parent)
         {
-            IHardwareDefineViewModel dataViewModel = dto.HardwareLayer switch
+            IHardwareDefineViewModel dataViewModel = dto.HardwareType switch
             {
-                HardwareLayer.Equipment => dto.EquipmentData != null
+                HardwareType.Equipment => dto.EquipmentData != null
                     ? EquipmentDefineViewModel.FromDto(dto.EquipmentData)
                     : new EquipmentDefineViewModel(),
-                HardwareLayer.System => dto.SystemData != null
+                HardwareType.System => dto.SystemData != null
                     ? SystemDefineViewModel.FromDto(dto.SystemData)
                     : new SystemDefineViewModel(),
-                HardwareLayer.Unit => dto.UnitData != null
+                HardwareType.Unit => dto.UnitData != null
                     ? UnitDefineViewModel.FromDto(dto.UnitData)
                     : new UnitDefineViewModel(),
-                HardwareLayer.Device => dto.DeviceData != null
+                HardwareType.Device => dto.DeviceData != null
                     ? DeviceDefineViewModel.FromDto(dto.DeviceData)
                     : new DeviceDefineViewModel(),
                 _ => null
             };
 
-            var node = new HardwareTreeNodeViewModel(dto.HardwareLayer, parent, dataViewModel);
+            var node = new HardwareTreeNodeViewModel(dto.HardwareType, parent, dataViewModel);
 
             foreach (var childDto in dto.Children)
             {
@@ -1452,8 +1452,8 @@ namespace EquipmentDesigner.ViewModels
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var workflowData = await workflowRepo.LoadAsync();
 
-            // Create or update WorkflowSessionDto with Defined state
-            var sessionDto = ToWorkflowSessionDto();
+            // Create or update HardwareDefinition with Defined state
+            var sessionDto = ToHardwareDefinition();
             sessionDto.State = ComponentState.Ready;
             
             var existingIndex = workflowData.WorkflowSessions.FindIndex(s => s.Id == WorkflowId);
@@ -1471,7 +1471,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         private void SetupCurrentDeviceViewModelCallbacks()
         {
-            if (SelectedTreeNode?.HardwareLayer == HardwareLayer.Device &&
+            if (SelectedTreeNode?.HardwareType == HardwareType.Device &&
                 SelectedTreeNode?.DataViewModel is DeviceDefineViewModel deviceVm)
             {
                 deviceVm.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
@@ -1492,7 +1492,7 @@ namespace EquipmentDesigner.ViewModels
                     node.DataViewModel.PropertyChanged += OnNodeDataPropertyChanged;
                 }
 
-                if (node.HardwareLayer == HardwareLayer.Device &&
+                if (node.HardwareType == HardwareType.Device &&
                     node.DataViewModel is DeviceDefineViewModel deviceVm)
                 {
                     deviceVm.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
@@ -1580,7 +1580,7 @@ namespace EquipmentDesigner.ViewModels
             if (SelectedTreeNode == null)
                 return;
 
-            var stepName = SelectedTreeNode.HardwareLayer.ToString();
+            var stepName = SelectedTreeNode.HardwareType.ToString();
             var step = WorkflowSteps.FirstOrDefault(s => s.StepName == stepName);
             if (step != null)
             {
@@ -1609,12 +1609,12 @@ namespace EquipmentDesigner.ViewModels
 
             var targetStepName = CurrentStep.StepName;
 
-            // Parse step name to HardwareLayer
-            if (!Enum.TryParse<HardwareLayer>(targetStepName, out var targetLayer))
+            // Parse step name to HardwareType
+            if (!Enum.TryParse<HardwareType>(targetStepName, out var targetLayer))
                 return;
 
             // Find first tree node matching the target layer
-            var targetNode = GetAllNodes().FirstOrDefault(n => n.HardwareLayer == targetLayer);
+            var targetNode = GetAllNodes().FirstOrDefault(n => n.HardwareType == targetLayer);
 
             if (targetNode != null && targetNode != SelectedTreeNode)
             {
@@ -1674,7 +1674,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         private void SetupDeviceCallbacksForNode(HardwareTreeNodeViewModel node)
         {
-            if (node.HardwareLayer == HardwareLayer.Device &&
+            if (node.HardwareType == HardwareType.Device &&
                 node.DataViewModel is DeviceDefineViewModel deviceVm)
             {
                 deviceVm.SetAllStepsRequiredFieldsFilledCheck(() => AllStepsRequiredFieldsFilled);
@@ -1775,7 +1775,7 @@ namespace EquipmentDesigner.ViewModels
 
             // Get all descendants for the dialog
             var descendants = node.GetAllDescendants();
-            var descendantNames = descendants.Select(d => $"{d.HardwareLayer}: {d.DisplayName}").ToList();
+            var descendantNames = descendants.Select(d => $"{d.HardwareType}: {d.DisplayName}").ToList();
 
             // Build description with descendants list
             var description = Strings.DeleteHardware_Description;
@@ -1804,7 +1804,7 @@ namespace EquipmentDesigner.ViewModels
                     Strings.DeleteHardware_Title,
                     description,
                     "delete",
-                    $"{node.HardwareLayer}: {node.DisplayName}")
+                    $"{node.HardwareType}: {node.DisplayName}")
                 {
                     Owner = mainWindow,
                     ConfirmText = Strings.DeleteHardware_DeleteButton,

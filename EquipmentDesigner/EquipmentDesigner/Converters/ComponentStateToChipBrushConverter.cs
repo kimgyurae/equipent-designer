@@ -21,10 +21,10 @@ namespace EquipmentDesigner.Converters
 
             return state switch
             {
-                ComponentState.Draft => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Background"),
-                ComponentState.Ready => Application.Current.FindResource("Brush.HardwareLayer.System.Chip.Background"),
-                ComponentState.Uploaded => Application.Current.FindResource("Brush.HardwareLayer.Unit.Chip.Background"),
-                ComponentState.Validated => Application.Current.FindResource("Brush.HardwareLayer.Device.Chip.Background"),
+                ComponentState.Draft => Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Background"),
+                ComponentState.Ready => Application.Current.FindResource("Brush.HardwareType.System.Chip.Background"),
+                ComponentState.Uploaded => Application.Current.FindResource("Brush.HardwareType.Unit.Chip.Background"),
+                ComponentState.Validated => Application.Current.FindResource("Brush.HardwareType.Device.Chip.Background"),
                 _ => Application.Current.FindResource("Brush.Status.Neutral.Background")
             };
         }
@@ -44,16 +44,16 @@ namespace EquipmentDesigner.Converters
         {
             if (value is not ComponentState layer)
             {
-                return Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground");
+                return Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Foreground");
             }
 
             return layer switch
             {
-                ComponentState.Draft => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground"),
-                ComponentState.Ready => Application.Current.FindResource("Brush.HardwareLayer.System.Chip.Foreground"),
-                ComponentState.Uploaded => Application.Current.FindResource("Brush.HardwareLayer.Unit.Chip.Foreground"),
-                ComponentState.Validated => Application.Current.FindResource("Brush.HardwareLayer.Device.Chip.Foreground"),
-                _ => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground")
+                ComponentState.Draft => Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Foreground"),
+                ComponentState.Ready => Application.Current.FindResource("Brush.HardwareType.System.Chip.Foreground"),
+                ComponentState.Uploaded => Application.Current.FindResource("Brush.HardwareType.Unit.Chip.Foreground"),
+                ComponentState.Validated => Application.Current.FindResource("Brush.HardwareType.Device.Chip.Foreground"),
+                _ => Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Foreground")
             };
         }
 

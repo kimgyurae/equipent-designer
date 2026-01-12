@@ -7,24 +7,24 @@ using EquipmentDesigner.Models;
 namespace EquipmentDesigner.Converters
 {
     /// <summary>
-    /// Converts HardwareLayer enum values to appropriate chip background brushes.
+    /// Converts HardwareType enum values to appropriate chip background brushes.
     /// </summary>
-    public class HardwareLayerToBackgroundConverter : IValueConverter
+    public class HardwareTypeToBackgroundConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not HardwareLayer layer)
+            if (value is not HardwareType layer)
             {
-                return Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Background");
+                return Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Background");
             }
 
             return layer switch
             {
-                HardwareLayer.Equipment => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Background"),
-                HardwareLayer.System => Application.Current.FindResource("Brush.HardwareLayer.System.Chip.Background"),
-                HardwareLayer.Unit => Application.Current.FindResource("Brush.HardwareLayer.Unit.Chip.Background"),
-                HardwareLayer.Device => Application.Current.FindResource("Brush.HardwareLayer.Device.Chip.Background"),
-                _ => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Background")
+                HardwareType.Equipment => Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Background"),
+                HardwareType.System => Application.Current.FindResource("Brush.HardwareType.System.Chip.Background"),
+                HardwareType.Unit => Application.Current.FindResource("Brush.HardwareType.Unit.Chip.Background"),
+                HardwareType.Device => Application.Current.FindResource("Brush.HardwareType.Device.Chip.Background"),
+                _ => Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Background")
             };
         }
 
@@ -35,24 +35,24 @@ namespace EquipmentDesigner.Converters
     }
 
     /// <summary>
-    /// Converts HardwareLayer enum values to appropriate chip foreground brushes.
+    /// Converts HardwareType enum values to appropriate chip foreground brushes.
     /// </summary>
-    public class HardwareLayerToForegroundConverter : IValueConverter
+    public class HardwareTypeToForegroundConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not HardwareLayer layer)
+            if (value is not HardwareType layer)
             {
-                return Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground");
+                return Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Foreground");
             }
 
             return layer switch
             {
-                HardwareLayer.Equipment => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground"),
-                HardwareLayer.System => Application.Current.FindResource("Brush.HardwareLayer.System.Chip.Foreground"),
-                HardwareLayer.Unit => Application.Current.FindResource("Brush.HardwareLayer.Unit.Chip.Foreground"),
-                HardwareLayer.Device => Application.Current.FindResource("Brush.HardwareLayer.Device.Chip.Foreground"),
-                _ => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Chip.Foreground")
+                HardwareType.Equipment => Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Foreground"),
+                HardwareType.System => Application.Current.FindResource("Brush.HardwareType.System.Chip.Foreground"),
+                HardwareType.Unit => Application.Current.FindResource("Brush.HardwareType.Unit.Chip.Foreground"),
+                HardwareType.Device => Application.Current.FindResource("Brush.HardwareType.Device.Chip.Foreground"),
+                _ => Application.Current.FindResource("Brush.HardwareType.Equipment.Chip.Foreground")
             };
         }
 
@@ -63,25 +63,25 @@ namespace EquipmentDesigner.Converters
     }
 
     /// <summary>
-    /// Converts HardwareLayer enum values to appropriate card background brushes.
+    /// Converts HardwareType enum values to appropriate card background brushes.
     /// Equipment uses a gradient, others use solid colors.
     /// </summary>
-    public class HardwareLayerToCardBackgroundConverter : IValueConverter
+    public class HardwareTypeToCardBackgroundConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not HardwareLayer layer)
+            if (value is not HardwareType layer)
             {
-                return Application.Current.FindResource("Brush.HardwareLayer.Equipment.Card.Background");
+                return Application.Current.FindResource("Brush.HardwareType.Equipment.Card.Background");
             }
 
             return layer switch
             {
-                HardwareLayer.Equipment => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Card.Background"),
-                HardwareLayer.System => Application.Current.FindResource("Brush.HardwareLayer.System.Card.Background"),
-                HardwareLayer.Unit => Application.Current.FindResource("Brush.HardwareLayer.Unit.Card.Background"),
-                HardwareLayer.Device => Application.Current.FindResource("Brush.HardwareLayer.Device.Card.Background"),
-                _ => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Card.Background")
+                HardwareType.Equipment => Application.Current.FindResource("Brush.HardwareType.Equipment.Card.Background"),
+                HardwareType.System => Application.Current.FindResource("Brush.HardwareType.System.Card.Background"),
+                HardwareType.Unit => Application.Current.FindResource("Brush.HardwareType.Unit.Card.Background"),
+                HardwareType.Device => Application.Current.FindResource("Brush.HardwareType.Device.Card.Background"),
+                _ => Application.Current.FindResource("Brush.HardwareType.Equipment.Card.Background")
             };
         }
 
@@ -92,24 +92,24 @@ namespace EquipmentDesigner.Converters
     }
 
     /// <summary>
-    /// Converts HardwareLayer enum values to appropriate card border brushes.
+    /// Converts HardwareType enum values to appropriate card border brushes.
     /// </summary>
-    public class HardwareLayerToCardBorderConverter : IValueConverter
+    public class HardwareTypeToCardBorderConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not HardwareLayer layer)
+            if (value is not HardwareType layer)
             {
-                return Application.Current.FindResource("Brush.HardwareLayer.Equipment.Card.Border");
+                return Application.Current.FindResource("Brush.HardwareType.Equipment.Card.Border");
             }
 
             return layer switch
             {
-                HardwareLayer.Equipment => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Card.Border"),
-                HardwareLayer.System => Application.Current.FindResource("Brush.HardwareLayer.System.Card.Border"),
-                HardwareLayer.Unit => Application.Current.FindResource("Brush.HardwareLayer.Unit.Card.Border"),
-                HardwareLayer.Device => Application.Current.FindResource("Brush.HardwareLayer.Device.Card.Border"),
-                _ => Application.Current.FindResource("Brush.HardwareLayer.Equipment.Card.Border")
+                HardwareType.Equipment => Application.Current.FindResource("Brush.HardwareType.Equipment.Card.Border"),
+                HardwareType.System => Application.Current.FindResource("Brush.HardwareType.System.Card.Border"),
+                HardwareType.Unit => Application.Current.FindResource("Brush.HardwareType.Unit.Card.Border"),
+                HardwareType.Device => Application.Current.FindResource("Brush.HardwareType.Device.Card.Border"),
+                _ => Application.Current.FindResource("Brush.HardwareType.Equipment.Card.Border")
             };
         }
 

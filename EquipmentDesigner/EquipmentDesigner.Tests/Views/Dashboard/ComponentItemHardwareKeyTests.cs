@@ -42,7 +42,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
                 Id = "wf-123",
                 Name = "Auto Assembler",
                 HardwareKey = "auto-assembler-key",
-                HardwareLayer = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 Version = "v2.0.0"
             };
 

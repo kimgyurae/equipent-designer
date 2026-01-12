@@ -17,7 +17,7 @@ namespace EquipmentDesigner.ViewModels
     public class HardwareNodeDisplayModel
     {
         public string NodeId { get; set; }
-        public HardwareLayer HardwareLayer { get; set; }
+        public HardwareType HardwareType { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public TreeNodeDataDto SourceDto { get; set; }
@@ -30,26 +30,26 @@ namespace EquipmentDesigner.ViewModels
             var model = new HardwareNodeDisplayModel
             {
                 NodeId = dto.Id,
-                HardwareLayer = dto.HardwareLayer,
+                HardwareType = dto.HardwareType,
                 SourceDto = dto
             };
 
             // Extract name and description based on hardware layer
-            switch (dto.HardwareLayer)
+            switch (dto.HardwareType)
             {
-                case HardwareLayer.Equipment:
+                case HardwareType.Equipment:
                     model.Name = dto.EquipmentData?.Name ?? string.Empty;
                     model.Description = dto.EquipmentData?.Description ?? string.Empty;
                     break;
-                case HardwareLayer.System:
+                case HardwareType.System:
                     model.Name = dto.SystemData?.Name ?? string.Empty;
                     model.Description = dto.SystemData?.Description ?? string.Empty;
                     break;
-                case HardwareLayer.Unit:
+                case HardwareType.Unit:
                     model.Name = dto.UnitData?.Name ?? string.Empty;
                     model.Description = dto.UnitData?.Description ?? string.Empty;
                     break;
-                case HardwareLayer.Device:
+                case HardwareType.Device:
                     model.Name = dto.DeviceData?.Name ?? string.Empty;
                     model.Description = dto.DeviceData?.Description ?? string.Empty;
                     break;
@@ -78,7 +78,7 @@ namespace EquipmentDesigner.ViewModels
     /// </summary>
     public class WorkflowCompleteViewModel : ViewModelBase
     {
-        private readonly WorkflowSessionDto _sessionDto;
+        private readonly HardwareDefinition _sessionDto;
         private ObservableCollection<HardwareNodeDisplayModel> _treeNodes;
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         /// <param name="sessionDto">The workflow session DTO containing all hardware data.</param>
         /// <exception cref="ArgumentNullException">Thrown when sessionDto is null.</exception>
-        public WorkflowCompleteViewModel(WorkflowSessionDto sessionDto)
+        public WorkflowCompleteViewModel(HardwareDefinition sessionDto)
         {
             _sessionDto = sessionDto ?? throw new ArgumentNullException(nameof(sessionDto));
             
@@ -119,7 +119,7 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Gets the start type of the workflow.
         /// </summary>
-        public HardwareLayer StartType => _sessionDto?.HardwareType ?? HardwareLayer.Equipment;
+        public HardwareType StartType => _sessionDto?.HardwareType ?? HardwareType.Equipment;
 
         /// <summary>
         /// Gets the current session state.
@@ -214,7 +214,7 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Uploads workflow data to server by:
-        /// 1. Creating WorkflowSessionDto with Uploaded state
+        /// 1. Creating HardwareDefinition with Uploaded state
         /// 2. Saving to UploadedWorkflowRepository (uploaded-hardwares.json)
         /// 3. Removing from WorkflowRepository (workflows.json)
         /// </summary>

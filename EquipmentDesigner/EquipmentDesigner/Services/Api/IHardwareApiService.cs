@@ -14,21 +14,21 @@ namespace EquipmentDesigner.Services
         /// Gets all workflow sessions.
         /// </summary>
         /// <returns>API response containing all workflow sessions.</returns>
-        Task<ApiResponse<List<WorkflowSessionDto>>> GetAllSessionsAsync();
+        Task<ApiResponse<List<HardwareDefinition>>> GetAllSessionsAsync();
 
         /// <summary>
         /// Gets workflow sessions filtered by state.
         /// </summary>
         /// <param name="states">States to filter by.</param>
         /// <returns>API response containing filtered workflow sessions.</returns>
-        Task<ApiResponse<List<WorkflowSessionDto>>> GetSessionsByStateAsync(params ComponentState[] states);
+        Task<ApiResponse<List<HardwareDefinition>>> GetSessionsByStateAsync(params ComponentState[] states);
 
         /// <summary>
         /// Gets a specific workflow session by ID.
         /// </summary>
         /// <param name="workflowId">The workflow ID to retrieve.</param>
         /// <returns>API response containing the workflow session, or error if not found.</returns>
-        Task<ApiResponse<WorkflowSessionDto>> GetSessionByIdAsync(string workflowId);
+        Task<ApiResponse<HardwareDefinition>> GetSessionByIdAsync(string workflowId);
 
         /// <summary>
         /// Creates or updates a workflow session.
@@ -36,7 +36,7 @@ namespace EquipmentDesigner.Services
         /// </summary>
         /// <param name="session">The workflow session to save.</param>
         /// <returns>API response containing the saved session.</returns>
-        Task<ApiResponse<WorkflowSessionDto>> SaveSessionAsync(WorkflowSessionDto session);
+        Task<ApiResponse<HardwareDefinition>> SaveSessionAsync(HardwareDefinition session);
 
         /// <summary>
         /// Updates the state of an existing workflow session.
@@ -44,7 +44,7 @@ namespace EquipmentDesigner.Services
         /// <param name="workflowId">The workflow ID to update.</param>
         /// <param name="newState">The new state to set.</param>
         /// <returns>API response containing the updated session, or error if not found.</returns>
-        Task<ApiResponse<WorkflowSessionDto>> UpdateSessionStateAsync(string workflowId, ComponentState newState);
+        Task<ApiResponse<HardwareDefinition>> UpdateSessionStateAsync(string workflowId, ComponentState newState);
 
         /// <summary>
         /// Deletes a workflow session by ID.
@@ -57,18 +57,18 @@ namespace EquipmentDesigner.Services
         /// 특정 하드웨어 키의 모든 버전 히스토리를 조회합니다.
         /// </summary>
         /// <param name="hardwareKey">하드웨어 고유 식별 키</param>
-        /// <param name="hardwareLayer">하드웨어 레이어 (Equipment, System, Unit, Device)</param>
+        /// <param name="hardwareType">하드웨어 레이어 (Equipment, System, Unit, Device)</param>
         /// <returns>버전 히스토리 정보</returns>
         Task<ApiResponse<HardwareVersionHistoryDto>> GetVersionHistoryAsync(
             string hardwareKey,
-            HardwareLayer hardwareLayer);
+            HardwareType hardwareType);
 
         /// <summary>
         /// 특정 레이어의 모든 고유 하드웨어 키 목록을 조회합니다.
         /// (Dashboard에서 그룹화된 표시에 활용 가능)
         /// </summary>
-        /// <param name="hardwareLayer">하드웨어 레이어</param>
+        /// <param name="hardwareType">하드웨어 레이어</param>
         /// <returns>고유 하드웨어 키 목록</returns>
-        Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareLayer hardwareLayer);
+        Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareType hardwareType);
     }
 }

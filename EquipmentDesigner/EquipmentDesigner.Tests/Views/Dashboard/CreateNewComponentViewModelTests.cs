@@ -75,7 +75,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
         #region Navigation Behavior Tests
 
         [Fact]
-        public void CreateEquipmentCommand_Execute_TriggersNavigationWithEquipmentHardwareLayer()
+        public void CreateEquipmentCommand_Execute_TriggersNavigationWithEquipmentHardwareType()
         {
             var viewModel = new CreateNewComponentViewModel();
             NavigationTarget capturedTarget = null;
@@ -84,11 +84,11 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateEquipmentCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(HardwareLayer.Equipment);
+            capturedTarget.StartType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]
-        public void CreateSystemCommand_Execute_TriggersNavigationWithSystemHardwareLayer()
+        public void CreateSystemCommand_Execute_TriggersNavigationWithSystemHardwareType()
         {
             var viewModel = new CreateNewComponentViewModel();
             NavigationTarget capturedTarget = null;
@@ -97,11 +97,11 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateSystemCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(HardwareLayer.System);
+            capturedTarget.StartType.Should().Be(HardwareType.System);
         }
 
         [Fact]
-        public void CreateUnitCommand_Execute_TriggersNavigationWithUnitHardwareLayer()
+        public void CreateUnitCommand_Execute_TriggersNavigationWithUnitHardwareType()
         {
             var viewModel = new CreateNewComponentViewModel();
             NavigationTarget capturedTarget = null;
@@ -110,11 +110,11 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateUnitCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(HardwareLayer.Unit);
+            capturedTarget.StartType.Should().Be(HardwareType.Unit);
         }
 
         [Fact]
-        public void CreateDeviceCommand_Execute_TriggersNavigationWithDeviceHardwareLayer()
+        public void CreateDeviceCommand_Execute_TriggersNavigationWithDeviceHardwareType()
         {
             var viewModel = new CreateNewComponentViewModel();
             NavigationTarget capturedTarget = null;
@@ -123,7 +123,7 @@ namespace EquipmentDesigner.Tests.Views.Dashboard
             viewModel.CreateDeviceCommand.Execute(null);
 
             capturedTarget.Should().NotBeNull();
-            capturedTarget.StartType.Should().Be(HardwareLayer.Device);
+            capturedTarget.StartType.Should().Be(HardwareType.Device);
         }
 
         #endregion

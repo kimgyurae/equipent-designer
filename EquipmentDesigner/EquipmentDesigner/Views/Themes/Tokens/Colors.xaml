@@ -112,29 +112,29 @@
          ========================= -->
     
     <!-- Equipment Layer (Blue) -->
-    <Color x:Key="Color.HardwareLayer.Equipment.Background.Start">#DBEAFE</Color>
-    <Color x:Key="Color.HardwareLayer.Equipment.Background.End">#BEDBFF</Color>
-    <Color x:Key="Color.HardwareLayer.Equipment.Border">#2B7FFF</Color>
-    <Color x:Key="Color.HardwareLayer.Equipment.Chip.Background">#BEDBFF</Color>
-    <Color x:Key="Color.HardwareLayer.Equipment.Chip.Foreground">#193CB8</Color>
+    <Color x:Key="Color.HardwareType.Equipment.Background.Start">#DBEAFE</Color>
+    <Color x:Key="Color.HardwareType.Equipment.Background.End">#BEDBFF</Color>
+    <Color x:Key="Color.HardwareType.Equipment.Border">#2B7FFF</Color>
+    <Color x:Key="Color.HardwareType.Equipment.Chip.Background">#BEDBFF</Color>
+    <Color x:Key="Color.HardwareType.Equipment.Chip.Foreground">#193CB8</Color>
     
     <!-- System Layer (Purple) -->
-    <Color x:Key="Color.HardwareLayer.System.Background">#F3E8FF</Color>
-    <Color x:Key="Color.HardwareLayer.System.Border">#C27AFF</Color>
-    <Color x:Key="Color.HardwareLayer.System.Chip.Background">#E9D4FF</Color>
-    <Color x:Key="Color.HardwareLayer.System.Chip.Foreground">#6E11B0</Color>
+    <Color x:Key="Color.HardwareType.System.Background">#F3E8FF</Color>
+    <Color x:Key="Color.HardwareType.System.Border">#C27AFF</Color>
+    <Color x:Key="Color.HardwareType.System.Chip.Background">#E9D4FF</Color>
+    <Color x:Key="Color.HardwareType.System.Chip.Foreground">#6E11B0</Color>
     
     <!-- Unit Layer (Green) -->
-    <Color x:Key="Color.HardwareLayer.Unit.Background">#DCFCE7</Color>
-    <Color x:Key="Color.HardwareLayer.Unit.Border">#05DF72</Color>
-    <Color x:Key="Color.HardwareLayer.Unit.Chip.Background">#B9F8CF</Color>
-    <Color x:Key="Color.HardwareLayer.Unit.Chip.Foreground">#016630</Color>
+    <Color x:Key="Color.HardwareType.Unit.Background">#DCFCE7</Color>
+    <Color x:Key="Color.HardwareType.Unit.Border">#05DF72</Color>
+    <Color x:Key="Color.HardwareType.Unit.Chip.Background">#B9F8CF</Color>
+    <Color x:Key="Color.HardwareType.Unit.Chip.Foreground">#016630</Color>
     
     <!-- Device Layer (Orange) -->
-    <Color x:Key="Color.HardwareLayer.Device.Background">#FFEDD4</Color>
-    <Color x:Key="Color.HardwareLayer.Device.Border">#FFB86A</Color>
-    <Color x:Key="Color.HardwareLayer.Device.Chip.Background">#FFD6A8</Color>
-    <Color x:Key="Color.HardwareLayer.Device.Chip.Foreground">#9F2D00</Color>
+    <Color x:Key="Color.HardwareType.Device.Background">#FFEDD4</Color>
+    <Color x:Key="Color.HardwareType.Device.Border">#FFB86A</Color>
+    <Color x:Key="Color.HardwareType.Device.Chip.Background">#FFD6A8</Color>
+    <Color x:Key="Color.HardwareType.Device.Chip.Foreground">#9F2D00</Color>
 
     <!-- Secondary (Emerald) -->
     <Color x:Key="Color.Secondary.50">#ECFDF5</Color>

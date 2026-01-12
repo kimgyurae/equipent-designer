@@ -222,7 +222,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 element.IsLocked = true;
             }
-            NotifyUnlockButtonPropertiesChanged();
+            DeferNotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 element.IsLocked = false;
             }
-            NotifyUnlockButtonPropertiesChanged();
+            DeferNotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace EquipmentDesigner.ViewModels
             if (SelectedElement != null && SelectedElement.IsLocked)
             {
                 SelectedElement.IsLocked = false;
-                NotifyUnlockButtonPropertiesChanged();
+                DeferNotifyUnlockButtonPropertiesChanged();
             }
         }
 
@@ -265,7 +265,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 element.IsLocked = shouldLock;
             }
-            NotifyUnlockButtonPropertiesChanged();
+            DeferNotifyUnlockButtonPropertiesChanged();
         }
 
         /// <summary>
@@ -366,6 +366,31 @@ namespace EquipmentDesigner.ViewModels
             OnPropertyChanged(nameof(ShowUnlockButton));
             OnPropertyChanged(nameof(UnlockButtonX));
             OnPropertyChanged(nameof(UnlockButtonY));
+            OnPropertyChanged(nameof(ScreenUnlockButtonX));
+            OnPropertyChanged(nameof(ScreenUnlockButtonY));
+        }
+
+        /// <summary>
+        /// Defers unlock button property notifications to prevent UI update conflicts.
+        /// Uses Dispatcher to ensure notifications happen after current operation completes.
+        /// </summary>
+        private void DeferNotifyUnlockButtonPropertiesChanged()
+        {
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(
+                new System.Action(NotifyUnlockButtonPropertiesChanged),
+                System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        /// <summary>
+        /// Updates scroll offset and notifies position change.
+        /// Called from View when ScrollViewer scroll changes.
+        /// </summary>
+        public void UpdateScrollOffset(double horizontalOffset, double verticalOffset)
+        {
+            ScrollOffsetX = horizontalOffset;
+            ScrollOffsetY = verticalOffset;
+            OnPropertyChanged(nameof(ScreenUnlockButtonX));
+            OnPropertyChanged(nameof(ScreenUnlockButtonY));
         }
 
         #endregion

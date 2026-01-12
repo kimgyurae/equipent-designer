@@ -6,7 +6,7 @@ namespace EquipmentDesigner.Models
     /// Data transfer object for serializing tree node structure and associated ViewModel data.
     /// Used for persisting and restoring workflow sessions with full tree hierarchy.
     /// </summary>
-    public class TreeNodeDataDto: IIdentifiable
+    public class TreeNodeDataDto : IIdentifiable
     {
 
         public string Version;
@@ -18,7 +18,7 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// The hardware layer type (Equipment, System, Unit, Device).
         /// </summary>
-        public HardwareLayer HardwareLayer { get; set; }
+        public HardwareType HardwareType { get; set; }
 
         /// <summary>
         /// Equipment data if this is an Equipment node, null otherwise.

@@ -14,12 +14,12 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
     {
         #region Test Helpers
 
-        private WorkflowSessionDto CreateValidSessionDto()
+        private HardwareDefinition CreateValidSessionDto()
         {
-            return new WorkflowSessionDto
+            return new HardwareDefinition
             {
                 Id = "test-workflow-id",
-                HardwareType = HardwareLayer.Equipment,
+                HardwareType = HardwareType.Equipment,
                 State = ComponentState.Draft,
                 LastModifiedAt = DateTime.Now,
                 TreeNodes = new List<TreeNodeDataDto>
@@ -27,28 +27,28 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
                     new TreeNodeDataDto
                     {
                         Id = "equipment-1",
-                        HardwareLayer = HardwareLayer.Equipment,
+                        HardwareType = HardwareType.Equipment,
                         EquipmentData = new EquipmentDto { Name = "Test Equipment", Description = "Equipment Description" },
                         Children = new List<TreeNodeDataDto>
                         {
                             new TreeNodeDataDto
                             {
                                 Id = "system-1",
-                                HardwareLayer = HardwareLayer.System,
+                                HardwareType = HardwareType.System,
                                 SystemData = new SystemDto { Name = "Test System", Description = "System Description" },
                                 Children = new List<TreeNodeDataDto>
                                 {
                                     new TreeNodeDataDto
                                     {
                                         Id = "unit-1",
-                                        HardwareLayer = HardwareLayer.Unit,
+                                        HardwareType = HardwareType.Unit,
                                         UnitData = new UnitDto { Name = "Test Unit", Description = "Unit Description" },
                                         Children = new List<TreeNodeDataDto>
                                         {
                                             new TreeNodeDataDto
                                             {
                                                 Id = "device-1",
-                                                HardwareLayer = HardwareLayer.Device,
+                                                HardwareType = HardwareType.Device,
                                                 DeviceData = new DeviceDto { Name = "Test Device", Description = "Device Description" },
                                                 Children = new List<TreeNodeDataDto>()
                                             }
@@ -112,13 +112,13 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         {
             // Arrange
             var sessionDto = CreateValidSessionDto();
-            sessionDto.HardwareType = HardwareLayer.System;
+            sessionDto.HardwareType = HardwareType.System;
 
             // Act
             var viewModel = new WorkflowCompleteViewModel(sessionDto);
 
             // Assert
-            viewModel.StartType.Should().Be(HardwareLayer.System);
+            viewModel.StartType.Should().Be(HardwareType.System);
         }
 
         [Fact]
@@ -175,7 +175,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new WorkflowCompleteViewModel(sessionDto);
 
             // Assert
-            viewModel.TreeNodes.First().HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            viewModel.TreeNodes.First().HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         [Fact]
@@ -190,7 +190,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             // Assert
             var equipmentNode = viewModel.TreeNodes.First();
             equipmentNode.Children.Should().HaveCount(1);
-            equipmentNode.Children.First().HardwareLayer.Should().Be(HardwareLayer.System);
+            equipmentNode.Children.First().HardwareType.Should().Be(HardwareType.System);
         }
 
         [Fact]
@@ -205,7 +205,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             // Assert
             var systemNode = viewModel.TreeNodes.First().Children.First();
             systemNode.Children.Should().HaveCount(1);
-            systemNode.Children.First().HardwareLayer.Should().Be(HardwareLayer.Unit);
+            systemNode.Children.First().HardwareType.Should().Be(HardwareType.Unit);
         }
 
         [Fact]
@@ -220,7 +220,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             // Assert
             var unitNode = viewModel.TreeNodes.First().Children.First().Children.First();
             unitNode.Children.Should().HaveCount(1);
-            unitNode.Children.First().HardwareLayer.Should().Be(HardwareLayer.Device);
+            unitNode.Children.First().HardwareType.Should().Be(HardwareType.Device);
         }
 
         [Fact]
@@ -264,7 +264,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
         }
 
         [Fact]
-        public void TreeNodes_EachNodeExposesHardwareLayer()
+        public void TreeNodes_EachNodeExposesHardwareType()
         {
             // Arrange
             var sessionDto = CreateValidSessionDto();
@@ -273,7 +273,7 @@ namespace EquipmentDesigner.Tests.Views.WorkflowComplete
             var viewModel = new WorkflowCompleteViewModel(sessionDto);
 
             // Assert
-            viewModel.TreeNodes.First().HardwareLayer.Should().Be(HardwareLayer.Equipment);
+            viewModel.TreeNodes.First().HardwareType.Should().Be(HardwareType.Equipment);
         }
 
         #endregion

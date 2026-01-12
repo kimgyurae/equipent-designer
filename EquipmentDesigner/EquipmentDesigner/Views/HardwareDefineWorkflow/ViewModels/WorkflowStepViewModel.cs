@@ -31,7 +31,7 @@ namespace EquipmentDesigner.ViewModels
         /// The hardware layer type label (Equipment, System, Unit, Device).
         /// This is the same as StepName but provides semantic clarity.
         /// </summary>
-        public string HardwareLayerType => StepName;
+        public string HardwareTypeType => StepName;
 
         /// <summary>
         /// The actual component name from the associated ViewModel.
@@ -49,10 +49,10 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Display name for the step: shows ComponentName if set, otherwise "New {HardwareLayerType}".
+        /// Display name for the step: shows ComponentName if set, otherwise "New {HardwareTypeType}".
         /// </summary>
         public string DisplayName => string.IsNullOrWhiteSpace(ComponentName) 
-            ? $"New {HardwareLayerType}" 
+            ? $"New {HardwareTypeType}" 
             : ComponentName;
 
         /// <summary>

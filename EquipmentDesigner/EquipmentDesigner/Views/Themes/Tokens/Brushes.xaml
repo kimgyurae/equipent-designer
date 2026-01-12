@@ -182,30 +182,30 @@
          ========================= -->
     
     <!-- Equipment Layer (Blue Gradient) -->
-    <LinearGradientBrush x:Key="Brush.HardwareLayer.Equipment.Card.Background" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource Color.HardwareLayer.Equipment.Background.Start}" Offset="0"/>
-        <GradientStop Color="{StaticResource Color.HardwareLayer.Equipment.Background.End}" Offset="1"/>
+    <LinearGradientBrush x:Key="Brush.HardwareType.Equipment.Card.Background" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource Color.HardwareType.Equipment.Background.Start}" Offset="0"/>
+        <GradientStop Color="{StaticResource Color.HardwareType.Equipment.Background.End}" Offset="1"/>
     </LinearGradientBrush>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Equipment.Card.Border" Color="{StaticResource Color.HardwareLayer.Equipment.Border}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Equipment.Chip.Background" Color="{StaticResource Color.HardwareLayer.Equipment.Chip.Background}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Equipment.Chip.Foreground" Color="{StaticResource Color.HardwareLayer.Equipment.Chip.Foreground}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Equipment.Card.Border" Color="{StaticResource Color.HardwareType.Equipment.Border}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Equipment.Chip.Background" Color="{StaticResource Color.HardwareType.Equipment.Chip.Background}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Equipment.Chip.Foreground" Color="{StaticResource Color.HardwareType.Equipment.Chip.Foreground}"/>
     
     <!-- System Layer (Purple) -->
-    <SolidColorBrush x:Key="Brush.HardwareLayer.System.Card.Background" Color="{StaticResource Color.HardwareLayer.System.Background}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.System.Card.Border" Color="{StaticResource Color.HardwareLayer.System.Border}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.System.Chip.Background" Color="{StaticResource Color.HardwareLayer.System.Chip.Background}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.System.Chip.Foreground" Color="{StaticResource Color.HardwareLayer.System.Chip.Foreground}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.System.Card.Background" Color="{StaticResource Color.HardwareType.System.Background}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.System.Card.Border" Color="{StaticResource Color.HardwareType.System.Border}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.System.Chip.Background" Color="{StaticResource Color.HardwareType.System.Chip.Background}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.System.Chip.Foreground" Color="{StaticResource Color.HardwareType.System.Chip.Foreground}"/>
     
     <!-- Unit Layer (Green) -->
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Unit.Card.Background" Color="{StaticResource Color.HardwareLayer.Unit.Background}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Unit.Card.Border" Color="{StaticResource Color.HardwareLayer.Unit.Border}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Unit.Chip.Background" Color="{StaticResource Color.HardwareLayer.Unit.Chip.Background}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Unit.Chip.Foreground" Color="{StaticResource Color.HardwareLayer.Unit.Chip.Foreground}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Unit.Card.Background" Color="{StaticResource Color.HardwareType.Unit.Background}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Unit.Card.Border" Color="{StaticResource Color.HardwareType.Unit.Border}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Unit.Chip.Background" Color="{StaticResource Color.HardwareType.Unit.Chip.Background}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Unit.Chip.Foreground" Color="{StaticResource Color.HardwareType.Unit.Chip.Foreground}"/>
     
     <!-- Device Layer (Orange) -->
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Device.Card.Background" Color="{StaticResource Color.HardwareLayer.Device.Background}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Device.Card.Border" Color="{StaticResource Color.HardwareLayer.Device.Border}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Device.Chip.Background" Color="{StaticResource Color.HardwareLayer.Device.Chip.Background}"/>
-    <SolidColorBrush x:Key="Brush.HardwareLayer.Device.Chip.Foreground" Color="{StaticResource Color.HardwareLayer.Device.Chip.Foreground}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Device.Card.Background" Color="{StaticResource Color.HardwareType.Device.Background}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Device.Card.Border" Color="{StaticResource Color.HardwareType.Device.Border}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Device.Chip.Background" Color="{StaticResource Color.HardwareType.Device.Chip.Background}"/>
+    <SolidColorBrush x:Key="Brush.HardwareType.Device.Chip.Foreground" Color="{StaticResource Color.HardwareType.Device.Chip.Foreground}"/>
 
 </ResourceDictionary>
