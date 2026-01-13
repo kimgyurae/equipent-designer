@@ -319,8 +319,9 @@
                     </Grid.LayoutTransform>
 
                     <!-- Connection Lines (rendered below elements) -->
+                    <!-- Using nested ItemsControl for adjacency list pattern: each element owns its OutgoingArrows -->
                     <ItemsControl x:Name="ConnectionsItemsControl"
-                                  ItemsSource="{Binding Connections}"
+                                  ItemsSource="{Binding CurrentSteps}"
                                   Panel.ZIndex="50">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -328,21 +329,34 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type dataModels:UMLConnection}">
-                                <controls:ConnectionLine
-                                    TailId="{Binding TailId}"
-                                    HeadId="{Binding HeadId}"
-                                    TailPort="{Binding TailPort}"
-                                    HeadPort="{Binding HeadPort}"
-                                    Label="{Binding Label}"
-                                    Elements="{Binding DataContext.Elements, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                            <DataTemplate DataType="{x:Type dataModels:DrawingElement}">
+                                <!-- Inner ItemsControl for this element's OutgoingArrows -->
+                                <ItemsControl ItemsSource="{Binding OutgoingArrows}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type dataModels:UMLConnection2}">
+                                            <controls:ConnectionLine
+                                                SourceElement="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ContentPresenter, AncestorLevel=2}}"
+                                                HeadId="{Binding TargetId}"
+                                                TailPort="{Binding TailPort}"
+                                                HeadPort="{Binding HeadPort}"
+                                                Label="{Binding Label}"
+                                                Connection="{Binding}"
+                                                Elements="{Binding DataContext.CurrentSteps, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <!-- Drawing Elements Canvas -->
                     <ItemsControl x:Name="ElementsItemsControl"
-                              ItemsSource="{Binding Elements}"
+                              ItemsSource="{Binding CurrentSteps}"
                               ItemTemplateSelector="{StaticResource DrawingShapeTemplateSelector}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>

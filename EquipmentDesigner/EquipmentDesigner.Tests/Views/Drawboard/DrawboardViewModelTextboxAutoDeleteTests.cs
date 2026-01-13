@@ -17,7 +17,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
 
         private static DrawboardViewModel CreateViewModel()
         {
-            return new DrawboardViewModel(showBackButton: false);
+            return new DrawboardViewModel("test-process-id", showBackButton: false);
         }
 
         private static TextboxElement CreateTextboxElement(
@@ -62,19 +62,19 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
 
             // Select and start text editing
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
             viewModel.IsTextEditing.Should().BeTrue();
-            viewModel.Elements.Should().Contain(textbox);
+            viewModel.CurrentSteps.Should().Contain(textbox);
 
             // Act - Commit with empty text
             viewModel.CommitTextEditing("");
 
             // Assert
-            viewModel.Elements.Should().NotContain(textbox);
+            viewModel.CurrentSteps.Should().NotContain(textbox);
             viewModel.IsTextEditing.Should().BeFalse();
         }
 
@@ -88,7 +88,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
 
@@ -96,7 +96,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.CommitTextEditing("   ");
 
             // Assert
-            viewModel.Elements.Should().NotContain(textbox);
+            viewModel.CurrentSteps.Should().NotContain(textbox);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
             // Selection is cleared when entering text edit mode (to remove adorner)
@@ -133,7 +133,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var actionElement = CreateActionElement(text: "Initial");
-            viewModel.Elements.Add(actionElement);
+            viewModel.CurrentSteps.Add(actionElement);
             viewModel.SelectElement(actionElement);
             viewModel.TryStartTextEditing(actionElement);
 
@@ -141,7 +141,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.CommitTextEditing("");
 
             // Assert - ActionElement should still exist
-            viewModel.Elements.Should().Contain(actionElement);
+            viewModel.CurrentSteps.Should().Contain(actionElement);
             actionElement.Text.Should().Be("");
         }
 
@@ -158,7 +158,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
 
@@ -166,7 +166,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.CommitTextEditing("Hello World");
 
             // Assert
-            viewModel.Elements.Should().Contain(textbox);
+            viewModel.CurrentSteps.Should().Contain(textbox);
             textbox.Text.Should().Be("Hello World");
         }
 
@@ -179,7 +179,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
 
@@ -187,7 +187,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.CommitTextEditing("A");
 
             // Assert
-            viewModel.Elements.Should().Contain(textbox);
+            viewModel.CurrentSteps.Should().Contain(textbox);
             textbox.Text.Should().Be("A");
         }
 
@@ -204,7 +204,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
             viewModel.EditModeState.Should().Be(EditModeState.TextEditing);
@@ -227,7 +227,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
             // IsSelected is cleared when entering text edit mode (to remove adorner)
@@ -253,21 +253,21 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModel();
-            var initialCount = viewModel.Elements.Count;
+            var initialCount = viewModel.CurrentSteps.Count;
             var position = new Point(200, 200);
 
             // Act - Create textbox via double-click simulation
             viewModel.CreateTextboxAtPosition(position);
-            viewModel.Elements.Count.Should().Be(initialCount + 1);
-            var createdTextbox = viewModel.Elements.Last();
+            viewModel.CurrentSteps.Count.Should().Be(initialCount + 1);
+            var createdTextbox = viewModel.CurrentSteps.Last();
             createdTextbox.ShapeType.Should().Be(DrawingShapeType.Textbox);
 
             // Commit with empty text
             viewModel.CommitTextEditing("");
 
             // Assert - Textbox should be removed
-            viewModel.Elements.Count.Should().Be(initialCount);
-            viewModel.Elements.Should().NotContain(createdTextbox);
+            viewModel.CurrentSteps.Count.Should().Be(initialCount);
+            viewModel.CurrentSteps.Should().NotContain(createdTextbox);
         }
 
         #endregion
@@ -285,13 +285,13 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var position = new Point(200, 200);
             viewModel.CreateTextboxAtPosition(position);
-            var createdTextbox = viewModel.Elements.Last();
+            var createdTextbox = viewModel.CurrentSteps.Last();
 
             // Act - Cancel editing (originalText is empty)
             viewModel.CancelTextEditing();
 
             // Assert - Textbox should be removed because originalText was empty
-            viewModel.Elements.Should().NotContain(createdTextbox);
+            viewModel.CurrentSteps.Should().NotContain(createdTextbox);
         }
 
         /// <summary>
@@ -304,7 +304,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "Original Content");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
             viewModel.TryStartTextEditing(textbox);
 
@@ -312,7 +312,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.CancelTextEditing();
 
             // Assert - Textbox should still exist with original text
-            viewModel.Elements.Should().Contain(textbox);
+            viewModel.CurrentSteps.Should().Contain(textbox);
             textbox.Text.Should().Be("Original Content");
         }
 

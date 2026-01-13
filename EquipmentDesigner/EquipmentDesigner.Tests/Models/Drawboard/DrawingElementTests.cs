@@ -202,5 +202,8 @@ namespace EquipmentDesigner.Tests.Models.Drawboard
     {
         public override EquipmentDesigner.Models.DrawingShapeType ShapeType
             => EquipmentDesigner.Models.DrawingShapeType.Action;
+
+        public override int IncomingArrowCount => IncomingSourceIds.Count;
+        public override int OutgoingArrowCount => OutgoingArrows.Count;
     }
 }

@@ -17,7 +17,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
 
         private static DrawboardViewModel CreateViewModel()
         {
-            return new DrawboardViewModel(showBackButton: false);
+            return new DrawboardViewModel("test-process-id", showBackButton: false);
         }
 
         private static ActionElement CreateActionElement(
@@ -62,7 +62,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var element = CreateActionElement();
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
             viewModel.SelectElement(element);
 
             // Verify initial state
@@ -91,7 +91,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var element = CreateActionElement();
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
             viewModel.SelectElement(element);
             viewModel.TryStartTextEditing(element);
 
@@ -118,8 +118,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var elementA = CreateActionElement(100, 100);
             var elementB = CreateActionElement(300, 300);
-            viewModel.Elements.Add(elementA);
-            viewModel.Elements.Add(elementB);
+            viewModel.CurrentSteps.Add(elementA);
+            viewModel.CurrentSteps.Add(elementB);
 
             // Set up multi-selection
             viewModel.AddToSelection(elementA);
@@ -159,9 +159,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var elementA = CreateActionElement(100, 100);
             var elementB = CreateActionElement(300, 300);
             var elementC = CreateActionElement(500, 500);
-            viewModel.Elements.Add(elementA);
-            viewModel.Elements.Add(elementB);
-            viewModel.Elements.Add(elementC);
+            viewModel.CurrentSteps.Add(elementA);
+            viewModel.CurrentSteps.Add(elementB);
+            viewModel.CurrentSteps.Add(elementC);
 
             // Set up multi-selection with A and B
             viewModel.AddToSelection(elementA);
@@ -193,7 +193,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var element = CreateActionElement();
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
 
             // Verify initial state
             viewModel.EditModeState.Should().Be(EditModeState.None);
@@ -218,7 +218,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element = CreateActionElement();
             element.IsLocked = true;
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
 
             // Act
             var result = viewModel.TryStartTextEditing(element);
@@ -254,7 +254,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var element = CreateActionElement();
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
             viewModel.SelectElement(element);
 
             // Simulate moving state
@@ -283,7 +283,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var element = CreateActionElement();
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
             viewModel.SelectElement(element);
 
             // Act
@@ -303,7 +303,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var element = CreateActionElement();
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
             viewModel.SelectElement(element);
             viewModel.TryStartTextEditing(element);
 
@@ -328,7 +328,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModel();
             var textbox = CreateTextboxElement(text: "Existing Text");
-            viewModel.Elements.Add(textbox);
+            viewModel.CurrentSteps.Add(textbox);
             viewModel.SelectElement(textbox);
 
             // Act

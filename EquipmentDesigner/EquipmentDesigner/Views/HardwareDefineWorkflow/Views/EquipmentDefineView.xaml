@@ -133,7 +133,7 @@
                                Style="{StaticResource Typography.Label}"
                                Foreground="{StaticResource Brush.Text.Primary}"
                                Margin="0,0,0,6"/>
-                    <controls:ProcessEditButton IsEnabled="{Binding IsEditable}"/>
+                    <controls:ProcessEditButton IsEnabled="{Binding IsEditable}" ProcessId="{Binding ProcessId}"/>
                 </StackPanel>
 
             </StackPanel>

@@ -175,7 +175,7 @@ namespace EquipmentDesigner.ViewModels
                 EndTextEditing(committed: false);
                 
                 // Remove from canvas
-                Elements.Remove(elementToEdit);
+                CurrentSteps.Remove(elementToEdit);
                 return;
             }
 
@@ -221,7 +221,7 @@ namespace EquipmentDesigner.ViewModels
                 EndTextEditing(committed: false);
                 
                 // Remove from canvas
-                Elements.Remove(elementToEdit);
+                CurrentSteps.Remove(elementToEdit);
                 return;
             }
 

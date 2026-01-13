@@ -147,7 +147,7 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
             // Wire up events
             border.MouseEnter += OnPortMouseEnter;
             border.MouseLeave += OnPortMouseLeave;
-            border.MouseLeftButtonUp += OnPortMouseLeftButtonUp;
+            border.MouseLeftButtonDown += OnPortMouseLeftButtonDown;
 
             _portBorders[index] = border;
             _portContainer.Children.Add(border);
@@ -200,7 +200,7 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
             }
         }
 
-        private void OnPortMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void OnPortMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is Border border && border.Tag is PortPosition position)
             {
@@ -225,13 +225,8 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
             {
                 if (current is FrameworkElement fe)
                 {
-                    Debug.WriteLine($"[ConnectionPortAdorner] Visual Tree[{depth}]: {fe.GetType().Name}, " +
-                        $"LayoutTransform={fe.LayoutTransform?.GetType().Name}, " +
-                        $"RenderTransform={fe.RenderTransform?.GetType().Name}");
-                    
                     if (fe.LayoutTransform is ScaleTransform scaleTransform)
                     {
-                        Debug.WriteLine($"[ConnectionPortAdorner] Found ScaleTransform at depth {depth}: ScaleX={scaleTransform.ScaleX}, ScaleY={scaleTransform.ScaleY}");
                         return scaleTransform.ScaleX;
                     }
                 }
@@ -239,7 +234,6 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
                 depth++;
             }
 
-            Debug.WriteLine("[ConnectionPortAdorner] No ScaleTransform found in visual tree, using 1.0");
             return 1.0;
         }
 
@@ -268,16 +262,9 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
             var adornedActualWidth = adornedElement?.ActualWidth ?? 0;
             var adornedActualHeight = adornedElement?.ActualHeight ?? 0;
 
-            Debug.WriteLine($"[ConnectionPortAdorner] === ArrangeOverride ===");
-            Debug.WriteLine($"[ConnectionPortAdorner] finalSize: {finalSize.Width:F1} x {finalSize.Height:F1}");
-            Debug.WriteLine($"[ConnectionPortAdorner] DrawingElement: Width={elementWidth:F1}, Height={elementHeight:F1}");
-            Debug.WriteLine($"[ConnectionPortAdorner] AdornedElement.ActualSize: {adornedActualWidth:F1} x {adornedActualHeight:F1}");
-
             // Get the current zoom scale
             var zoomScale = GetCurrentZoomScale();
             var inverseScale = 1.0 / zoomScale;
-
-            Debug.WriteLine($"[ConnectionPortAdorner] ZoomScale: {zoomScale:F3}, InverseScale: {inverseScale:F3}");
 
             // Apply inverse scale to each port individually
             // This makes ports maintain constant VISUAL size regardless of zoom
@@ -314,14 +301,6 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
                 new Point(-canvasOffset - halfPort, centerY - halfPort)
             };
 
-            Debug.WriteLine($"[ConnectionPortAdorner] Element Center: ({centerX:F1}, {centerY:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner] Canvas Offset: {canvasOffset:F1} (visual: {VisualPortOffsetFromEdge:F1}px)");
-            Debug.WriteLine($"[ConnectionPortAdorner] Port Positions (canvas coords, scaled offset):");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Top:    ({positions[0].X:F1}, {positions[0].Y:F1}) -> center ({centerX:F1}, {-canvasOffset:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Right:  ({positions[1].X:F1}, {positions[1].Y:F1}) -> center ({elementWidth + canvasOffset:F1}, {centerY:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Bottom: ({positions[2].X:F1}, {positions[2].Y:F1}) -> center ({centerX:F1}, {elementHeight + canvasOffset:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Left:   ({positions[3].X:F1}, {positions[3].Y:F1}) -> center ({-canvasOffset:F1}, {centerY:F1})");
-
             for (int i = 0; i < 4; i++)
             {
                 Canvas.SetLeft(_portBorders[i], positions[i].X);
@@ -330,11 +309,9 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
 
             // Arrange container at (0, 0) - ClipToBounds=false allows negative coordinates to render
             // Container size matches element size, ports outside will still be visible
-            Debug.WriteLine($"[ConnectionPortAdorner] Container Arrange: (0, 0, {elementWidth:F1}, {elementHeight:F1})");
 
             _portContainer.Arrange(new Rect(0, 0, elementWidth, elementHeight));
 
-            Debug.WriteLine($"[ConnectionPortAdorner] === End ArrangeOverride ===\n");
 
             return new Size(elementWidth, elementHeight);
         }
@@ -370,7 +347,7 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
                 {
                     border.MouseEnter -= OnPortMouseEnter;
                     border.MouseLeave -= OnPortMouseLeave;
-                    border.MouseLeftButtonUp -= OnPortMouseLeftButtonUp;
+                    border.MouseLeftButtonDown -= OnPortMouseLeftButtonDown;
                 }
             }
 

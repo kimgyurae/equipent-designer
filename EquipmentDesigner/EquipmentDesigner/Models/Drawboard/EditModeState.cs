@@ -63,6 +63,21 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// An arrow connection is being drawn from a source port.
         /// </summary>
-        ConnectingArrow
+        ConnectingArrow,
+
+        /// <summary>
+        /// A connection is selected and showing edit handles.
+        /// </summary>
+        ConnectionSelected,
+
+        /// <summary>
+        /// The head endpoint of a connection is being dragged.
+        /// </summary>
+        EditingConnectionHead,
+
+        /// <summary>
+        /// The tail endpoint of a connection is being dragged.
+        /// </summary>
+        EditingConnectionTail
     }
 }

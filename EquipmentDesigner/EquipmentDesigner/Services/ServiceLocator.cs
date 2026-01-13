@@ -128,7 +128,7 @@ namespace EquipmentDesigner.Services
         public static void ConfigureForProduction()
         {
             // Register typed repositories for multi-file support
-            var workflowRepository = new WorkflowRepository();
+            var workflowRepository = new LocalHardwareRepository();
             RegisterSingleton<IWorkflowRepository>(workflowRepository);
 
             // Unified structure for uploaded workflows

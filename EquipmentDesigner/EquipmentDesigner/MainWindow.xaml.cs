@@ -158,7 +158,7 @@ namespace EquipmentDesigner
             // Save current view for back navigation
             _previousViewBeforeDrawboard = MainContent.Content;
 
-            var viewModel = new DrawboardViewModel(showBackButton: true);
+            var viewModel = new DrawboardViewModel(target.ProcessId, showBackButton: true);
             var view = new DrawboardView
             {
                 DataContext = viewModel

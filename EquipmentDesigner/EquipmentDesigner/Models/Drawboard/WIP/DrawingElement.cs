@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
 
@@ -28,6 +31,30 @@ namespace EquipmentDesigner.Models
         private TextAlignment _textAlignment = TextAlignment.Center;
         private Color _textColor = Colors.Black;
         private double _textOpacity = 1.0;
+
+        /// <summary>
+        /// 이 Element에서 나가는 화살표 목록.
+        /// 이 Element가 소유하며, TargetId로 대상을 참조합니다.
+        /// </summary>
+        public ObservableCollection<UMLConnection2> OutgoingArrows { get; private set; } = new ObservableCollection<UMLConnection2>();
+
+        /// <summary>
+        /// 이 Element로 들어오는 화살표의 Source Element ID 집합.
+        /// 규칙 검증용으로 사용됩니다 (예: InitialElement는 IncomingSourceIds.Count == 0이어야 함).
+        /// JSON 직렬화 시 제외 - OutgoingArrows에서 파생 가능.
+        /// </summary>
+        [JsonIgnore]
+        public HashSet<string> IncomingSourceIds { get; set; } = new HashSet<string>();
+
+        /// <summary>
+        /// 현재 들어오는 화살표 개수 (검증용).
+        /// </summary>
+        public int CurrentIncomingCount => IncomingSourceIds.Count;
+
+        /// <summary>
+        /// 현재 나가는 화살표 개수 (검증용).
+        /// </summary>
+        public int CurrentOutgoingCount => OutgoingArrows.Count;
 
         /// <summary>
         /// Unique identifier for the drawing element
@@ -271,6 +298,9 @@ namespace EquipmentDesigner.Models
         {
             var clone = (DrawingElement)MemberwiseClone();
             clone.Id = Guid.NewGuid().ToString();
+            // 복제 시 연결 정보는 복사하지 않음 - 새 Element는 빈 연결 상태로 시작
+            clone.OutgoingArrows = new ObservableCollection<UMLConnection2>();
+            clone.IncomingSourceIds = new HashSet<string>();
             return clone;
         }
 

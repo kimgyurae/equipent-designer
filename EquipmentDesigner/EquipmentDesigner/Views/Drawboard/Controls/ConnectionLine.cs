@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using EquipmentDesigner.Models;
@@ -16,6 +17,8 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
     /// <summary>
     /// A custom control that renders a connection line between two UML elements.
     /// Uses orthogonal routing with 90-degree turns and displays an optional label at midpoint.
+    /// Supports left-click selection for editing connection endpoints.
+    /// Updated for adjacency list pattern where source element owns the connection.
     /// </summary>
     public class ConnectionLine : Canvas
     {
@@ -25,9 +28,12 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
         private const double ArrowHeadLength = 10.0;
         private const double ArrowHeadWidth = 8.0;
         private const double LabelPadding = 4.0;
+        private const double HitTestTolerance = 8.0; // Additional hit-test area around the line
 
         private static readonly Brush LineBrush;
+        private static readonly Brush LineBrushSelected;
         private static readonly Pen LinePen;
+        private static readonly Pen LinePenSelected;
 
         #endregion
 
@@ -39,6 +45,12 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             LineBrush.Freeze();
             LinePen = new Pen(LineBrush, LineThickness);
             LinePen.Freeze();
+
+            // Selected state: blue line (primary color)
+            LineBrushSelected = new SolidColorBrush(Color.FromRgb(0x60, 0xA5, 0xFA)); // Primary.400
+            LineBrushSelected.Freeze();
+            LinePenSelected = new Pen(LineBrushSelected, LineThickness);
+            LinePenSelected.Freeze();
         }
 
         #endregion
@@ -86,6 +98,57 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
                 typeof(ObservableCollection<DrawingElement>),
                 typeof(ConnectionLine),
                 new PropertyMetadata(null, OnElementsPropertyChanged));
+
+        public static readonly DependencyProperty ConnectionProperty =
+            DependencyProperty.Register(
+                nameof(Connection),
+                typeof(UMLConnection2),
+                typeof(ConnectionLine),
+                new PropertyMetadata(null));
+
+        public static readonly DependencyProperty SourceElementProperty =
+            DependencyProperty.Register(
+                nameof(SourceElement),
+                typeof(DrawingElement),
+                typeof(ConnectionLine),
+                new PropertyMetadata(null, OnSourceElementPropertyChanged));
+
+        public static readonly DependencyProperty IsSelectedProperty =
+            DependencyProperty.Register(
+                nameof(IsSelected),
+                typeof(bool),
+                typeof(ConnectionLine),
+                new PropertyMetadata(false, OnIsSelectedPropertyChanged));
+
+        public static readonly DependencyProperty IsEditingProperty =
+            DependencyProperty.Register(
+                nameof(IsEditing),
+                typeof(bool),
+                typeof(ConnectionLine),
+                new PropertyMetadata(false, OnIsEditingPropertyChanged));
+
+        #endregion
+
+        #region Routed Events
+
+        /// <summary>
+        /// Event raised when this connection line is selected via left-click.
+        /// </summary>
+        public static readonly RoutedEvent ConnectionSelectedEvent =
+            EventManager.RegisterRoutedEvent(
+                "ConnectionSelected",
+                RoutingStrategy.Bubble,
+                typeof(RoutedEventHandler),
+                typeof(ConnectionLine));
+
+        /// <summary>
+        /// Occurs when this connection line is selected.
+        /// </summary>
+        public event RoutedEventHandler ConnectionSelectedChanged
+        {
+            add => AddHandler(ConnectionSelectedEvent, value);
+            remove => RemoveHandler(ConnectionSelectedEvent, value);
+        }
 
         #endregion
 
@@ -145,6 +208,60 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             set => SetValue(ElementsProperty, value);
         }
 
+        /// <summary>
+        /// Gets or sets the UMLConnection2 data model this line represents.
+        /// </summary>
+        public UMLConnection2 Connection
+        {
+            get => (UMLConnection2)GetValue(ConnectionProperty);
+            set => SetValue(ConnectionProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the source element that owns this connection.
+        /// Used to get TailId in adjacency list pattern where UMLConnection2 only stores TargetId.
+        /// </summary>
+        public DrawingElement SourceElement
+        {
+            get => (DrawingElement)GetValue(SourceElementProperty);
+            set => SetValue(SourceElementProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets whether this connection line is selected.
+        /// </summary>
+        public bool IsSelected
+        {
+            get => (bool)GetValue(IsSelectedProperty);
+            set => SetValue(IsSelectedProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets whether this connection line is being edited (dragging endpoint).
+        /// When true, the visual elements are hidden so only the adorner preview is visible.
+        /// </summary>
+        public bool IsEditing
+        {
+            get => (bool)GetValue(IsEditingProperty);
+            set => SetValue(IsEditingProperty, value);
+        }
+
+        /// <summary>
+        /// Gets the current route points for the connection line.
+        /// Used by ConnectionEditAdorner to position edit handles.
+        /// </summary>
+        public IReadOnlyList<Point> RoutePoints => _routePoints;
+
+        /// <summary>
+        /// Gets the head (arrow tip) position of the connection.
+        /// </summary>
+        public Point HeadPosition => _routePoints.Count > 0 ? _routePoints[_routePoints.Count - 1] : new Point();
+
+        /// <summary>
+        /// Gets the tail (start) position of the connection.
+        /// </summary>
+        public Point TailPosition => _routePoints.Count > 0 ? _routePoints[0] : new Point();
+
         #endregion
 
         #region Fields
@@ -203,8 +320,74 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             };
             Children.Add(_labelBorder);
 
-            // Set IsHitTestVisible to false for now (no interaction)
-            IsHitTestVisible = false;
+            // Enable hit testing for selection
+            IsHitTestVisible = true;
+            Background = Brushes.Transparent; // Required for hit-test on empty areas
+
+            // Wire up mouse events for selection
+            MouseLeftButtonDown += OnMouseLeftButtonDown;
+        }
+
+        #endregion
+
+        #region Mouse Event Handlers
+
+        /// <summary>
+        /// Handles left mouse button down to select this connection.
+        /// </summary>
+        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Check if click is near the line path
+            var clickPoint = e.GetPosition(this);
+            if (IsPointNearLine(clickPoint))
+            {
+                // Raise the selection event
+                RaiseEvent(new RoutedEventArgs(ConnectionSelectedEvent, this));
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Determines if a point is near the connection line path.
+        /// </summary>
+        private bool IsPointNearLine(Point point)
+        {
+            if (_routePoints.Count < 2) return false;
+
+            // Check distance to each line segment
+            for (int i = 0; i < _routePoints.Count - 1; i++)
+            {
+                var distance = DistanceToLineSegment(point, _routePoints[i], _routePoints[i + 1]);
+                if (distance <= HitTestTolerance + LineThickness / 2)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Calculates the distance from a point to a line segment.
+        /// </summary>
+        private static double DistanceToLineSegment(Point point, Point lineStart, Point lineEnd)
+        {
+            var dx = lineEnd.X - lineStart.X;
+            var dy = lineEnd.Y - lineStart.Y;
+            var lengthSquared = dx * dx + dy * dy;
+
+            if (lengthSquared < 0.001)
+            {
+                // Line segment is essentially a point
+                return Math.Sqrt(Math.Pow(point.X - lineStart.X, 2) + Math.Pow(point.Y - lineStart.Y, 2));
+            }
+
+            // Project point onto line segment
+            var t = Math.Max(0, Math.Min(1, ((point.X - lineStart.X) * dx + (point.Y - lineStart.Y) * dy) / lengthSquared));
+            var projectionX = lineStart.X + t * dx;
+            var projectionY = lineStart.Y + t * dy;
+
+            return Math.Sqrt(Math.Pow(point.X - projectionX, 2) + Math.Pow(point.Y - projectionY, 2));
         }
 
         #endregion
@@ -226,6 +409,22 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             {
                 control.UpdateLabelVisibility();
                 control.UpdateLabelPosition();
+            }
+        }
+
+        private static void OnIsSelectedPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ConnectionLine control)
+            {
+                control.UpdateVisualStyle();
+            }
+        }
+
+        private static void OnIsEditingPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ConnectionLine control)
+            {
+                control.UpdateEditingVisibility();
             }
         }
 
@@ -308,6 +507,20 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             }
         }
 
+        private static void OnSourceElementPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ConnectionLine control)
+            {
+                // When SourceElement changes, update TailId from it
+                if (e.NewValue is DrawingElement sourceElement)
+                {
+                    control.TailId = sourceElement.Id;
+                }
+                control.ResolveElements();
+                control.UpdateRoute();
+            }
+        }
+
         #endregion
 
         #region Element Resolution
@@ -344,12 +557,12 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
                 return;
             }
 
-            // Calculate port positions
+            // Calculate edge positions (where arrows attach directly to element boundaries)
             var tailBounds = _tailElement.Bounds;
             var headBounds = _headElement.Bounds;
 
-            var startPoint = ConnectionRoutingEngine.CalculatePortPosition(tailBounds, TailPort);
-            var endPoint = ConnectionRoutingEngine.CalculatePortPosition(headBounds, HeadPort);
+            var startPoint = ConnectionRoutingEngine.CalculateEdgePosition(tailBounds, TailPort);
+            var endPoint = ConnectionRoutingEngine.CalculateEdgePosition(headBounds, HeadPort);
 
             // Calculate orthogonal route
             _routePoints = CalculateRoute(startPoint, TailPort, endPoint, HeadPort);
@@ -571,6 +784,41 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
 
             // Fallback to last point
             return _routePoints[_routePoints.Count - 1];
+        }
+
+        #endregion
+
+        #region Visual Style
+
+        /// <summary>
+        /// Updates the visual appearance based on selection state.
+        /// </summary>
+        private void UpdateVisualStyle()
+        {
+            var brush = IsSelected ? LineBrushSelected : LineBrush;
+            _linePath.Stroke = brush;
+            _arrowPath.Fill = brush;
+        }
+
+        /// <summary>
+        /// Updates visibility of visual elements based on editing state.
+        /// When editing, elements are hidden so only the adorner preview is visible.
+        /// </summary>
+        private void UpdateEditingVisibility()
+        {
+            var visibility = IsEditing ? Visibility.Collapsed : Visibility.Visible;
+            _linePath.Visibility = visibility;
+            _arrowPath.Visibility = visibility;
+            
+            // Label visibility depends on both editing state and label content
+            if (IsEditing)
+            {
+                _labelBorder.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                UpdateLabelVisibility();
+            }
         }
 
         #endregion

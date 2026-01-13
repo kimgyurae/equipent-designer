@@ -21,7 +21,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         private static DrawboardViewModel CreateViewModelWithSelectedElement(
             double x, double y, double width, double height)
         {
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             var element = new AspectRatioTestElement
             {
                 X = x,
@@ -29,7 +29,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
                 Width = width,
                 Height = height
             };
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
             viewModel.SelectElement(element);
             return viewModel;
         }
@@ -646,5 +646,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
     internal class AspectRatioTestElement : DrawingElement
     {
         public override DrawingShapeType ShapeType => DrawingShapeType.Action;
+
+        public override int IncomingArrowCount => IncomingSourceIds.Count;
+        public override int OutgoingArrowCount => OutgoingArrows.Count;
     }
 }

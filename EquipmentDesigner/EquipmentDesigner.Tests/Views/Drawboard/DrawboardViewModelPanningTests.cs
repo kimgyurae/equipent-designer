@@ -19,7 +19,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void IsHandToolActive_WhenHandToolSelected_ReturnsTrue()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
 
             // Act
             viewModel.SelectToolById("Hand");
@@ -32,7 +32,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void IsHandToolActive_WhenSelectionToolSelected_ReturnsFalse()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
 
             // Act
             viewModel.SelectToolById("Selection");
@@ -45,7 +45,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void IsHandToolActive_WhenDrawingToolSelected_ReturnsFalse()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
 
             // Act
             viewModel.SelectToolById("ActionNode");
@@ -58,7 +58,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void IsHandToolActive_UpdatesAfterSelectToolById()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.SelectToolById("Selection");
             viewModel.IsHandToolActive.Should().BeFalse();
 
@@ -77,7 +77,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void IsPanning_Initially_ReturnsFalse()
         {
             // Arrange & Act
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
 
             // Assert
             viewModel.IsPanning.Should().BeFalse();
@@ -87,7 +87,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void StartPan_WhenHandToolActive_SetsIsPanningToTrue()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.SelectToolById("Hand");
 
             // Act
@@ -101,7 +101,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void EndPan_SetsIsPanningToFalse()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.SelectToolById("Hand");
             viewModel.StartPan(new Point(100, 100));
 
@@ -116,7 +116,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void StartPan_WhenNotHandTool_DoesNotStartPanning()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.SelectToolById("Selection");
 
             // Act
@@ -257,7 +257,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void StartPan_SetsEditModeStateToPanning()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.SelectToolById("Hand");
 
             // Act
@@ -271,7 +271,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void EndPan_SetsEditModeStateToNone()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.SelectToolById("Hand");
             viewModel.StartPan(new Point(100, 100));
 
@@ -286,7 +286,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void EndPan_WhenNotPanning_DoesNothing()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.EditModeState.Should().Be(EditModeState.None);
 
             // Act
@@ -304,7 +304,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void UpdatePan_WhenNotPanning_DoesNothing()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             double? receivedX = null;
             double? receivedY = null;
             viewModel.ApplyScrollOffset = (x, y) => { receivedX = x; receivedY = y; };
@@ -321,7 +321,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         public void UpdatePan_WhenPanning_InvokesApplyScrollOffset()
         {
             // Arrange
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel("test-process-id", showBackButton: false);
             viewModel.SelectToolById("Hand");
             double? receivedX = null;
             double? receivedY = null;

@@ -14,6 +14,21 @@ namespace EquipmentDesigner.Controls
     public partial class ProcessEditButton : UserControl
     {
         /// <summary>
+        /// Identifies the ProcessId dependency property.
+        /// </summary>
+        public static readonly DependencyProperty ProcessIdProperty =
+            DependencyProperty.Register(nameof(ProcessId), typeof(string), typeof(ProcessEditButton));
+
+        /// <summary>
+        /// Gets or sets the Process ID to pass to the DrawboardViewModel.
+        /// </summary>
+        public string ProcessId
+        {
+            get => (string)GetValue(ProcessIdProperty);
+            set => SetValue(ProcessIdProperty, value);
+        }
+
+        /// <summary>
         /// Tracks the currently open Process editor window (if any).
         /// </summary>
         private Window _openProcessEditorWindow;
@@ -37,7 +52,7 @@ namespace EquipmentDesigner.Controls
                 return;
             }
 
-            NavigationService.Instance.NavigateToDrawboard();
+            NavigationService.Instance.NavigateToDrawboard(ProcessId);
         }
 
         /// <summary>
@@ -65,7 +80,7 @@ namespace EquipmentDesigner.Controls
                 return;
             }
 
-            var viewModel = new DrawboardViewModel(showBackButton: false);
+            var viewModel = new DrawboardViewModel(ProcessId, showBackButton: false);
             var view = new DrawboardView
             {
                 DataContext = viewModel

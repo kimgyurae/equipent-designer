@@ -112,7 +112,7 @@ namespace EquipmentDesigner.ViewModels
 
             var newElement = PreviewElement;
             newElement.Opacity = 1.0;
-            Elements.Add(newElement);
+            CurrentSteps.Add(newElement);
             AddStepToCurrentWorkflow(newElement);
             _nextZIndex++;
 
@@ -200,7 +200,7 @@ namespace EquipmentDesigner.ViewModels
                 ZIndex = _nextZIndex
             };
 
-            Elements.Add(textbox);
+            CurrentSteps.Add(textbox);
             AddStepToCurrentWorkflow(textbox);
             _nextZIndex++;
 

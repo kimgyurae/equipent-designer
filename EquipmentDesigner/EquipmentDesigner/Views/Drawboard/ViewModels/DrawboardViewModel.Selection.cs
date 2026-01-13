@@ -62,7 +62,7 @@ namespace EquipmentDesigner.ViewModels
             if (_selectedElement == null || _selectedElement.IsLocked) return;
 
             RemoveStepFromCurrentWorkflow(_selectedElement);
-            Elements.Remove(_selectedElement);
+            CurrentSteps.Remove(_selectedElement);
             ClearSelection();
         }
 
@@ -74,7 +74,7 @@ namespace EquipmentDesigner.ViewModels
         public DrawingElement FindElementAtPoint(Point point)
         {
             // Search in reverse ZIndex order (topmost first)
-            return Elements
+            return CurrentSteps
                 .OrderByDescending(e => e.ZIndex)
                 .FirstOrDefault(e => e.Bounds.Contains(point));
         }
@@ -234,7 +234,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public IEnumerable<DrawingElement> FindElementsInRect(Rect selectionRect)
         {
-            return Elements.Where(e => selectionRect.Contains(e.Bounds));
+            return CurrentSteps.Where(e => selectionRect.Contains(e.Bounds));
         }
 
         #endregion

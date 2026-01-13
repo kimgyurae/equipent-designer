@@ -17,7 +17,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
 
         private static DrawboardViewModel CreateViewModel()
         {
-            return new DrawboardViewModel(showBackButton: false);
+            return new DrawboardViewModel("test-process-id", showBackButton: false);
         }
 
         private static ContextMenuTestElement CreateTestElement(
@@ -38,7 +38,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             var viewModel = CreateViewModel();
             var element = CreateTestElement(x, y, width, height);
-            viewModel.Elements.Add(element);
+            viewModel.CurrentSteps.Add(element);
             return viewModel;
         }
 
@@ -46,7 +46,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             double x = 100, double y = 100, double width = 100, double height = 100)
         {
             var viewModel = CreateViewModelWithElement(x, y, width, height);
-            viewModel.SelectElement(viewModel.Elements[0]);
+            viewModel.SelectElement(viewModel.CurrentSteps[0]);
             return viewModel;
         }
 
@@ -79,7 +79,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.PasteFromClipboard();
 
             // Assert
-            var pastedElement = viewModel.Elements.Last();
+            var pastedElement = viewModel.CurrentSteps.Last();
             pastedElement.X.Should().Be(160); // 150 + 10 offset
             pastedElement.Y.Should().Be(210); // 200 + 10 offset
         }
@@ -91,8 +91,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element1 = CreateTestElement(100, 100);
             var element2 = CreateTestElement(200, 200);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
             viewModel.ToggleSelection(element1);
             viewModel.ToggleSelection(element2);
 
@@ -127,13 +127,13 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModel();
-            var initialCount = viewModel.Elements.Count;
+            var initialCount = viewModel.CurrentSteps.Count;
 
             // Act
             viewModel.PasteFromClipboard();
 
             // Assert
-            viewModel.Elements.Count.Should().Be(initialCount);
+            viewModel.CurrentSteps.Count.Should().Be(initialCount);
         }
 
         [Fact]
@@ -142,13 +142,13 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModelWithSelectedElement();
             viewModel.CopyToClipboard();
-            var countBeforePaste = viewModel.Elements.Count;
+            var countBeforePaste = viewModel.CurrentSteps.Count;
 
             // Act
             viewModel.PasteFromClipboard();
 
             // Assert
-            viewModel.Elements.Count.Should().Be(countBeforePaste + 1);
+            viewModel.CurrentSteps.Count.Should().Be(countBeforePaste + 1);
         }
 
         [Fact]
@@ -163,7 +163,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.PasteFromClipboard();
 
             // Assert
-            var pastedElement = viewModel.Elements.Last();
+            var pastedElement = viewModel.CurrentSteps.Last();
             pastedElement.Id.Should().NotBe(originalElement.Id);
         }
 
@@ -178,7 +178,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.PasteFromClipboard();
 
             // Assert
-            var pastedElement = viewModel.Elements.Last();
+            var pastedElement = viewModel.CurrentSteps.Last();
             pastedElement.X.Should().Be(110); // 100 + 10
             pastedElement.Y.Should().Be(110); // 100 + 10
         }
@@ -190,8 +190,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element1 = CreateTestElement(100, 100);
             var element2 = CreateTestElement(200, 150); // 100px right, 50px down from element1
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
             viewModel.ToggleSelection(element1);
             viewModel.ToggleSelection(element2);
             viewModel.CopyToClipboard();
@@ -200,7 +200,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.PasteFromClipboard();
 
             // Assert
-            var pastedElements = viewModel.Elements.Skip(2).ToList();
+            var pastedElements = viewModel.CurrentSteps.Skip(2).ToList();
             pastedElements.Should().HaveCount(2);
 
             var relativeX = pastedElements[1].X - pastedElements[0].X;
@@ -220,7 +220,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.PasteFromClipboard();
 
             // Assert
-            var pastedElement = viewModel.Elements.Last();
+            var pastedElement = viewModel.CurrentSteps.Last();
             viewModel.SelectedElement.Should().Be(pastedElement);
             pastedElement.IsSelected.Should().BeTrue();
         }
@@ -236,8 +236,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var bottomElement = CreateTestElement(zIndex: 1);
             var topElement = CreateTestElement(zIndex: 2);
-            viewModel.Elements.Add(bottomElement);
-            viewModel.Elements.Add(topElement);
+            viewModel.CurrentSteps.Add(bottomElement);
+            viewModel.CurrentSteps.Add(topElement);
             viewModel.SelectElement(topElement);
 
             // Act
@@ -255,8 +255,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var bottomElement = CreateTestElement(zIndex: 1);
             var topElement = CreateTestElement(zIndex: 2);
-            viewModel.Elements.Add(bottomElement);
-            viewModel.Elements.Add(topElement);
+            viewModel.CurrentSteps.Add(bottomElement);
+            viewModel.CurrentSteps.Add(topElement);
             viewModel.SelectElement(bottomElement);
 
             // Act
@@ -278,8 +278,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var bottomElement = CreateTestElement(zIndex: 1);
             var topElement = CreateTestElement(zIndex: 2);
-            viewModel.Elements.Add(bottomElement);
-            viewModel.Elements.Add(topElement);
+            viewModel.CurrentSteps.Add(bottomElement);
+            viewModel.CurrentSteps.Add(topElement);
             viewModel.SelectElement(bottomElement);
 
             // Act
@@ -297,8 +297,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var bottomElement = CreateTestElement(zIndex: 1);
             var topElement = CreateTestElement(zIndex: 2);
-            viewModel.Elements.Add(bottomElement);
-            viewModel.Elements.Add(topElement);
+            viewModel.CurrentSteps.Add(bottomElement);
+            viewModel.CurrentSteps.Add(topElement);
             viewModel.SelectElement(topElement);
 
             // Act
@@ -321,9 +321,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var element1 = CreateTestElement(zIndex: 5);
             var element2 = CreateTestElement(zIndex: 10);
             var element3 = CreateTestElement(zIndex: 15);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
-            viewModel.Elements.Add(element3);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
+            viewModel.CurrentSteps.Add(element3);
             viewModel.SelectElement(element3);
 
             // Act
@@ -345,9 +345,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var element1 = CreateTestElement(zIndex: 5);
             var element2 = CreateTestElement(zIndex: 10);
             var element3 = CreateTestElement(zIndex: 15);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
-            viewModel.Elements.Add(element3);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
+            viewModel.CurrentSteps.Add(element3);
             viewModel.SelectElement(element1);
 
             // Act
@@ -367,14 +367,14 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             // Arrange
             var viewModel = CreateViewModelWithSelectedElement();
             var originalElement = viewModel.SelectedElement;
-            var originalCount = viewModel.Elements.Count;
+            var originalCount = viewModel.CurrentSteps.Count;
 
             // Act
             viewModel.Duplicate();
 
             // Assert
-            viewModel.Elements.Count.Should().Be(originalCount + 1);
-            var duplicatedElement = viewModel.Elements.Last();
+            viewModel.CurrentSteps.Count.Should().Be(originalCount + 1);
+            var duplicatedElement = viewModel.CurrentSteps.Last();
             duplicatedElement.Id.Should().NotBe(originalElement.Id);
         }
 
@@ -388,7 +388,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.Duplicate();
 
             // Assert
-            var duplicatedElement = viewModel.Elements.Last();
+            var duplicatedElement = viewModel.CurrentSteps.Last();
             duplicatedElement.X.Should().Be(110); // 100 + 10
             duplicatedElement.Y.Should().Be(110); // 100 + 10
         }
@@ -403,7 +403,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.Duplicate();
 
             // Assert
-            var duplicatedElement = viewModel.Elements.Last();
+            var duplicatedElement = viewModel.CurrentSteps.Last();
             viewModel.SelectedElement.Should().Be(duplicatedElement);
             duplicatedElement.IsSelected.Should().BeTrue();
         }
@@ -415,17 +415,17 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element1 = CreateTestElement(100, 100);
             var element2 = CreateTestElement(200, 200);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
             viewModel.ToggleSelection(element1);
             viewModel.ToggleSelection(element2);
-            var originalCount = viewModel.Elements.Count;
+            var originalCount = viewModel.CurrentSteps.Count;
 
             // Act
             viewModel.Duplicate();
 
             // Assert
-            viewModel.Elements.Count.Should().Be(originalCount + 2);
+            viewModel.CurrentSteps.Count.Should().Be(originalCount + 2);
         }
 
         #endregion
@@ -526,8 +526,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element1 = CreateTestElement();
             var element2 = CreateTestElement(200, 200);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
             viewModel.ToggleSelection(element1);
             viewModel.ToggleSelection(element2);
 
@@ -554,7 +554,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.DeleteSelectedElements();
 
             // Assert
-            viewModel.Elements.Should().NotContain(element);
+            viewModel.CurrentSteps.Should().NotContain(element);
         }
 
         [Fact]
@@ -578,9 +578,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var element1 = CreateTestElement();
             var element2 = CreateTestElement(200, 200);
             var element3 = CreateTestElement(300, 300);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
-            viewModel.Elements.Add(element3);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
+            viewModel.CurrentSteps.Add(element3);
             viewModel.ToggleSelection(element1);
             viewModel.ToggleSelection(element2);
 
@@ -588,9 +588,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.DeleteSelectedElements();
 
             // Assert
-            viewModel.Elements.Should().NotContain(element1);
-            viewModel.Elements.Should().NotContain(element2);
-            viewModel.Elements.Should().Contain(element3); // Not selected, should remain
+            viewModel.CurrentSteps.Should().NotContain(element1);
+            viewModel.CurrentSteps.Should().NotContain(element2);
+            viewModel.CurrentSteps.Should().Contain(element3); // Not selected, should remain
         }
 
         [Fact]
@@ -601,8 +601,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var lockedElement = CreateTestElement();
             lockedElement.IsLocked = true;
             var unlockedElement = CreateTestElement(200, 200);
-            viewModel.Elements.Add(lockedElement);
-            viewModel.Elements.Add(unlockedElement);
+            viewModel.CurrentSteps.Add(lockedElement);
+            viewModel.CurrentSteps.Add(unlockedElement);
             viewModel.AddToSelection(lockedElement);
             viewModel.AddToSelection(unlockedElement);
 
@@ -610,8 +610,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             viewModel.DeleteSelectedElements();
 
             // Assert
-            viewModel.Elements.Should().Contain(lockedElement); // Locked, should remain
-            viewModel.Elements.Should().NotContain(unlockedElement); // Unlocked, should be deleted
+            viewModel.CurrentSteps.Should().Contain(lockedElement); // Locked, should remain
+            viewModel.CurrentSteps.Should().NotContain(unlockedElement); // Unlocked, should be deleted
         }
 
         #endregion
@@ -724,8 +724,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element1 = CreateTestElement();
             var element2 = CreateTestElement(200, 200);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
             viewModel.AddToSelection(element1);
             viewModel.AddToSelection(element2);
             // Lock elements AFTER adding to selection (AddToSelection returns early for locked elements)
@@ -746,8 +746,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element1 = CreateTestElement();
             var element2 = CreateTestElement(200, 200);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
             viewModel.AddToSelection(element1);
             viewModel.AddToSelection(element2);
             // Lock only element1 AFTER adding to selection
@@ -786,8 +786,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var unlockedElement = CreateTestElement(100, 100);
             var lockedElement = CreateTestElement(200, 200);
             lockedElement.IsLocked = true;
-            viewModel.Elements.Add(unlockedElement);
-            viewModel.Elements.Add(lockedElement);
+            viewModel.CurrentSteps.Add(unlockedElement);
+            viewModel.CurrentSteps.Add(lockedElement);
             viewModel.SelectElement(unlockedElement);
 
             // Act - Try to add locked element via shift+click
@@ -805,8 +805,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var element1 = CreateTestElement(100, 100);
             var element2 = CreateTestElement(200, 200);
-            viewModel.Elements.Add(element1);
-            viewModel.Elements.Add(element2);
+            viewModel.CurrentSteps.Add(element1);
+            viewModel.CurrentSteps.Add(element2);
             viewModel.ToggleSelection(element1);
             viewModel.ToggleSelection(element2);
             // Lock element2 AFTER adding to selection
@@ -828,8 +828,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var unlockedElement = CreateTestElement(100, 100);
             var lockedElement = CreateTestElement(200, 200);
             lockedElement.IsLocked = true;
-            viewModel.Elements.Add(unlockedElement);
-            viewModel.Elements.Add(lockedElement);
+            viewModel.CurrentSteps.Add(unlockedElement);
+            viewModel.CurrentSteps.Add(lockedElement);
             viewModel.SelectElement(unlockedElement);
 
             // Act
@@ -848,8 +848,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var unlockedElement = CreateTestElement(50, 50, 50, 50);
             var lockedElement = CreateTestElement(150, 50, 50, 50);
             lockedElement.IsLocked = true;
-            viewModel.Elements.Add(unlockedElement);
-            viewModel.Elements.Add(lockedElement);
+            viewModel.CurrentSteps.Add(unlockedElement);
+            viewModel.CurrentSteps.Add(lockedElement);
 
             // Act - Rubberband select an area containing both elements
             viewModel.StartRubberbandSelection(new Point(0, 0));
@@ -871,8 +871,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var lockedElement2 = CreateTestElement(150, 50, 50, 50);
             lockedElement1.IsLocked = true;
             lockedElement2.IsLocked = true;
-            viewModel.Elements.Add(lockedElement1);
-            viewModel.Elements.Add(lockedElement2);
+            viewModel.CurrentSteps.Add(lockedElement1);
+            viewModel.CurrentSteps.Add(lockedElement2);
 
             // Act - Rubberband select an area containing both locked elements
             viewModel.StartRubberbandSelection(new Point(0, 0));
@@ -894,9 +894,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var unlocked2 = CreateTestElement(150, 50, 50, 50);
             var locked1 = CreateTestElement(250, 50, 50, 50);
             locked1.IsLocked = true;
-            viewModel.Elements.Add(unlocked1);
-            viewModel.Elements.Add(unlocked2);
-            viewModel.Elements.Add(locked1);
+            viewModel.CurrentSteps.Add(unlocked1);
+            viewModel.CurrentSteps.Add(unlocked2);
+            viewModel.CurrentSteps.Add(locked1);
 
             // Act - Rubberband select an area containing all elements
             viewModel.StartRubberbandSelection(new Point(0, 0));
@@ -920,5 +920,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
     internal class ContextMenuTestElement : DrawingElement
     {
         public override DrawingShapeType ShapeType => DrawingShapeType.Action;
+
+        public override int IncomingArrowCount => IncomingSourceIds.Count;
+        public override int OutgoingArrowCount => OutgoingArrows.Count;
     }
 }

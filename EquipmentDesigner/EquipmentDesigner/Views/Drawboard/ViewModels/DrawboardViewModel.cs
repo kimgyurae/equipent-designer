@@ -10,6 +10,7 @@ using System.Windows.Input;
 using EquipmentDesigner.Controls;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.ProcessEditor;
+using EquipmentDesigner.Services;
 using EquipmentDesigner.Views.Drawboard.UMLEngine;
 using EquipmentDesigner.Views.Drawboard.UMLEngine.Contexts;
 using UmlDrawingContext = EquipmentDesigner.Views.Drawboard.UMLEngine.Contexts.DrawingContext;
@@ -71,9 +72,10 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public double CanvasHeight { get; }
 
-        public DrawboardViewModel(bool showBackButton = true, Process process = null)
+        public DrawboardViewModel(string processId, bool showBackButton = true)
         {
             _showBackButton = showBackButton;
+            _processManager = new LocalProcessRepositoryManager();
 
             // Canvas size = Largest connected monitor size × 10
             var largestScreen = Screen.AllScreens
@@ -96,8 +98,8 @@ namespace EquipmentDesigner.ViewModels
             InitializeTools();
             InitializeStates();
 
-            // Initialize Process - create new if null
-            InitializeProcess(process);
+            // Initialize Process - load from repository or create new
+            InitializeProcessAsync(processId);
 
             // Select default tool
             SelectTool(Tools.FirstOrDefault(t => t.Id == "Selection"));
@@ -234,8 +236,10 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Collection of drawing elements on the canvas.
+        /// 대안 A: ObservableCollection 래퍼를 사용하여 UI 반응성 유지.
+        /// Process.Processes[SelectedState].Steps와 동기화됩니다.
         /// </summary>
-        public ObservableCollection<DrawingElement> Elements { get; } = new ObservableCollection<DrawingElement>();
+        public ObservableCollection<DrawingElement> CurrentSteps { get; } = new ObservableCollection<DrawingElement>();
 
         /// <summary>
         /// Whether a drawing operation is in progress.

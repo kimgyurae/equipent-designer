@@ -162,7 +162,7 @@ namespace EquipmentDesigner.Tests.Services
             ServiceLocator.IsRegistered<IUploadedWorkflowRepository>().Should().BeTrue();
 
             var workflowRepository = ServiceLocator.GetService<IWorkflowRepository>();
-            workflowRepository.Should().BeOfType<WorkflowRepository>();
+            workflowRepository.Should().BeOfType<LocalHardwareRepository>();
 
             var uploadedWorkflowRepository = ServiceLocator.GetService<IUploadedWorkflowRepository>();
             uploadedWorkflowRepository.Should().BeOfType<UploadedWorkflowRepository>();

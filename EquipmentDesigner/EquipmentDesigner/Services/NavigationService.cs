@@ -111,11 +111,13 @@ namespace EquipmentDesigner.Services
         /// <summary>
         /// Navigate to the process define view.
         /// </summary>
-        public void NavigateToDrawboard()
+        /// <param name="processId">The process ID to load in the drawboard.</param>
+        public void NavigateToDrawboard(string processId)
         {
             ShowDashboardRequested?.Invoke(new NavigationTarget
             {
-                TargetType = NavigationTargetType.Drawboard
+                TargetType = NavigationTargetType.Drawboard,
+                ProcessId = processId
             });
         }
 
@@ -182,6 +184,11 @@ namespace EquipmentDesigner.Services
         /// Workflow session data for workflow complete scenarios.
         /// </summary>
         public HardwareDefinition SessionDto { get; set; }
+
+        /// <summary>
+        /// Process ID for drawboard navigation.
+        /// </summary>
+        public string ProcessId { get; set; }
     }
 
     /// <summary>

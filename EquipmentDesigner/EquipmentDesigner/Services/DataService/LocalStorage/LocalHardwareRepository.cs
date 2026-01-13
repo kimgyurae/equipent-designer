@@ -9,13 +9,13 @@ namespace EquipmentDesigner.Services
     /// Repository for managing incomplete workflow data.
     /// Persists to workflows.json in LocalApplicationData folder.
     /// </summary>
-    public class WorkflowRepository : TypedJsonFileRepository<List<HardwareDefinition>>, IWorkflowRepository
+    public class LocalHardwareRepository : TypedJsonFileRepository<List<HardwareDefinition>>, IWorkflowRepository
     {
-        public WorkflowRepository() : base(null)
+        public LocalHardwareRepository() : base(null)
         {
         }
 
-        public WorkflowRepository(string filePath) : base(filePath)
+        public LocalHardwareRepository(string filePath) : base(filePath)
         {
         }
 

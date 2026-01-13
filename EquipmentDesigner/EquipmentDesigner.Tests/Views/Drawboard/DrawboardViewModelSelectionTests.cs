@@ -16,7 +16,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
 
         private static DrawboardViewModel CreateViewModel()
         {
-            return new DrawboardViewModel(showBackButton: false);
+            return new DrawboardViewModel("test-process-id", showBackButton: false);
         }
 
         private static SelectionTestElement CreateTestElement(
@@ -35,8 +35,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         private static DrawboardViewModel CreateViewModelWithTwoElements()
         {
             var viewModel = CreateViewModel();
-            viewModel.Elements.Add(CreateTestElement(100, 100)); // Element A
-            viewModel.Elements.Add(CreateTestElement(300, 300)); // Element B
+            viewModel.CurrentSteps.Add(CreateTestElement(100, 100)); // Element A
+            viewModel.CurrentSteps.Add(CreateTestElement(300, 300)); // Element B
             return viewModel;
         }
 
@@ -54,8 +54,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange - Shape A is already selected (without Shift)
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
 
             // User clicks element A without Shift - single selection
             viewModel.SelectElement(elementA);
@@ -84,8 +84,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange - Shape A is already selected
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
 
             viewModel.SelectElement(elementA);
             viewModel.SelectedElement.Should().Be(elementA);
@@ -109,8 +109,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.SelectElement(elementA);
 
             // Act
@@ -126,8 +126,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.SelectElement(elementA);
             viewModel.IsMultiSelectionMode.Should().BeFalse();
 
@@ -147,9 +147,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var elementA = CreateTestElement(100, 100);
             var elementB = CreateTestElement(200, 200);
             var elementC = CreateTestElement(300, 300);
-            viewModel.Elements.Add(elementA);
-            viewModel.Elements.Add(elementB);
-            viewModel.Elements.Add(elementC);
+            viewModel.CurrentSteps.Add(elementA);
+            viewModel.CurrentSteps.Add(elementB);
+            viewModel.CurrentSteps.Add(elementC);
 
             viewModel.AddToSelection(elementA);
             viewModel.AddToSelection(elementB);
@@ -168,8 +168,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.AddToSelection(elementA);
             viewModel.EditModeState.Should().Be(EditModeState.Selected);
 
@@ -185,7 +185,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
+            var elementA = viewModel.CurrentSteps[0];
             viewModel.AddToSelection(elementA);
             var initialCount = viewModel.SelectedElements.Count;
 
@@ -208,9 +208,9 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var elementA = CreateTestElement(100, 100);
             var elementB = CreateTestElement(200, 200);
             var elementC = CreateTestElement(300, 300);
-            viewModel.Elements.Add(elementA);
-            viewModel.Elements.Add(elementB);
-            viewModel.Elements.Add(elementC);
+            viewModel.CurrentSteps.Add(elementA);
+            viewModel.CurrentSteps.Add(elementB);
+            viewModel.CurrentSteps.Add(elementC);
 
             // Start with multi-selection
             viewModel.AddToSelection(elementA);
@@ -234,8 +234,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.ToggleSelection(elementA);
             viewModel.SelectedElements.Count.Should().Be(1);
 
@@ -252,8 +252,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.ToggleSelection(elementA);
             viewModel.ToggleSelection(elementB);
             viewModel.SelectedElements.Count.Should().Be(2);
@@ -272,8 +272,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.ToggleSelection(elementA);
             viewModel.ToggleSelection(elementB);
             viewModel.IsMultiSelectionMode.Should().BeTrue();
@@ -292,8 +292,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.AddToSelection(elementA);
             viewModel.AddToSelection(elementB);
 
@@ -318,8 +318,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.SelectElement(elementA);
 
             // Act
@@ -335,8 +335,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
             viewModel.ToggleSelection(elementA);
             viewModel.ToggleSelection(elementB);
 
@@ -352,8 +352,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
 
             // Act & Assert - No selection
             viewModel.EditModeState.Should().Be(EditModeState.None);
@@ -372,8 +372,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
-            var elementB = viewModel.Elements[1];
+            var elementA = viewModel.CurrentSteps[0];
+            var elementB = viewModel.CurrentSteps[1];
 
             // Assert - No selection
             viewModel.IsMultiSelectionMode.Should().BeFalse();
@@ -412,7 +412,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var lockedElement = CreateTestElement();
             lockedElement.IsLocked = true;
-            viewModel.Elements.Add(lockedElement);
+            viewModel.CurrentSteps.Add(lockedElement);
 
             // Act
             viewModel.AddToSelection(lockedElement);
@@ -426,7 +426,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
         {
             // Arrange
             var viewModel = CreateViewModelWithTwoElements();
-            var elementA = viewModel.Elements[0];
+            var elementA = viewModel.CurrentSteps[0];
             viewModel.ToggleSelection(elementA);
             var initialCount = viewModel.SelectedElements.Count;
 
@@ -444,7 +444,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var lockedElement = CreateTestElement();
             lockedElement.IsLocked = true;
-            viewModel.Elements.Add(lockedElement);
+            viewModel.CurrentSteps.Add(lockedElement);
 
             // Act
             viewModel.ToggleSelection(lockedElement);
@@ -460,7 +460,7 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
             var viewModel = CreateViewModel();
             var lockedElement = CreateTestElement();
             lockedElement.IsLocked = true;
-            viewModel.Elements.Add(lockedElement);
+            viewModel.CurrentSteps.Add(lockedElement);
 
             // Act
             viewModel.SelectElement(lockedElement);
@@ -478,5 +478,8 @@ namespace EquipmentDesigner.Tests.Views.Drawboard
     internal class SelectionTestElement : DrawingElement
     {
         public override DrawingShapeType ShapeType => DrawingShapeType.Action;
+
+        public override int IncomingArrowCount => IncomingSourceIds.Count;
+        public override int OutgoingArrowCount => OutgoingArrows.Count;
     }
 }

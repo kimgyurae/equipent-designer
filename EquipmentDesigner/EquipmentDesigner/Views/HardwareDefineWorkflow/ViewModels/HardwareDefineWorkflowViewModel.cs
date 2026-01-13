@@ -46,16 +46,17 @@ namespace EquipmentDesigner.ViewModels
         /// Creates a new workflow with a unique ID.
         /// </summary>
         public HardwareDefineWorkflowViewModel(HardwareType startType)
-            : this(startType, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "1.0.0")
+            : this(startType, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "1.0.0")
         {
         }
 
         /// <summary>
         /// Creates a workflow with a specific ID (for resume scenarios).
         /// </summary>
-        private HardwareDefineWorkflowViewModel(HardwareType startType, string workflowId, string hardwareKey, string version)
+        private HardwareDefineWorkflowViewModel(HardwareType startType, string hardwareId, string processId, string hardwareKey, string version)
         {
-            WorkflowId = workflowId;
+            HardwareId = hardwareId;
+            ProcessId = processId;
             StartType = startType;
             HardwareKey = hardwareKey;
             Version = version;
@@ -71,7 +72,12 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Unique identifier for this workflow session.
         /// </summary>
-        public string WorkflowId { get; }
+        public string HardwareId { get; }
+
+        /// <summary>
+        /// Unique identifier for process for this hardwdare
+        /// </summary>
+        public string ProcessId { get; }
 
         /// <summary>
         /// The starting type of the workflow.
@@ -697,6 +703,7 @@ namespace EquipmentDesigner.ViewModels
             // Create a deep copy
             var copiedSession = DeepCopyHardwareDefinition(originalSession);
             copiedSession.Id = Guid.NewGuid().ToString();
+            // TODO: Deepcopy Process with new Process ID
             copiedSession.State = ComponentState.Draft;
             copiedSession.LastModifiedAt = DateTime.Now;
             copiedSession.HardwareKey = Guid.NewGuid().ToString();
@@ -854,7 +861,7 @@ namespace EquipmentDesigner.ViewModels
             var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
             var sessions = await workflowRepo.LoadAsync();
 
-            var session = sessions.FirstOrDefault(s => s.Id == WorkflowId);
+            var session = sessions.FirstOrDefault(s => s.Id == HardwareId);
             if (session != null)
             {
                 sessions.Remove(session);
@@ -899,7 +906,7 @@ namespace EquipmentDesigner.ViewModels
 
             // Create or update HardwareDefinition
             var sessionDto = ToHardwareDefinition();
-            var existingIndex = sessions.FindIndex(s => s.Id == WorkflowId);
+            var existingIndex = sessions.FindIndex(s => s.Id == HardwareId);
 
             if (existingIndex >= 0)
                 sessions[existingIndex] = sessionDto;
@@ -1119,7 +1126,7 @@ namespace EquipmentDesigner.ViewModels
             {
                 return new HardwareDefinition
                 {
-                    Id = WorkflowId,
+                    Id = HardwareId,
                     HardwareType = StartType,
                     HardwareKey = HardwareKey,
                     Version = Version,
@@ -1130,7 +1137,7 @@ namespace EquipmentDesigner.ViewModels
             }
 
             var hw = SerializeToHardwareDefinition(rootNode);
-            hw.Id = WorkflowId;
+            hw.Id = HardwareId;
             hw.HardwareKey = HardwareKey;
             hw.Version = Version;
             hw.State = ComponentState.Draft;
@@ -1178,7 +1185,7 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public static HardwareDefineWorkflowViewModel FromHardwareDefinition(HardwareDefinition dto)
         {
-            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id, dto.HardwareKey, dto.Version ?? "1.0.0");
+            var viewModel = new HardwareDefineWorkflowViewModel(dto.HardwareType, dto.Id, dto.ProcessId, dto.HardwareKey, dto.Version ?? "1.0.0");
 
             // Rebuild tree from the HardwareDefinition itself (it is the root node)
             viewModel.TreeRootNodes.Clear();
@@ -1331,7 +1338,7 @@ namespace EquipmentDesigner.ViewModels
             var sessionDto = ToHardwareDefinition();
             sessionDto.State = ComponentState.Ready;
 
-            var existingIndex = sessions.FindIndex(s => s.Id == WorkflowId);
+            var existingIndex = sessions.FindIndex(s => s.Id == HardwareId);
 
             if (existingIndex >= 0)
                 sessions[existingIndex] = sessionDto;

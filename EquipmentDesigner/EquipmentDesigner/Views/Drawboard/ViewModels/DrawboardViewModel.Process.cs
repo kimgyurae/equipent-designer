@@ -8,6 +8,7 @@ namespace EquipmentDesigner.ViewModels
     /// <summary>
     /// Partial class containing Process object management and state synchronization.
     /// Handles loading/saving UMLWorkflow from/to Process.Processes dictionary.
+    /// 대안 A: ObservableCollection CurrentSteps 래퍼를 사용하여 UI 반응성 유지.
     /// </summary>
     public partial class DrawboardViewModel
     {
@@ -23,11 +24,13 @@ namespace EquipmentDesigner.ViewModels
         }
 
         /// <summary>
-        /// Initialize with Process input. Null creates new Process with GUID.
+        /// Initialize with Process input. Loads from repository by ID or creates new Process.
         /// </summary>
-        /// <param name="process">Existing Process or null to create new.</param>
-        private void InitializeProcess(Process process)
+        /// <param name="processId">Process ID to load, or null/empty to create new.</param>
+        private async void InitializeProcessAsync(string processId)
         {
+            var process = await LoadProcessByIdAsync(processId);
+
             if (process == null)
             {
                 _process = new Process
@@ -52,8 +55,8 @@ namespace EquipmentDesigner.ViewModels
         private void LoadWorkflowForCurrentState()
         {
             ClearAllSelections();
-            ClearConnectionsOnStateChange();
-            Elements.Clear();
+            ClearConnectionSelection();
+            CurrentSteps.Clear();
             _nextZIndex = 1;
 
             if (_process?.Processes == null) return;
@@ -61,26 +64,24 @@ namespace EquipmentDesigner.ViewModels
             if (_process.Processes.TryGetValue(SelectedState, out var workflow)
                 && workflow?.Steps != null)
             {
-                foreach (var step in workflow.Steps)
+                foreach (var element in workflow.Steps)
                 {
-                    LoadStepToCanvas(step);
+                    LoadElementToCanvas(element);
                 }
-            }
 
-            // Load connections after elements are loaded
-            LoadConnectionsForCurrentState();
+                // 로드 후 IncomingSourceIds 재구축 (연결 무결성 보장)
+                RebuildIncomingSourceIds();
+            }
         }
 
         /// <summary>
-        /// Load DrawingElement from UMLStep and add to canvas.
+        /// Load DrawingElement directly to canvas.
         /// Uses direct reference so modifications auto-sync to Process.
         /// </summary>
-        /// <param name="step">The UMLStep containing DrawingElement.</param>
-        private void LoadStepToCanvas(UMLStep step)
+        /// <param name="element">The DrawingElement to load.</param>
+        private void LoadElementToCanvas(DrawingElement element)
         {
-            if (step?.DrawingElement == null) return;
-
-            var element = step.DrawingElement;
+            if (element == null) return;
 
             // Reset UI state (selection is transient, not persisted)
             element.IsSelected = false;
@@ -92,7 +93,33 @@ namespace EquipmentDesigner.ViewModels
             }
 
             // Add the SAME object to canvas - modifications will auto-sync
-            Elements.Add(element);
+            CurrentSteps.Add(element);
+        }
+
+        /// <summary>
+        /// Rebuilds IncomingSourceIds for all elements based on OutgoingArrows.
+        /// Called after loading workflow to ensure data consistency.
+        /// </summary>
+        private void RebuildIncomingSourceIds()
+        {
+            // Clear all IncomingSourceIds first
+            foreach (var element in CurrentSteps)
+            {
+                element.IncomingSourceIds.Clear();
+            }
+
+            // Rebuild from OutgoingArrows
+            foreach (var sourceElement in CurrentSteps)
+            {
+                foreach (var arrow in sourceElement.OutgoingArrows)
+                {
+                    var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == arrow.TargetId);
+                    if (targetElement != null)
+                    {
+                        targetElement.IncomingSourceIds.Add(sourceElement.Id);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -100,35 +127,53 @@ namespace EquipmentDesigner.ViewModels
         /// Creates workflow if it doesn't exist for current state.
         /// </summary>
         /// <param name="element">The DrawingElement to add.</param>
-        private void AddStepToCurrentWorkflow(DrawingElement element)
+        private void AddElementToCurrentWorkflow(DrawingElement element)
         {
             if (_process == null) return;
 
             var workflow = GetOrCreateWorkflowForCurrentState();
-            var step = new UMLStep
-            {
-                Id = Guid.NewGuid().ToString(),
-                DrawingElement = element
-            };
-
-            workflow.Steps.Add(step);
+            workflow.Steps.Add(element);
         }
 
         /// <summary>
         /// Remove element from current workflow in Process.
+        /// Also cleans up all connections referencing this element.
         /// </summary>
         /// <param name="element">The DrawingElement to remove.</param>
-        private void RemoveStepFromCurrentWorkflow(DrawingElement element)
+        private void RemoveElementFromCurrentWorkflow(DrawingElement element)
         {
             if (_process?.Processes == null) return;
             if (!_process.Processes.TryGetValue(SelectedState, out var workflow)) return;
             if (workflow?.Steps == null) return;
 
-            var stepToRemove = workflow.Steps.FirstOrDefault(s => s.DrawingElement?.Id == element.Id);
-            if (stepToRemove != null)
+            // 1. 이 element를 가리키는 모든 연결 정리 (IncomingSourceIds에서 source 찾기)
+            foreach (var sourceId in element.IncomingSourceIds.ToList())
             {
-                workflow.Steps.Remove(stepToRemove);
+                var sourceElement = CurrentSteps.FirstOrDefault(e => e.Id == sourceId);
+                if (sourceElement != null)
+                {
+                    var arrowsToRemove = sourceElement.OutgoingArrows
+                        .Where(a => a.TargetId == element.Id)
+                        .ToList();
+                    foreach (var arrow in arrowsToRemove)
+                    {
+                        sourceElement.OutgoingArrows.Remove(arrow);
+                    }
+                }
             }
+
+            // 2. 이 element에서 나가는 연결의 target들 정리
+            foreach (var arrow in element.OutgoingArrows.ToList())
+            {
+                var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == arrow.TargetId);
+                if (targetElement != null)
+                {
+                    targetElement.IncomingSourceIds.Remove(element.Id);
+                }
+            }
+
+            // 3. Workflow에서 element 제거
+            workflow.Steps.Remove(element);
         }
 
         /// <summary>
@@ -148,14 +193,27 @@ namespace EquipmentDesigner.ViewModels
                     Name = string.Empty,
                     Description = string.Empty,
                     ImplementationInstructions = Array.Empty<string>(),
-                    Steps = new List<UMLStep>(),
-                    Connections = new List<UMLConnection>()
+                    Steps = new List<DrawingElement>()
                 };
                 _process.Processes[SelectedState] = workflow;
             }
 
-            workflow.Steps ??= new List<UMLStep>();
+            workflow.Steps ??= new List<DrawingElement>();
             return workflow;
         }
+
+        #region Legacy Method Aliases (Backward Compatibility)
+
+        /// <summary>
+        /// Alias for AddElementToCurrentWorkflow for backward compatibility.
+        /// </summary>
+        private void AddStepToCurrentWorkflow(DrawingElement element) => AddElementToCurrentWorkflow(element);
+
+        /// <summary>
+        /// Alias for RemoveElementFromCurrentWorkflow for backward compatibility.
+        /// </summary>
+        private void RemoveStepFromCurrentWorkflow(DrawingElement element) => RemoveElementFromCurrentWorkflow(element);
+
+        #endregion
     }
 }

@@ -90,7 +90,7 @@ namespace EquipmentDesigner.ViewModels
                 newElement.X += offset;
                 newElement.Y += offset;
                 newElement.ZIndex = _nextZIndex++;
-                Elements.Add(newElement);
+                CurrentSteps.Add(newElement);
                 AddStepToCurrentWorkflow(newElement);
                 newElements.Add(newElement);
 
@@ -128,7 +128,7 @@ namespace EquipmentDesigner.ViewModels
 
             foreach (var selectedElement in selectedElements.OrderBy(e => e.ZIndex))
             {
-                var elementBelow = Elements
+                var elementBelow = CurrentSteps
                     .Where(e => e.ZIndex < selectedElement.ZIndex && !selectedElements.Contains(e))
                     .OrderByDescending(e => e.ZIndex)
                     .FirstOrDefault();
@@ -153,7 +153,7 @@ namespace EquipmentDesigner.ViewModels
 
             foreach (var selectedElement in selectedElements.OrderByDescending(e => e.ZIndex))
             {
-                var elementAbove = Elements
+                var elementAbove = CurrentSteps
                     .Where(e => e.ZIndex > selectedElement.ZIndex && !selectedElements.Contains(e))
                     .OrderBy(e => e.ZIndex)
                     .FirstOrDefault();
@@ -176,7 +176,7 @@ namespace EquipmentDesigner.ViewModels
             var selectedElements = GetSelectedElementsForOperation();
             if (!selectedElements.Any()) return;
 
-            var minZIndex = Elements.Min(e => e.ZIndex);
+            var minZIndex = CurrentSteps.Min(e => e.ZIndex);
             foreach (var element in selectedElements)
             {
                 element.ZIndex = minZIndex - 1;
@@ -192,7 +192,7 @@ namespace EquipmentDesigner.ViewModels
             var selectedElements = GetSelectedElementsForOperation();
             if (!selectedElements.Any()) return;
 
-            var maxZIndex = Elements.Max(e => e.ZIndex);
+            var maxZIndex = CurrentSteps.Max(e => e.ZIndex);
             foreach (var element in selectedElements)
             {
                 element.ZIndex = maxZIndex + 1;
@@ -303,8 +303,11 @@ namespace EquipmentDesigner.ViewModels
             foreach (var element in elementsToDelete)
             {
                 RemoveStepFromCurrentWorkflow(element);
-                Elements.Remove(element);
+                CurrentSteps.Remove(element);
             }
+
+            // Check for orphan connections after element deletion
+            CheckAllConnectionsForOrphans();
         }
 
         #endregion

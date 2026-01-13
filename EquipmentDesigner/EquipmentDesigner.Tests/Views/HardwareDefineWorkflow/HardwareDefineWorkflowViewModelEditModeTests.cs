@@ -242,7 +242,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         {
             // Arrange
             var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
-            var originalWorkflowId = viewModel.WorkflowId;
+            var originalWorkflowId = viewModel.HardwareId;
 
             // Act
             var enableEditMethod = viewModel.GetType().GetMethod("EnableEditModeDirectly", 
@@ -250,7 +250,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
             enableEditMethod.Invoke(viewModel, null);
 
             // Assert
-            viewModel.WorkflowId.Should().Be(originalWorkflowId);
+            viewModel.HardwareId.Should().Be(originalWorkflowId);
         }
 
         #endregion
@@ -262,7 +262,7 @@ namespace EquipmentDesigner.Tests.Views.HardwareDefineWorkflow
         {
             // Arrange
             var viewModel = new HardwareDefineWorkflowViewModel(HardwareType.Equipment);
-            var originalWorkflowId = viewModel.WorkflowId;
+            var originalWorkflowId = viewModel.HardwareId;
 
             // Act
             var sessionDto = viewModel.ToHardwareDefinition();

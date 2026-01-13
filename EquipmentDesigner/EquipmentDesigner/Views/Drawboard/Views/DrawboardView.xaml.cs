@@ -12,6 +12,7 @@ using System.Windows.Media;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.ViewModels;
 using EquipmentDesigner.Views.Drawboard.Adorners;
+using EquipmentDesigner.Views.Drawboard.Controls;
 using EquipmentDesigner.Views.Drawboard.UMLEngine;
 using EquipmentDesigner.Views.Drawboard.UMLEngine.Contexts;
 
@@ -26,6 +27,7 @@ namespace EquipmentDesigner.Views
         private MultiSelectionAdorner _multiSelectionAdorner;
         private ConnectionPortAdorner _connectionPortAdorner;
         private ConnectionPreviewAdorner _connectionPreviewAdorner;
+        private ConnectionEditAdorner _connectionEditAdorner;
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
         private bool _isSpaceHeld;
@@ -37,50 +39,347 @@ namespace EquipmentDesigner.Views
             DataContextChanged += OnDataContextChanged;
             PreviewKeyDown += OnDrawboardPreviewKeyDown;
             Loaded += OnDrawboardLoaded;
+
+            // Subscribe to ConnectionLine selection events (bubbles up from ConnectionLine controls)
+            AddHandler(ConnectionLine.ConnectionSelectedEvent, new RoutedEventHandler(OnConnectionLineSelected));
         }
 
         /// <summary>
-        /// Sets keyboard focus and centers the canvas when the view is loaded.
-        /// Uses Dispatcher.BeginInvoke to ensure ScrollViewer layout is complete.
+        /// Handles the bubbled ConnectionSelectedEvent from ConnectionLine controls.
         /// </summary>
-        private void OnDrawboardLoaded(object sender, RoutedEventArgs e)
-        {
-            Focusable = true;
-            Focus();
-
-            // Center canvas after layout is complete
-            // Must use Dispatcher to ensure ScrollViewer has valid ViewportWidth/Height
-            Dispatcher.BeginInvoke(new Action(CenterCanvas), System.Windows.Threading.DispatcherPriority.Loaded);
-        }
-
-        /// <summary>
-        /// Centers the canvas in the viewport.
-        /// Should be called after ScrollViewer layout is complete.
-        /// </summary>
-        private void CenterCanvas()
+        private void OnConnectionLineSelected(object sender, RoutedEventArgs e)
         {
             if (_viewModel == null) return;
 
-            // Get viewport size from ScrollViewer
-            var viewportSize = new Size(
-                CanvasScrollViewer.ViewportWidth,
-                CanvasScrollViewer.ViewportHeight);
+            // Get the ConnectionLine that raised the event
+            if (e.OriginalSource is ConnectionLine connectionLine && connectionLine.Connection != null)
+            {
+                _viewModel.SelectConnection(connectionLine.Connection, connectionLine.SourceElement);
+                e.Handled = true;
+            }
+        }
 
-            // Skip if viewport not yet laid out (safety check)
-            if (viewportSize.Width <= 0 || viewportSize.Height <= 0) return;
+        /// <summary>
+        /// Handles connection selected event from ViewModel.
+        /// </summary>
+        private void OnConnectionSelected(object sender, ConnectionSelectedEventArgs e)
+        {
+            ShowConnectionEditAdorner(e.Connection, e.SourceElement);
+        }
 
-            // Get canvas size from ViewModel
-            var canvasSize = new Size(_viewModel.CanvasWidth, _viewModel.CanvasHeight);
+        /// <summary>
+        /// Handles connection deselected event from ViewModel.
+        /// </summary>
+        private void OnConnectionDeselected(object sender, EventArgs e)
+        {
+            RemoveConnectionEditAdorner();
+        }
 
-            // Calculate centered scroll offset
-            var centerOffset = ZoomControlEngine.CalculateCenterScrollOffset(
-                canvasSize,
-                viewportSize,
-                _viewModel.ZoomScale);
+        /// <summary>
+        /// Handles connection edit route updated event from ViewModel.
+        /// </summary>
+        private void OnConnectionEditRouteUpdated(object sender, ConnectionEditRouteEventArgs e)
+        {
+            if (_connectionEditAdorner == null) return;
 
-            // Apply scroll offset
-            CanvasScrollViewer.ScrollToHorizontalOffset(centerOffset.X);
-            CanvasScrollViewer.ScrollToVerticalOffset(centerOffset.Y);
+            // Update the adorner positions during drag
+            if (e.IsEditingHead)
+            {
+                _connectionEditAdorner.UpdateHeadPosition(e.HeadPosition, e.IsSnapped);
+            }
+            else
+            {
+                _connectionEditAdorner.UpdateTailPosition(e.TailPosition, e.IsSnapped);
+            }
+
+            _connectionEditAdorner.UpdateRoutePreview(e.RoutePoints);
+        }
+
+        /// <summary>
+        /// Shows the connection edit adorner for the selected connection.
+        /// </summary>
+        private void ShowConnectionEditAdorner(UMLConnection2 connection, DrawingElement sourceElement)
+        {
+            RemoveConnectionEditAdorner();
+
+            // Find the ConnectionLine control for this connection
+            var connectionLine = FindConnectionLineForConnection(connection, sourceElement);
+            if (connectionLine == null) return;
+
+            var adornerLayer = AdornerLayer.GetAdornerLayer(ZoomableGrid);
+            if (adornerLayer == null) return;
+
+            // === DIAGNOSTICS: Log original positions from ConnectionLine ===
+            Debug.WriteLine($"[ShowConnectionEditAdorner] === ORIGINAL POSITIONS (from ConnectionLine) ===");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] ConnectionLine.HeadPosition: ({connectionLine.HeadPosition.X:F1}, {connectionLine.HeadPosition.Y:F1})");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] ConnectionLine.TailPosition: ({connectionLine.TailPosition.X:F1}, {connectionLine.TailPosition.Y:F1})");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] RoutePoints count: {connectionLine.RoutePoints.Count}");
+            for (int i = 0; i < connectionLine.RoutePoints.Count; i++)
+            {
+                Debug.WriteLine($"[ShowConnectionEditAdorner]   RoutePoint[{i}]: ({connectionLine.RoutePoints[i].X:F1}, {connectionLine.RoutePoints[i].Y:F1})");
+            }
+
+            // === DIAGNOSTICS: Log ConnectionLine's position in visual tree ===
+            var connectionLineOrigin = connectionLine.TranslatePoint(new Point(0, 0), ZoomableGrid);
+            Debug.WriteLine($"[ShowConnectionEditAdorner] ConnectionLine origin in ZoomableGrid: ({connectionLineOrigin.X:F1}, {connectionLineOrigin.Y:F1})");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] ConnectionLine ActualWidth: {connectionLine.ActualWidth:F1}, ActualHeight: {connectionLine.ActualHeight:F1}");
+
+            // Transform positions from ConnectionLine's coordinate space to ZoomableGrid's space
+            // This is necessary because ConnectionLine may be positioned within its parent container
+            // and its internal coordinates need to be converted to the adorner's coordinate system
+            var headPosition = connectionLine.TranslatePoint(connectionLine.HeadPosition, ZoomableGrid);
+            var tailPosition = connectionLine.TranslatePoint(connectionLine.TailPosition, ZoomableGrid);
+            
+            // Transform all route points to ZoomableGrid's coordinate space
+            var transformedRoutePoints = connectionLine.RoutePoints
+                .Select(p => connectionLine.TranslatePoint(p, ZoomableGrid))
+                .ToList();
+
+            // === DIAGNOSTICS: Log transformed positions ===
+            Debug.WriteLine($"[ShowConnectionEditAdorner] === TRANSFORMED POSITIONS (for Adorner) ===");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] Transformed HeadPosition: ({headPosition.X:F1}, {headPosition.Y:F1})");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] Transformed TailPosition: ({tailPosition.X:F1}, {tailPosition.Y:F1})");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] Transformation delta (Head): ({headPosition.X - connectionLine.HeadPosition.X:F1}, {headPosition.Y - connectionLine.HeadPosition.Y:F1})");
+            Debug.WriteLine($"[ShowConnectionEditAdorner] Transformation delta (Tail): ({tailPosition.X - connectionLine.TailPosition.X:F1}, {tailPosition.Y - connectionLine.TailPosition.Y:F1})");
+            for (int i = 0; i < transformedRoutePoints.Count; i++)
+            {
+                Debug.WriteLine($"[ShowConnectionEditAdorner]   Transformed RoutePoint[{i}]: ({transformedRoutePoints[i].X:F1}, {transformedRoutePoints[i].Y:F1})");
+            }
+            Debug.WriteLine($"[ShowConnectionEditAdorner] === END SHOW CONNECTION EDIT ADORNER ===\n");
+
+            // Create the adorner with transformed positions
+            _connectionEditAdorner = new ConnectionEditAdorner(
+                ZoomableGrid,
+                headPosition,
+                tailPosition,
+                transformedRoutePoints);
+
+            // Wire up drag events
+            _connectionEditAdorner.HeadDragStarted += OnConnectionHeadDragStarted;
+            _connectionEditAdorner.HeadDragDelta += OnConnectionHeadDragDelta;
+            _connectionEditAdorner.HeadDragCompleted += OnConnectionHeadDragCompleted;
+            _connectionEditAdorner.TailDragStarted += OnConnectionTailDragStarted;
+            _connectionEditAdorner.TailDragDelta += OnConnectionTailDragDelta;
+            _connectionEditAdorner.TailDragCompleted += OnConnectionTailDragCompleted;
+
+            adornerLayer.Add(_connectionEditAdorner);
+
+            // Mark the connection line as selected
+            connectionLine.IsSelected = true;
+        }
+
+        /// <summary>
+        /// Removes the connection edit adorner.
+        /// </summary>
+        private void RemoveConnectionEditAdorner()
+        {
+            if (_connectionEditAdorner == null) return;
+
+            // Unwire drag events
+            _connectionEditAdorner.HeadDragStarted -= OnConnectionHeadDragStarted;
+            _connectionEditAdorner.HeadDragDelta -= OnConnectionHeadDragDelta;
+            _connectionEditAdorner.HeadDragCompleted -= OnConnectionHeadDragCompleted;
+            _connectionEditAdorner.TailDragStarted -= OnConnectionTailDragStarted;
+            _connectionEditAdorner.TailDragDelta -= OnConnectionTailDragDelta;
+            _connectionEditAdorner.TailDragCompleted -= OnConnectionTailDragCompleted;
+
+            var adornerLayer = AdornerLayer.GetAdornerLayer(ZoomableGrid);
+            if (adornerLayer != null)
+            {
+                _connectionEditAdorner.Detach();
+                adornerLayer.Remove(_connectionEditAdorner);
+            }
+
+            // Clear selected state on all connection lines
+            ClearConnectionLineSelection();
+
+            _connectionEditAdorner = null;
+        }
+
+        /// <summary>
+        /// Finds the ConnectionLine control for a given UMLConnection2 and its source element.
+        /// Uses nested ItemsControl structure: CurrentSteps -> OutgoingArrows.
+        /// </summary>
+        private ConnectionLine FindConnectionLineForConnection(UMLConnection2 connection, DrawingElement sourceElement)
+        {
+            if (connection == null || sourceElement == null) return null;
+
+            // Find the outer ContentPresenter for the source element
+            var outerGenerator = ConnectionsItemsControl.ItemContainerGenerator;
+            if (outerGenerator == null) return null;
+
+            var outerContainer = outerGenerator.ContainerFromItem(sourceElement) as ContentPresenter;
+            if (outerContainer == null) return null;
+
+            // Find the inner ItemsControl within the outer container
+            var innerItemsControl = FindVisualChild<ItemsControl>(outerContainer);
+            if (innerItemsControl == null) return null;
+
+            // Find the ContentPresenter for the connection within the inner ItemsControl
+            var innerGenerator = innerItemsControl.ItemContainerGenerator;
+            if (innerGenerator == null) return null;
+
+            var innerContainer = innerGenerator.ContainerFromItem(connection) as ContentPresenter;
+            if (innerContainer == null) return null;
+
+            // Find the ConnectionLine within the inner container
+            return FindVisualChild<ConnectionLine>(innerContainer);
+        }
+
+        /// <summary>
+        /// Finds a visual child of the specified type in the visual tree.
+        /// </summary>
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) return null;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                {
+                    return result;
+                }
+
+                var descendant = FindVisualChild<T>(child);
+                if (descendant != null)
+                {
+                    return descendant;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Clears the selected state on all connection lines.
+        /// </summary>
+        private void ClearConnectionLineSelection()
+        {
+            if (_viewModel == null) return;
+
+            foreach (var (connection, sourceElement) in _viewModel.GetAllConnections())
+            {
+                var line = FindConnectionLineForConnection(connection, sourceElement);
+                if (line != null)
+                {
+                    line.IsSelected = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles head thumb drag started.
+        /// </summary>
+        private void OnConnectionHeadDragStarted(object sender, ConnectionThumbDragEventArgs e)
+        {
+            _viewModel?.StartConnectionEdit(isHead: true);
+
+            // Hide the original connection line so only the adorner preview is visible
+            SetSelectedConnectionLineEditing(true);
+        }
+
+        /// <summary>
+        /// Handles head thumb drag delta.
+        /// </summary>
+        private void OnConnectionHeadDragDelta(object sender, ConnectionThumbDragEventArgs e)
+        {
+            _viewModel?.UpdateConnectionEdit(e.Position);
+        }
+
+        /// <summary>
+        /// Handles head thumb drag completed.
+        /// </summary>
+        private void OnConnectionHeadDragCompleted(object sender, ConnectionThumbDragEventArgs e)
+        {
+            _viewModel?.CompleteConnectionEdit();
+
+            // Show the original connection line again
+            SetSelectedConnectionLineEditing(false);
+
+            // Update adorner positions after edit completes
+            RefreshConnectionEditAdorner();
+        }
+
+        /// <summary>
+        /// Handles tail thumb drag started.
+        /// </summary>
+        private void OnConnectionTailDragStarted(object sender, ConnectionThumbDragEventArgs e)
+        {
+            _viewModel?.StartConnectionEdit(isHead: false);
+
+            // Hide the original connection line so only the adorner preview is visible
+            SetSelectedConnectionLineEditing(true);
+        }
+
+        /// <summary>
+        /// Handles tail thumb drag delta.
+        /// </summary>
+        private void OnConnectionTailDragDelta(object sender, ConnectionThumbDragEventArgs e)
+        {
+            _viewModel?.UpdateConnectionEdit(e.Position);
+        }
+
+        /// <summary>
+        /// Handles tail thumb drag completed.
+        /// </summary>
+        private void OnConnectionTailDragCompleted(object sender, ConnectionThumbDragEventArgs e)
+        {
+            _viewModel?.CompleteConnectionEdit();
+
+            // Show the original connection line again
+            SetSelectedConnectionLineEditing(false);
+
+            // Update adorner positions after edit completes
+            RefreshConnectionEditAdorner();
+        }
+
+        /// <summary>
+        /// Sets the IsEditing state on the selected connection line.
+        /// </summary>
+        /// <param name="isEditing">True to hide the line for editing, false to show it.</param>
+        private void SetSelectedConnectionLineEditing(bool isEditing)
+        {
+            if (_viewModel?.SelectedConnection == null || _viewModel?.SelectedConnectionSource == null) return;
+
+            var connectionLine = FindConnectionLineForConnection(_viewModel.SelectedConnection, _viewModel.SelectedConnectionSource);
+            if (connectionLine != null)
+            {
+                connectionLine.IsEditing = isEditing;
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the connection edit adorner positions after an edit completes.
+        /// </summary>
+        private void RefreshConnectionEditAdorner()
+        {
+            if (_connectionEditAdorner == null || _viewModel?.SelectedConnection == null || _viewModel?.SelectedConnectionSource == null) return;
+
+            var connectionLine = FindConnectionLineForConnection(_viewModel.SelectedConnection, _viewModel.SelectedConnectionSource);
+            if (connectionLine == null) return;
+
+            // Force the connection line to update its route
+            // by waiting for the next layout pass
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_connectionEditAdorner != null && connectionLine != null)
+                {
+                    // Transform positions from ConnectionLine's coordinate space to ZoomableGrid's space
+                    var headPosition = connectionLine.TranslatePoint(connectionLine.HeadPosition, ZoomableGrid);
+                    var tailPosition = connectionLine.TranslatePoint(connectionLine.TailPosition, ZoomableGrid);
+                    
+                    // Transform all route points to ZoomableGrid's coordinate space
+                    var transformedRoutePoints = connectionLine.RoutePoints
+                        .Select(p => connectionLine.TranslatePoint(p, ZoomableGrid))
+                        .ToList();
+
+                    _connectionEditAdorner.UpdatePositions(
+                        headPosition,
+                        tailPosition,
+                        transformedRoutePoints);
+                }
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         /// <summary>
@@ -99,6 +398,9 @@ namespace EquipmentDesigner.Views
                 _viewModel.ConnectionPortsShown -= OnConnectionPortsShown;
                 _viewModel.ConnectionPortsHidden -= OnConnectionPortsHidden;
                 _viewModel.ConnectionRouteUpdated -= OnConnectionRouteUpdated;
+                _viewModel.ConnectionSelected -= OnConnectionSelected;
+                _viewModel.ConnectionDeselected -= OnConnectionDeselected;
+                _viewModel.ConnectionEditRouteUpdated -= OnConnectionEditRouteUpdated;
             }
 
             // Force layout update to ensure toolbar resizes correctly
@@ -113,6 +415,9 @@ namespace EquipmentDesigner.Views
                 _viewModel.ConnectionPortsShown += OnConnectionPortsShown;
                 _viewModel.ConnectionPortsHidden += OnConnectionPortsHidden;
                 _viewModel.ConnectionRouteUpdated += OnConnectionRouteUpdated;
+                _viewModel.ConnectionSelected += OnConnectionSelected;
+                _viewModel.ConnectionDeselected += OnConnectionDeselected;
+                _viewModel.ConnectionEditRouteUpdated += OnConnectionEditRouteUpdated;
 
                 // Set up scroll offset callback for pan operations
                 _viewModel.ApplyScrollOffset = ApplyScrollOffset;
@@ -335,10 +640,30 @@ namespace EquipmentDesigner.Views
             {
                 if (DataContext is DrawboardViewModel viewModel)
                 {
+                    // Cancel connection editing if active
+                    if (viewModel.IsEditingConnection)
+                    {
+                        // Show the original connection line again before canceling
+                        SetSelectedConnectionLineEditing(false);
+
+                        viewModel.CancelConnectionEdit();
+                        RefreshConnectionEditAdorner();
+                        e.Handled = true;
+                        return;
+                    }
+
                     // Cancel connection mode if active
                     if (viewModel.IsConnecting)
                     {
                         viewModel.CancelConnection();
+                        e.Handled = true;
+                        return;
+                    }
+
+                    // Deselect connection if selected
+                    if (viewModel.IsConnectionSelected)
+                    {
+                        viewModel.ClearConnectionSelection();
                         e.Handled = true;
                         return;
                     }
@@ -351,17 +676,6 @@ namespace EquipmentDesigner.Views
                     }
                 }
                 return;
-            }
-
-            // Enter key: Complete connection if in connection mode
-            if (e.Key == Key.Enter)
-            {
-                if (DataContext is DrawboardViewModel viewModel && viewModel.IsConnecting)
-                {
-                    viewModel.CompleteConnection();
-                    e.Handled = true;
-                    return;
-                }
             }
 
             // Ignore other keys when typing in TextBox
@@ -448,8 +762,45 @@ namespace EquipmentDesigner.Views
                 return;
             }
 
+            // Check if clicking on a ConnectionLine first (before element check)
+            // This allows the event to bubble to ConnectionLine if not on an element
             var position = e.GetPosition(ZoomableGrid);
+            var hitElement = _viewModel.FindElementAtPoint(position);
+            
+            // If we clicked on a DrawingElement, handle selection normally
+            if (hitElement != null)
+            {
+                HandleSelectionClick(position, e);
+                return;
+            }
+
+            // Check if we're clicking on a connection line
+            var connectionResult = FindConnectionAtPoint(position);
+            if (connectionResult != null)
+            {
+                // Clear any element selection first
+                _viewModel.ClearAllSelections();
+                
+                // Select the connection directly
+                _viewModel.SelectConnection(connectionResult.Value.Connection, connectionResult.Value.SourceElement);
+                e.Handled = true;
+                return;
+            }
+
+            // No element or connection at click point - handle as empty space click
             HandleSelectionClick(position, e);
+        }
+
+        /// <summary>
+        /// Finds and returns the connection at the specified position.
+        /// Uses ViewModel's FindConnectionAtPoint which iterates through all elements' OutgoingArrows.
+        /// </summary>
+        private (UMLConnection2 Connection, DrawingElement SourceElement)? FindConnectionAtPoint(Point position)
+        {
+            if (_viewModel == null) return null;
+
+            // Use ViewModel's FindConnectionAtPoint which already handles the new adjacency list structure
+            return _viewModel.FindConnectionAtPoint(position);
         }
 
         /// <summary>
@@ -468,10 +819,32 @@ namespace EquipmentDesigner.Views
             // Track Shift key state
             _isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
+            // Check if clicking on a connection line first
+            var connectionResult = FindConnectionAtPoint(position);
+            if (connectionResult != null)
+            {
+                // Right-click on connection - keep it selected (don't clear)
+                // If it's a different connection, select it
+                if (_viewModel.SelectedConnection != connectionResult.Value.Connection)
+                {
+                    _viewModel.ClearAllSelections();
+                    _viewModel.SelectConnection(connectionResult.Value.Connection, connectionResult.Value.SourceElement);
+                }
+                // e.Handled not set, allow context menu to show
+                return;
+            }
+
             if (hitElement == null)
             {
-                // Right-click on empty space: clear all selections
+                // Right-click on empty space: clear all selections (including connection selection)
                 _viewModel.ClearAllSelections();
+                
+                // Also clear connection selection if any
+                if (_viewModel.IsConnectionSelected)
+                {
+                    _viewModel.ClearConnectionSelection();
+                }
+                
                 e.Handled = true;
                 return;
             }
@@ -539,6 +912,12 @@ namespace EquipmentDesigner.Views
             bool keyboardShiftState = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             
             _isShiftPressed = keyboardShiftState;
+
+            // Clear connection selection when clicking elsewhere
+            if (_viewModel.IsConnectionSelected)
+            {
+                _viewModel.ClearConnectionSelection();
+            }
 
             var hitElement = _viewModel.FindElementAtPoint(position);
 
@@ -814,23 +1193,19 @@ namespace EquipmentDesigner.Views
         {
             if (_viewModel == null) return;
 
-            // Handle connection mode - click to complete or cancel
+            // Handle connection mode - drag-to-connect: complete if snapped, cancel otherwise
             if (_viewModel.IsConnecting)
             {
-                var position = e.GetPosition((IInputElement)sender);
-                var hitElement = _viewModel.FindElementAtPoint(position);
-
                 if (_viewModel.IsSnappedToTarget)
                 {
                     // Snapped to a target - complete connection
                     _viewModel.CompleteConnection();
                 }
-                else if (hitElement == null)
+                else
                 {
-                    // Clicked on empty space - cancel
+                    // Not snapped - cancel connection (drag released without valid target)
                     _viewModel.CancelConnection();
                 }
-                // If clicked on an element but not snapped, do nothing (allow user to find a port)
 
                 e.Handled = true;
                 return;
@@ -1100,18 +1475,11 @@ namespace EquipmentDesigner.Views
             var container = generator.ContainerFromItem(element) as ContentPresenter;
             if (container == null) return null;
 
-            Debug.WriteLine($"[DrawboardView] FindContainerForElement: ContentPresenter found");
-            Debug.WriteLine($"[DrawboardView]   ContentPresenter ActualSize: {container.ActualWidth:F1} x {container.ActualHeight:F1}");
-
             // We need the actual visual child (the shape template content)
             if (VisualTreeHelper.GetChildrenCount(container) > 0)
             {
                 var child = VisualTreeHelper.GetChild(container, 0) as FrameworkElement;
-                if (child != null)
-                {
-                    Debug.WriteLine($"[DrawboardView]   Child Type: {child.GetType().Name}");
-                    Debug.WriteLine($"[DrawboardView]   Child ActualSize: {child.ActualWidth:F1} x {child.ActualHeight:F1}");
-                }
+
                 return child ?? container;
             }
 
@@ -1124,20 +1492,14 @@ namespace EquipmentDesigner.Views
 
         /// <summary>
         /// Handles double-click to enter text editing mode or create Textbox on empty space.
-        /// Also completes connection in connection mode.
         /// </summary>
         private void OnCanvasMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (_viewModel == null) return;
 
-            // Double-click completes connection if in connection mode and snapped
+            // Ignore double-click during connection mode (drag-based connection)
             if (_viewModel.IsConnecting)
             {
-                if (_viewModel.IsSnappedToTarget)
-                {
-                    _viewModel.CompleteConnection();
-                    e.Handled = true;
-                }
                 return;
             }
 
@@ -1325,38 +1687,26 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void CreateConnectionPortAdorner(UIElement container, DrawingElement element)
         {
-            Debug.WriteLine($"[DrawboardView] === CreateConnectionPortAdorner ===");
-            Debug.WriteLine($"[DrawboardView] Container Type: {container?.GetType().Name}");
             
             if (container is FrameworkElement fe)
-            {
-                Debug.WriteLine($"[DrawboardView] Container ActualSize: {fe.ActualWidth:F1} x {fe.ActualHeight:F1}");
-                Debug.WriteLine($"[DrawboardView] Container RenderSize: {fe.RenderSize.Width:F1} x {fe.RenderSize.Height:F1}");
-                Debug.WriteLine($"[DrawboardView] Container LayoutTransform: {fe.LayoutTransform?.GetType().Name}");
-                Debug.WriteLine($"[DrawboardView] Container RenderTransform: {fe.RenderTransform?.GetType().Name}");
-                
+            {    
                 // Check Canvas position
                 var left = Canvas.GetLeft(fe);
                 var top = Canvas.GetTop(fe);
-                Debug.WriteLine($"[DrawboardView] Container Canvas Position: ({left:F1}, {top:F1})");
             }
             
-            Debug.WriteLine($"[DrawboardView] DrawingElement: Id={element.Id}, X={element.X:F1}, Y={element.Y:F1}, W={element.Width:F1}, H={element.Height:F1}");
 
             var adornerLayer = AdornerLayer.GetAdornerLayer(container);
             if (adornerLayer == null)
             {
-                Debug.WriteLine($"[DrawboardView] AdornerLayer is NULL!");
                 return;
             }
 
-            Debug.WriteLine($"[DrawboardView] AdornerLayer found, creating ConnectionPortAdorner");
 
             _connectionPortAdorner = new ConnectionPortAdorner(container, element);
             _connectionPortAdorner.PortClicked += OnPortClicked;
 
             adornerLayer.Add(_connectionPortAdorner);
-            Debug.WriteLine($"[DrawboardView] === End CreateConnectionPortAdorner ===\n");
         }
 
         /// <summary>
@@ -1431,6 +1781,43 @@ namespace EquipmentDesigner.Views
         #endregion
 
         #region Helper Methods
+
+        /// <summary>
+        /// Handles the view loaded event.
+        /// </summary>
+        private void OnDrawboardLoaded(object sender, RoutedEventArgs e)
+        {
+            // Center the canvas in the viewport on initial load
+            CenterCanvas();
+        }
+
+        /// <summary>
+        /// Centers the canvas content in the viewport.
+        /// </summary>
+        private void CenterCanvas()
+        {
+            // Delay to ensure layout is complete
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (CanvasScrollViewer != null && ZoomableGrid != null)
+                {
+                    var viewportWidth = CanvasScrollViewer.ViewportWidth;
+                    var viewportHeight = CanvasScrollViewer.ViewportHeight;
+                    var contentWidth = ZoomableGrid.ActualWidth;
+                    var contentHeight = ZoomableGrid.ActualHeight;
+
+                    // Scroll to center if content is larger than viewport
+                    if (contentWidth > viewportWidth)
+                    {
+                        CanvasScrollViewer.ScrollToHorizontalOffset((contentWidth - viewportWidth) / 2);
+                    }
+                    if (contentHeight > viewportHeight)
+                    {
+                        CanvasScrollViewer.ScrollToVerticalOffset((contentHeight - viewportHeight) / 2);
+                    }
+                }
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
 
         /// <summary>
         /// Applies scroll offset from ViewModel pan calculations.

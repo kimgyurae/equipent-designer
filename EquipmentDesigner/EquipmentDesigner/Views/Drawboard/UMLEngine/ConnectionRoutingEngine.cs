@@ -30,6 +30,33 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         public const double MinSegmentLength = 20.0;
 
         /// <summary>
+        /// Calculates the position on the element's edge (center of the specified side).
+        /// This is where arrows should attach - directly on the element boundary with no offset.
+        /// </summary>
+        /// <param name="bounds">The bounding rectangle of the element.</param>
+        /// <param name="port">The port position (which edge).</param>
+        /// <returns>The absolute canvas coordinates of the edge center point.</returns>
+        public static Point CalculateEdgePosition(Rect bounds, PortPosition port)
+        {
+            return port switch
+            {
+                PortPosition.Top => new Point(
+                    bounds.X + bounds.Width / 2,
+                    bounds.Y),
+                PortPosition.Right => new Point(
+                    bounds.X + bounds.Width,
+                    bounds.Y + bounds.Height / 2),
+                PortPosition.Bottom => new Point(
+                    bounds.X + bounds.Width / 2,
+                    bounds.Y + bounds.Height),
+                PortPosition.Left => new Point(
+                    bounds.X,
+                    bounds.Y + bounds.Height / 2),
+                _ => throw new ArgumentOutOfRangeException(nameof(port))
+            };
+        }
+
+        /// <summary>
         /// Creates a connection context for the given source element and port.
         /// </summary>
         /// <param name="element">The source drawing element.</param>
@@ -39,11 +66,13 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         {
             var bounds = element.Bounds;
             var portPosition = CalculatePortPosition(bounds, port);
+            var edgePosition = CalculateEdgePosition(bounds, port);
 
             return new ConnectionContext(
                 element.Id,
                 port,
                 portPosition,
+                edgePosition,
                 bounds);
         }
 
@@ -103,18 +132,21 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         /// <param name="elements">The collection of elements to check.</param>
         /// <param name="excludeId">Element ID to exclude (typically the source element).</param>
         /// <param name="snapDistance">The maximum distance for snapping.</param>
-        /// <returns>A tuple of (elementId, port, position) if a snap target is found, null otherwise.</returns>
-        public static (string ElementId, PortPosition Port, Point Position)? FindSnapTarget(
+        /// <returns>A tuple of (elementId, port, position, bounds) if a snap target is found, null otherwise.</returns>
+        public static (string ElementId, PortPosition Port, Point Position, Rect Bounds)? FindSnapTarget(
             Point mousePosition,
             IEnumerable<DrawingElement> elements,
             string excludeId,
             double snapDistance = SnapDistance)
         {
-            (string ElementId, PortPosition Port, Point Position, double Distance)? closest = null;
+            (string ElementId, PortPosition Port, Point Position, Rect Bounds, double Distance)? closest = null;
 
             foreach (var element in elements)
             {
                 if (element.Id == excludeId) continue;
+                
+                // TextboxElement cannot be a connection target - skip it
+                if (element.ShapeType == DrawingShapeType.Textbox) continue;
 
                 var bounds = element.Bounds;
 
@@ -127,7 +159,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
                     {
                         if (closest == null || distance < closest.Value.Distance)
                         {
-                            closest = (element.Id, port, portPos, distance);
+                            closest = (element.Id, port, portPos, bounds, distance);
                         }
                     }
                 }
@@ -135,7 +167,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
 
             if (closest != null)
             {
-                return (closest.Value.ElementId, closest.Value.Port, closest.Value.Position);
+                return (closest.Value.ElementId, closest.Value.Port, closest.Value.Position, closest.Value.Bounds);
             }
 
             return null;
@@ -144,6 +176,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
         /// <summary>
         /// Calculates an orthogonal route from the source port to the target point.
         /// The route uses only horizontal and vertical segments (90-degree turns).
+        /// Route starts at the element edge (no offset).
         /// </summary>
         /// <param name="context">The connection context with source information.</param>
         /// <param name="targetPoint">The target point (mouse position or snap target).</param>
@@ -153,7 +186,7 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
             Point targetPoint)
         {
             var routePoints = CalculateOrthogonalPath(
-                context.SourcePortPosition,
+                context.SourceEdgePosition,
                 context.SourcePort,
                 targetPoint,
                 null);
@@ -163,29 +196,33 @@ namespace EquipmentDesigner.Views.Drawboard.UMLEngine
 
         /// <summary>
         /// Calculates an orthogonal route from the source port to a snap target.
+        /// Route starts and ends at element edges (no offset).
         /// </summary>
         /// <param name="context">The connection context with source information.</param>
         /// <param name="targetElementId">The ID of the target element.</param>
         /// <param name="targetPort">The target port position.</param>
-        /// <param name="targetPosition">The target port position coordinates.</param>
+        /// <param name="targetBounds">The bounding rectangle of the target element.</param>
         /// <returns>A connection route result with snap information.</returns>
         public static ConnectionRouteResult CalculateOrthogonalRouteToTarget(
             ConnectionContext context,
             string targetElementId,
             PortPosition targetPort,
-            Point targetPosition)
+            Rect targetBounds)
         {
+            // Calculate the edge position where the arrow head attaches
+            var targetEdgePosition = CalculateEdgePosition(targetBounds, targetPort);
+
             var routePoints = CalculateOrthogonalPath(
-                context.SourcePortPosition,
+                context.SourceEdgePosition,
                 context.SourcePort,
-                targetPosition,
+                targetEdgePosition,
                 targetPort);
 
             return new ConnectionRouteResult(
                 routePoints,
                 targetPort,
                 targetElementId,
-                targetPosition);
+                targetEdgePosition);
         }
 
         /// <summary>

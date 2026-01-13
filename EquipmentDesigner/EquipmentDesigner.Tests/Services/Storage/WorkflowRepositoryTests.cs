@@ -12,12 +12,12 @@ namespace EquipmentDesigner.Tests.Services.Storage
     public class WorkflowRepositoryTests : IDisposable
     {
         private readonly string _testFilePath;
-        private readonly WorkflowRepository _repository;
+        private readonly LocalHardwareRepository _repository;
 
         public WorkflowRepositoryTests()
         {
             _testFilePath = Path.Combine(Path.GetTempPath(), $"test_workflows_{Guid.NewGuid()}.json");
-            _repository = new WorkflowRepository(_testFilePath);
+            _repository = new LocalHardwareRepository(_testFilePath);
         }
 
         public void Dispose()
@@ -41,7 +41,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
         public void Repository_UsesCorrectDefaultFilePath()
         {
             // Arrange
-            var repository = new WorkflowRepository();
+            var repository = new LocalHardwareRepository();
             
             // Assert - The repository should be created without exceptions
             repository.Should().NotBeNull();
@@ -81,7 +81,7 @@ namespace EquipmentDesigner.Tests.Services.Storage
         {
             // Arrange
             var nestedPath = Path.Combine(Path.GetTempPath(), $"nested_{Guid.NewGuid()}", "data", "workflows.json");
-            var repository = new WorkflowRepository(nestedPath);
+            var repository = new LocalHardwareRepository(nestedPath);
             var dataStore = new List<HardwareDefinition>();
 
             try
