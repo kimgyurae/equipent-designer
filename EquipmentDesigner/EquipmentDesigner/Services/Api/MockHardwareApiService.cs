@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Controls;
+using EquipmentDesigner.Utils;
 
 namespace EquipmentDesigner.Services
 {
@@ -40,7 +41,7 @@ namespace EquipmentDesigner.Services
             }
         }
 
-        public async Task<ApiResponse<List<HardwareDefinition>>> GetSessionsByStateAsync(params ComponentState[] states)
+        public async Task<ApiResponse<List<HardwareDefinition>>> GetHardwaresByStateAsync(params ComponentState[] states)
         {
             LoadingSpinnerService.Instance.Show();
             await Task.Delay(SimulatedDelay);
@@ -345,6 +346,34 @@ namespace EquipmentDesigner.Services
             }
         }
 
+        public async Task<ApiResponse<List<HardwareDefinition>>> GetAllHardwaresWithUniqueHardwareKeyAsync()
+        {
+            LoadingSpinnerService.Instance.Show();
+            await Task.Delay(SimulatedDelay);
+
+            try
+            {
+                var sessions = await _repository.LoadAsync();
+
+                // HardwareKey별로 그룹화하고 각 그룹에서 버전이 가장 높은 것만 선택
+                var latestByKey = sessions?
+                    .GroupBy(s => GetEffectiveHardwareKey(s))
+                    .Where(g => !string.IsNullOrEmpty(g.Key))
+                    .Select(g => g
+                        .OrderByDescending(s => NormalizeVersionForComparison(s.Version), new VersionComparer())
+                        .First())
+                    .ToList() ?? new List<HardwareDefinition>();
+
+                LoadingSpinnerService.Instance.Hide();
+                return ApiResponse<List<HardwareDefinition>>.Ok(latestByKey);
+            }
+            catch (Exception ex)
+            {
+                LoadingSpinnerService.Instance.Hide();
+                return ApiResponse<List<HardwareDefinition>>.Fail(ex.Message, "LOAD_ERROR");
+            }
+        }
+
         #region Version History Helper Methods
 
         /// <summary>
@@ -353,6 +382,60 @@ namespace EquipmentDesigner.Services
         private string GetEffectiveHardwareKey(HardwareDefinition session)
         {
             return session.HardwareKey ?? session.Name;
+        }
+
+        /// <summary>
+        /// 버전 문자열을 정규화하여 VersionHelper 비교에 적합한 형식으로 변환합니다.
+        /// </summary>
+        private string NormalizeVersionForComparison(string versionString)
+        {
+            if (string.IsNullOrEmpty(versionString))
+                return "0.0.0";
+
+            // 'v' 또는 'V' 접두사 제거
+            var normalized = versionString.TrimStart('v', 'V').Trim();
+
+            // 버전 형식 맞추기 (X.Y → X.Y.0)
+            var parts = normalized.Split('.');
+            if (parts.Length == 1)
+                normalized = $"{parts[0]}.0.0";
+            else if (parts.Length == 2)
+                normalized = $"{parts[0]}.{parts[1]}.0";
+
+            // VersionHelper가 처리할 수 있는 형식인지 확인
+            if (VersionHelper.IsValid(normalized))
+                return normalized;
+
+            return "0.0.0";
+        }
+
+        /// <summary>
+        /// VersionHelper를 사용하여 버전 문자열을 비교하는 Comparer 클래스입니다.
+        /// </summary>
+        private class VersionComparer : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                // 둘 다 null이거나 빈 문자열이면 동일
+                if (string.IsNullOrEmpty(x) && string.IsNullOrEmpty(y))
+                    return 0;
+
+                // null/빈 문자열은 가장 낮은 버전으로 처리
+                if (string.IsNullOrEmpty(x))
+                    return -1;
+                if (string.IsNullOrEmpty(y))
+                    return 1;
+
+                try
+                {
+                    return VersionHelper.Compare(x, y);
+                }
+                catch
+                {
+                    // 비교 실패 시 문자열 비교로 폴백
+                    return string.Compare(x, y, StringComparison.Ordinal);
+                }
+            }
         }
 
         /// <summary>

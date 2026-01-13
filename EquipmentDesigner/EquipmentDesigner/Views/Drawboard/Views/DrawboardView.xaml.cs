@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,6 +24,8 @@ namespace EquipmentDesigner.Views
     {
         private SelectionAdorner _selectionAdorner;
         private MultiSelectionAdorner _multiSelectionAdorner;
+        private ConnectionPortAdorner _connectionPortAdorner;
+        private ConnectionPreviewAdorner _connectionPreviewAdorner;
         private AdornerLayer _adornerLayer;
         private bool _isShiftPressed;
         private bool _isSpaceHeld;
@@ -92,6 +96,9 @@ namespace EquipmentDesigner.Views
                 _viewModel.TextEditingStarted -= OnTextEditingStarted;
                 _viewModel.TextEditingEnded -= OnTextEditingEnded;
                 _viewModel.TextBoxBoundsChanged -= OnTextBoxBoundsChanged;
+                _viewModel.ConnectionPortsShown -= OnConnectionPortsShown;
+                _viewModel.ConnectionPortsHidden -= OnConnectionPortsHidden;
+                _viewModel.ConnectionRouteUpdated -= OnConnectionRouteUpdated;
             }
 
             // Force layout update to ensure toolbar resizes correctly
@@ -103,6 +110,9 @@ namespace EquipmentDesigner.Views
                 _viewModel.TextEditingStarted += OnTextEditingStarted;
                 _viewModel.TextEditingEnded += OnTextEditingEnded;
                 _viewModel.TextBoxBoundsChanged += OnTextBoxBoundsChanged;
+                _viewModel.ConnectionPortsShown += OnConnectionPortsShown;
+                _viewModel.ConnectionPortsHidden += OnConnectionPortsHidden;
+                _viewModel.ConnectionRouteUpdated += OnConnectionRouteUpdated;
 
                 // Set up scroll offset callback for pan operations
                 _viewModel.ApplyScrollOffset = ApplyScrollOffset;
@@ -126,6 +136,14 @@ namespace EquipmentDesigner.Views
             else if (e.PropertyName == nameof(DrawboardViewModel.IsRubberbandSelecting))
             {
                 UpdateRubberbandVisibility();
+            }
+            else if (e.PropertyName == nameof(DrawboardViewModel.EditModeState))
+            {
+                // Remove preview adorner when exiting connection mode
+                if (_viewModel?.EditModeState != EditModeState.ConnectingArrow && _connectionPreviewAdorner != null)
+                {
+                    RemoveConnectionPreviewAdorner();
+                }
             }
         }
 
@@ -312,11 +330,19 @@ namespace EquipmentDesigner.Views
                 return;  // OnInlineEditKeyDown will handle this
             }
 
-            // ESC key: Exit edit mode (clear selection) - works even in TextBox
+            // ESC key: Cancel connection or exit edit mode
             if (e.Key == Key.Escape)
             {
                 if (DataContext is DrawboardViewModel viewModel)
                 {
+                    // Cancel connection mode if active
+                    if (viewModel.IsConnecting)
+                    {
+                        viewModel.CancelConnection();
+                        e.Handled = true;
+                        return;
+                    }
+
                     // Handle both single selection and multi-selection
                     if (viewModel.SelectedElement != null || viewModel.IsMultiSelectionMode)
                     {
@@ -325,6 +351,17 @@ namespace EquipmentDesigner.Views
                     }
                 }
                 return;
+            }
+
+            // Enter key: Complete connection if in connection mode
+            if (e.Key == Key.Enter)
+            {
+                if (DataContext is DrawboardViewModel viewModel && viewModel.IsConnecting)
+                {
+                    viewModel.CompleteConnection();
+                    e.Handled = true;
+                    return;
+                }
             }
 
             // Ignore other keys when typing in TextBox
@@ -754,6 +791,10 @@ namespace EquipmentDesigner.Views
                     var viewportPosition = e.GetPosition(CanvasScrollViewer);
                     _viewModel.UpdatePan(viewportPosition);
                     return;
+
+                case EditModeState.ConnectingArrow:
+                    _viewModel.UpdateConnection(position);
+                    return;
             }
 
             // Handle drawing preview
@@ -772,6 +813,28 @@ namespace EquipmentDesigner.Views
         private void OnCanvasMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (_viewModel == null) return;
+
+            // Handle connection mode - click to complete or cancel
+            if (_viewModel.IsConnecting)
+            {
+                var position = e.GetPosition((IInputElement)sender);
+                var hitElement = _viewModel.FindElementAtPoint(position);
+
+                if (_viewModel.IsSnappedToTarget)
+                {
+                    // Snapped to a target - complete connection
+                    _viewModel.CompleteConnection();
+                }
+                else if (hitElement == null)
+                {
+                    // Clicked on empty space - cancel
+                    _viewModel.CancelConnection();
+                }
+                // If clicked on an element but not snapped, do nothing (allow user to find a port)
+
+                e.Handled = true;
+                return;
+            }
 
             // Handle edit mode operations
             switch (_viewModel.EditModeState)
@@ -1037,10 +1100,19 @@ namespace EquipmentDesigner.Views
             var container = generator.ContainerFromItem(element) as ContentPresenter;
             if (container == null) return null;
 
+            Debug.WriteLine($"[DrawboardView] FindContainerForElement: ContentPresenter found");
+            Debug.WriteLine($"[DrawboardView]   ContentPresenter ActualSize: {container.ActualWidth:F1} x {container.ActualHeight:F1}");
+
             // We need the actual visual child (the shape template content)
             if (VisualTreeHelper.GetChildrenCount(container) > 0)
             {
-                return VisualTreeHelper.GetChild(container, 0) as FrameworkElement ?? container;
+                var child = VisualTreeHelper.GetChild(container, 0) as FrameworkElement;
+                if (child != null)
+                {
+                    Debug.WriteLine($"[DrawboardView]   Child Type: {child.GetType().Name}");
+                    Debug.WriteLine($"[DrawboardView]   Child ActualSize: {child.ActualWidth:F1} x {child.ActualHeight:F1}");
+                }
+                return child ?? container;
             }
 
             return container;
@@ -1052,10 +1124,23 @@ namespace EquipmentDesigner.Views
 
         /// <summary>
         /// Handles double-click to enter text editing mode or create Textbox on empty space.
+        /// Also completes connection in connection mode.
         /// </summary>
         private void OnCanvasMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (_viewModel == null) return;
+
+            // Double-click completes connection if in connection mode and snapped
+            if (_viewModel.IsConnecting)
+            {
+                if (_viewModel.IsSnappedToTarget)
+                {
+                    _viewModel.CompleteConnection();
+                    e.Handled = true;
+                }
+                return;
+            }
+
             if (!_viewModel.IsSelectionToolActive) return;
 
             var position = e.GetPosition(ZoomableGrid);
@@ -1166,6 +1251,181 @@ namespace EquipmentDesigner.Views
                 e.Handled = true;
             }
             // Enter allows line breaks (AcceptsReturn=True)
+        }
+
+        #endregion
+
+        #region Connection Port and Preview Adorners
+
+        /// <summary>
+        /// Handles connection ports shown event from ViewModel.
+        /// </summary>
+        private void OnConnectionPortsShown(object sender, ConnectionPortsEventArgs e)
+        {
+            ShowConnectionPortAdorner(e.Element);
+        }
+
+        /// <summary>
+        /// Handles connection ports hidden event from ViewModel.
+        /// </summary>
+        private void OnConnectionPortsHidden(object sender, EventArgs e)
+        {
+            RemoveConnectionPortAdorner();
+        }
+
+        /// <summary>
+        /// Handles connection route updated event from ViewModel.
+        /// </summary>
+        private void OnConnectionRouteUpdated(object sender, ConnectionRouteEventArgs e)
+        {
+            // Ensure preview adorner exists
+            if (_connectionPreviewAdorner == null && _viewModel.IsConnecting)
+            {
+                ShowConnectionPreviewAdorner();
+            }
+
+            // Update the route
+            if (_connectionPreviewAdorner != null)
+            {
+                _connectionPreviewAdorner.UpdateRoute(e.RoutePoints);
+                _connectionPreviewAdorner.SetSnapState(e.IsSnapped, e.SnapPosition);
+            }
+        }
+
+        /// <summary>
+        /// Shows the connection port adorner on the specified element.
+        /// </summary>
+        private void ShowConnectionPortAdorner(DrawingElement element)
+        {
+            RemoveConnectionPortAdorner();
+
+            var container = FindContainerForElement(element);
+            if (container == null)
+            {
+                // Element might not be rendered yet, schedule for later
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_viewModel?.HoverElement == element && _viewModel.IsShowingPorts)
+                    {
+                        var delayedContainer = FindContainerForElement(element);
+                        if (delayedContainer != null)
+                        {
+                            CreateConnectionPortAdorner(delayedContainer, element);
+                        }
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Loaded);
+                return;
+            }
+
+            CreateConnectionPortAdorner(container, element);
+        }
+
+        /// <summary>
+        /// Creates the connection port adorner on the container.
+        /// </summary>
+        private void CreateConnectionPortAdorner(UIElement container, DrawingElement element)
+        {
+            Debug.WriteLine($"[DrawboardView] === CreateConnectionPortAdorner ===");
+            Debug.WriteLine($"[DrawboardView] Container Type: {container?.GetType().Name}");
+            
+            if (container is FrameworkElement fe)
+            {
+                Debug.WriteLine($"[DrawboardView] Container ActualSize: {fe.ActualWidth:F1} x {fe.ActualHeight:F1}");
+                Debug.WriteLine($"[DrawboardView] Container RenderSize: {fe.RenderSize.Width:F1} x {fe.RenderSize.Height:F1}");
+                Debug.WriteLine($"[DrawboardView] Container LayoutTransform: {fe.LayoutTransform?.GetType().Name}");
+                Debug.WriteLine($"[DrawboardView] Container RenderTransform: {fe.RenderTransform?.GetType().Name}");
+                
+                // Check Canvas position
+                var left = Canvas.GetLeft(fe);
+                var top = Canvas.GetTop(fe);
+                Debug.WriteLine($"[DrawboardView] Container Canvas Position: ({left:F1}, {top:F1})");
+            }
+            
+            Debug.WriteLine($"[DrawboardView] DrawingElement: Id={element.Id}, X={element.X:F1}, Y={element.Y:F1}, W={element.Width:F1}, H={element.Height:F1}");
+
+            var adornerLayer = AdornerLayer.GetAdornerLayer(container);
+            if (adornerLayer == null)
+            {
+                Debug.WriteLine($"[DrawboardView] AdornerLayer is NULL!");
+                return;
+            }
+
+            Debug.WriteLine($"[DrawboardView] AdornerLayer found, creating ConnectionPortAdorner");
+
+            _connectionPortAdorner = new ConnectionPortAdorner(container, element);
+            _connectionPortAdorner.PortClicked += OnPortClicked;
+
+            adornerLayer.Add(_connectionPortAdorner);
+            Debug.WriteLine($"[DrawboardView] === End CreateConnectionPortAdorner ===\n");
+        }
+
+        /// <summary>
+        /// Removes the connection port adorner.
+        /// </summary>
+        private void RemoveConnectionPortAdorner()
+        {
+            if (_connectionPortAdorner == null) return;
+
+            _connectionPortAdorner.PortClicked -= OnPortClicked;
+
+            var adornerLayer = AdornerLayer.GetAdornerLayer(_connectionPortAdorner.AdornedElement);
+            if (adornerLayer != null)
+            {
+                _connectionPortAdorner.Detach();
+                adornerLayer.Remove(_connectionPortAdorner);
+            }
+
+            _connectionPortAdorner = null;
+        }
+
+        /// <summary>
+        /// Handles port click event from the port adorner.
+        /// </summary>
+        private void OnPortClicked(object sender, PortClickedEventArgs e)
+        {
+            if (_viewModel?.HoverElement != null)
+            {
+                // Start connection from this port
+                _viewModel.StartConnection(_viewModel.HoverElement, e.Port);
+
+                // The adorner will be removed via ConnectionPortsHidden event
+            }
+        }
+
+        /// <summary>
+        /// Shows the connection preview adorner on the canvas.
+        /// </summary>
+        private void ShowConnectionPreviewAdorner()
+        {
+            RemoveConnectionPreviewAdorner();
+
+            var adornerLayer = AdornerLayer.GetAdornerLayer(ZoomableGrid);
+            if (adornerLayer == null) return;
+
+            _connectionPreviewAdorner = new ConnectionPreviewAdorner(ZoomableGrid);
+            adornerLayer.Add(_connectionPreviewAdorner);
+
+            // Capture mouse for connection mode
+            ZoomableGrid.CaptureMouse();
+        }
+
+        /// <summary>
+        /// Removes the connection preview adorner.
+        /// </summary>
+        private void RemoveConnectionPreviewAdorner()
+        {
+            if (_connectionPreviewAdorner == null) return;
+
+            var adornerLayer = AdornerLayer.GetAdornerLayer(ZoomableGrid);
+            if (adornerLayer != null)
+            {
+                adornerLayer.Remove(_connectionPreviewAdorner);
+            }
+
+            _connectionPreviewAdorner = null;
+
+            // Release mouse capture
+            ZoomableGrid.ReleaseMouseCapture();
         }
 
         #endregion

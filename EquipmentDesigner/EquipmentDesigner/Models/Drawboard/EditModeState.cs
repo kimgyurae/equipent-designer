@@ -53,6 +53,16 @@ namespace EquipmentDesigner.Models
         /// <summary>
         /// Text is being edited inline within an element.
         /// </summary>
-        TextEditing
+        TextEditing,
+
+        /// <summary>
+        /// Connection ports are being displayed on a hovered element.
+        /// </summary>
+        ShowingPorts,
+
+        /// <summary>
+        /// An arrow connection is being drawn from a source port.
+        /// </summary>
+        ConnectingArrow
     }
 }

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         xmlns:controls="clr-namespace:EquipmentDesigner.Controls"
+        xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
         mc:Ignorable="d"
         Title="Version Selection"
         WindowState="Maximized"
@@ -17,6 +18,8 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:ComponentStateToBackgroundConverter x:Key="ComponentStateToBackgroundConverter"/>
+        <converters:ComponentStateToForegroundConverter x:Key="ComponentStateToForegroundConverter"/>
     </Window.Resources>
 
     <Grid>
@@ -120,9 +123,9 @@
 
                                                     <!-- Status Chip -->
                                                     <controls:StateChip Grid.Column="1"
-                                                                        Text="{Binding StateText}"
-                                                                        ChipBackground="{Binding StateBackground}"
-                                                                        ChipForeground="{Binding StateForeground}"/>
+                                                                        Text="{Binding State}"
+                                                                        ChipBackground="{Binding State, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                        ChipForeground="{Binding State, Converter={StaticResource ComponentStateToForegroundConverter}}"/>
                                                 </Grid>
 
                                                 <!-- Row 1: Name -->

@@ -6,6 +6,8 @@
              xmlns:lex="http://wpflocalizeextension.codeplex.com"
              xmlns:converters="clr-namespace:EquipmentDesigner.Converters"
              xmlns:models="clr-namespace:EquipmentDesigner.Models.ProcessEditor"
+             xmlns:controls="clr-namespace:EquipmentDesigner.Views.Drawboard.Controls"
+             xmlns:dataModels="clr-namespace:EquipmentDesigner.Models"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -315,6 +317,28 @@
                         <ScaleTransform ScaleX="{Binding ZoomScale}"
                                        ScaleY="{Binding ZoomScale}"/>
                     </Grid.LayoutTransform>
+
+                    <!-- Connection Lines (rendered below elements) -->
+                    <ItemsControl x:Name="ConnectionsItemsControl"
+                                  ItemsSource="{Binding Connections}"
+                                  Panel.ZIndex="50">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type dataModels:UMLConnection}">
+                                <controls:ConnectionLine
+                                    TailId="{Binding TailId}"
+                                    HeadId="{Binding HeadId}"
+                                    TailPort="{Binding TailPort}"
+                                    HeadPort="{Binding HeadPort}"
+                                    Label="{Binding Label}"
+                                    Elements="{Binding DataContext.Elements, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
                     <!-- Drawing Elements Canvas -->
                     <ItemsControl x:Name="ElementsItemsControl"

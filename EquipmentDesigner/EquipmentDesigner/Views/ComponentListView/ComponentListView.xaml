@@ -203,8 +203,8 @@
                                                                            TextTrimming="CharacterEllipsis"
                                                                            Margin="0,8,0,0"/>
                                                                 <controls:StateChip Text="{Binding Status}"
-                                                                                    ChipBackground="{StaticResource Brush.Status.Neutral.Background}"
-                                                                                    ChipForeground="{StaticResource Brush.Text.Secondary}"
+                                                                                    ChipBackground="{Binding Status, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                                    ChipForeground="{Binding Status, Converter={StaticResource ComponentStateToForegroundConverter}}"
                                                                                     Margin="0,16,0,0"
                                                                                     HorizontalAlignment="Left"/>
                                                             </StackPanel>
@@ -303,8 +303,8 @@
                                                                            TextTrimming="CharacterEllipsis"
                                                                            Margin="0,8,0,0"/>
                                                                 <controls:StateChip Text="{Binding Status}"
-                                                                                    ChipBackground="{StaticResource Brush.Status.Neutral.Background}"
-                                                                                    ChipForeground="{StaticResource Brush.Text.Secondary}"
+                                                                                    ChipBackground="{Binding Status, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                                    ChipForeground="{Binding Status, Converter={StaticResource ComponentStateToForegroundConverter}}"
                                                                                     Margin="0,16,0,0"
                                                                                     HorizontalAlignment="Left"/>
                                                             </StackPanel>
@@ -409,8 +409,8 @@
                                                                            TextTrimming="CharacterEllipsis"
                                                                            Margin="0,8,0,0"/>
                                                                 <controls:StateChip Text="{Binding Status}"
-                                                                                    ChipBackground="{StaticResource Brush.Status.Neutral.Background}"
-                                                                                    ChipForeground="{StaticResource Brush.Text.Secondary}"
+                                                                                    ChipBackground="{Binding Status, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                                    ChipForeground="{Binding Status, Converter={StaticResource ComponentStateToForegroundConverter}}"
                                                                                     Margin="0,16,0,0"
                                                                                     HorizontalAlignment="Left"/>
                                                             </StackPanel>
@@ -511,8 +511,8 @@
                                                                            TextTrimming="CharacterEllipsis"
                                                                            Margin="0,8,0,0"/>
                                                                 <controls:StateChip Text="{Binding Status}"
-                                                                                    ChipBackground="{StaticResource Brush.Status.Neutral.Background}"
-                                                                                    ChipForeground="{StaticResource Brush.Text.Secondary}"
+                                                                                    ChipBackground="{Binding Status, Converter={StaticResource ComponentStateToBackgroundConverter}}"
+                                                                                    ChipForeground="{Binding Status, Converter={StaticResource ComponentStateToForegroundConverter}}"
                                                                                     Margin="0,16,0,0"
                                                                                     HorizontalAlignment="Left"/>
                                                             </StackPanel>

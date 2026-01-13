@@ -21,7 +21,7 @@ namespace EquipmentDesigner.Services
         /// </summary>
         /// <param name="states">States to filter by.</param>
         /// <returns>API response containing filtered workflow sessions.</returns>
-        Task<ApiResponse<List<HardwareDefinition>>> GetSessionsByStateAsync(params ComponentState[] states);
+        Task<ApiResponse<List<HardwareDefinition>>> GetHardwaresByStateAsync(params ComponentState[] states);
 
         /// <summary>
         /// Gets a specific workflow session by ID.
@@ -82,5 +82,11 @@ namespace EquipmentDesigner.Services
         /// <param name="hardwareType">하드웨어 레이어</param>
         /// <returns>고유 하드웨어 키 목록</returns>
         Task<ApiResponse<List<string>>> GetDistinctHardwareKeysAsync(HardwareType hardwareType);
+
+        /// <summary>
+        /// 각 고유 HardwareKey별로 가장 높은 버전의 하드웨어만 조회합니다.
+        /// </summary>
+        /// <returns>각 HardwareKey별 최신 버전의 하드웨어 목록</returns>
+        Task<ApiResponse<List<HardwareDefinition>>> GetAllHardwaresWithUniqueHardwareKeyAsync();
     }
 }

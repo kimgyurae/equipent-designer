@@ -52,12 +52,13 @@ namespace EquipmentDesigner.ViewModels
         private void LoadWorkflowForCurrentState()
         {
             ClearAllSelections();
+            ClearConnectionsOnStateChange();
             Elements.Clear();
             _nextZIndex = 1;
 
             if (_process?.Processes == null) return;
 
-            if (_process.Processes.TryGetValue(SelectedState, out var workflow) 
+            if (_process.Processes.TryGetValue(SelectedState, out var workflow)
                 && workflow?.Steps != null)
             {
                 foreach (var step in workflow.Steps)
@@ -65,6 +66,9 @@ namespace EquipmentDesigner.ViewModels
                     LoadStepToCanvas(step);
                 }
             }
+
+            // Load connections after elements are loaded
+            LoadConnectionsForCurrentState();
         }
 
         /// <summary>

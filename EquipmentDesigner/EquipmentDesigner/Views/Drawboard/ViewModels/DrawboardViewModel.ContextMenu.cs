@@ -384,7 +384,7 @@ namespace EquipmentDesigner.ViewModels
         {
             System.Windows.Application.Current?.Dispatcher.BeginInvoke(
                 new System.Action(NotifyUnlockButtonPropertiesChanged),
-                System.Windows.Threading.DispatcherPriority.Background);
+                System.Windows.Threading.DispatcherPriority.Input);
         }
 
         /// <summary>

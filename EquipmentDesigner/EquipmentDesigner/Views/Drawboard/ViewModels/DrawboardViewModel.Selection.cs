@@ -31,6 +31,9 @@ namespace EquipmentDesigner.ViewModels
             SelectedElement = element;
             EditModeState = EditModeState.Selected;
             DeferNotifyUnlockButtonPropertiesChanged();
+
+            // Show connection ports for single selection
+            UpdatePortDisplayForSelection();
         }
 
         /// <summary>
@@ -38,6 +41,9 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public void ClearSelection()
         {
+            // Hide connection ports before clearing selection
+            HideConnectionPorts();
+
             if (_selectedElement != null)
             {
                 _selectedElement.IsSelected = false;
@@ -96,11 +102,15 @@ namespace EquipmentDesigner.ViewModels
                 {
                     SelectedElement = null;
                     EditModeState = EditModeState.None;
+                    // Hide ports when no selection
+                    HideConnectionPorts();
                 }
                 else if (_selectedElements.Count == 1)
                 {
                     SelectedElement = _selectedElements[0];
                     EditModeState = EditModeState.Selected;
+                    // Show ports for single selection
+                    UpdatePortDisplayForSelection();
                 }
             }
             else
@@ -125,11 +135,15 @@ namespace EquipmentDesigner.ViewModels
                 {
                     SelectedElement = element;
                     EditModeState = EditModeState.Selected;
+                    // Show ports for single selection
+                    UpdatePortDisplayForSelection();
                 }
                 else
                 {
                     SelectedElement = null;
                     EditModeState = EditModeState.MultiSelected;
+                    // Hide ports in multi-selection mode
+                    HideConnectionPorts();
                 }
             }
 
@@ -172,11 +186,15 @@ namespace EquipmentDesigner.ViewModels
             {
                 SelectedElement = element;
                 EditModeState = EditModeState.Selected;
+                // Show ports for single selection
+                UpdatePortDisplayForSelection();
             }
             else
             {
                 SelectedElement = null;
                 EditModeState = EditModeState.MultiSelected;
+                // Hide ports in multi-selection mode
+                HideConnectionPorts();
             }
 
             OnPropertyChanged(nameof(IsMultiSelectionMode));
@@ -188,6 +206,9 @@ namespace EquipmentDesigner.ViewModels
         /// </summary>
         public void ClearAllSelections()
         {
+            // Hide connection ports before clearing
+            HideConnectionPorts();
+
             foreach (var element in _selectedElements)
             {
                 element.IsSelected = false;

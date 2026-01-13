@@ -2,7 +2,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Resources;
 using EquipmentDesigner.Services;
@@ -15,23 +14,6 @@ namespace EquipmentDesigner.ViewModels
     /// </summary>
     public class HardwareVersionSelectionDialogViewModel : ViewModelBase
     {
-        private static readonly Brush SuccessBackground;
-        private static readonly Brush SuccessForeground;
-        private static readonly Brush InfoBackground;
-        private static readonly Brush InfoForeground;
-        private static readonly Brush NeutralBackground;
-        private static readonly Brush NeutralForeground;
-
-        static HardwareVersionSelectionDialogViewModel()
-        {
-            SuccessBackground = (Brush)Application.Current.FindResource("Brush.Status.Success.Background");
-            SuccessForeground = (Brush)Application.Current.FindResource("Brush.Status.Success");
-            InfoBackground = (Brush)Application.Current.FindResource("Brush.Status.Info.Background");
-            InfoForeground = (Brush)Application.Current.FindResource("Brush.Status.Info");
-            NeutralBackground = (Brush)Application.Current.FindResource("Brush.Status.Neutral.Background");
-            NeutralForeground = (Brush)Application.Current.FindResource("Brush.Text.Secondary");
-        }
-
         private HardwareType _hardwareType;
         private string _displayName;
         private bool _isLoading;
@@ -192,10 +174,7 @@ namespace EquipmentDesigner.ViewModels
                             Version = version.Version,
                             Name = _displayName ?? "Unknown",
                             Description = version.Description ?? "",
-                            State = version.State,
-                            StateText = version.State.ToString(),
-                            StateBackground = GetStateBackground(version.State),
-                            StateForeground = GetStateForeground(version.State)
+                            State = version.State
                         };
                         Versions.Add(item);
                     }
@@ -215,30 +194,11 @@ namespace EquipmentDesigner.ViewModels
                 IsLoading = false;
             }
         }
-
-        private static Brush GetStateBackground(ComponentState state)
-        {
-            return state switch
-            {
-                ComponentState.Validated => SuccessBackground,
-                ComponentState.Uploaded => InfoBackground,
-                _ => NeutralBackground
-            };
-        }
-
-        private static Brush GetStateForeground(ComponentState state)
-        {
-            return state switch
-            {
-                ComponentState.Validated => SuccessForeground,
-                ComponentState.Uploaded => InfoForeground,
-                _ => NeutralForeground
-            };
-        }
     }
 
     /// <summary>
     /// View model item for version display in the dialog.
+    /// Contains only data properties - view-related concerns (colors) are handled by XAML converters.
     /// </summary>
     public class VersionItem
     {
@@ -247,8 +207,5 @@ namespace EquipmentDesigner.ViewModels
         public string Name { get; set; }
         public string Description { get; set; }
         public ComponentState State { get; set; }
-        public string StateText { get; set; }
-        public Brush StateBackground { get; set; }
-        public Brush StateForeground { get; set; }
     }
 }

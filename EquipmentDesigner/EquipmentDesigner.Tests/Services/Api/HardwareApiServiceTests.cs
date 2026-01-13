@@ -96,10 +96,10 @@ namespace EquipmentDesigner.Tests.Services.Api
 
         #endregion
 
-        #region GetSessionsByStateAsync Tests
+        #region GetHardwaresByStateAsync Tests
 
         [Fact]
-        public async Task GetSessionsByStateAsync_ReturnsOnlyMatchingSessions()
+        public async Task GetHardwaresByStateAsync_ReturnsOnlyMatchingSessions()
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
@@ -111,7 +111,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var service = new MockHardwareApiService(repository);
 
             // Act
-            var response = await service.GetSessionsByStateAsync(ComponentState.Uploaded, ComponentState.Validated);
+            var response = await service.GetHardwaresByStateAsync(ComponentState.Uploaded, ComponentState.Validated);
 
             // Assert
             response.Success.Should().BeTrue();
@@ -121,7 +121,7 @@ namespace EquipmentDesigner.Tests.Services.Api
         }
 
         [Fact]
-        public async Task GetSessionsByStateAsync_ReturnsEmptyList_WhenNoSessionsMatchFilter()
+        public async Task GetHardwaresByStateAsync_ReturnsEmptyList_WhenNoSessionsMatchFilter()
         {
             // Arrange
             var repository = new MemoryUploadedWorkflowRepository();
@@ -131,7 +131,7 @@ namespace EquipmentDesigner.Tests.Services.Api
             var service = new MockHardwareApiService(repository);
 
             // Act
-            var response = await service.GetSessionsByStateAsync(ComponentState.Uploaded);
+            var response = await service.GetHardwaresByStateAsync(ComponentState.Uploaded);
 
             // Assert
             response.Success.Should().BeTrue();

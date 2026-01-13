@@ -31,12 +31,21 @@ namespace EquipmentDesigner.Controls
 
         /// <summary>
         /// The background brush for the chip.
+        /// Default is null - will use Neutral background from resources if not set.
         /// </summary>
         public static readonly DependencyProperty ChipBackgroundProperty = DependencyProperty.Register(
             nameof(ChipBackground),
             typeof(Brush),
             typeof(StateChip),
-            new PropertyMetadata(Brushes.Gray));
+            new PropertyMetadata(null, OnChipBackgroundChanged));
+
+        private static void OnChipBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is StateChip chip && e.NewValue == null)
+            {
+                chip.ChipBackground = (Brush)Application.Current.FindResource("Brush.Status.Neutral.Background");
+            }
+        }
 
         public Brush ChipBackground
         {
@@ -46,12 +55,21 @@ namespace EquipmentDesigner.Controls
 
         /// <summary>
         /// The foreground brush for the chip text.
+        /// Default is null - will use Neutral foreground from resources if not set.
         /// </summary>
         public static readonly DependencyProperty ChipForegroundProperty = DependencyProperty.Register(
             nameof(ChipForeground),
             typeof(Brush),
             typeof(StateChip),
-            new PropertyMetadata(Brushes.White));
+            new PropertyMetadata(null, OnChipForegroundChanged));
+
+        private static void OnChipForegroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is StateChip chip && e.NewValue == null)
+            {
+                chip.ChipForeground = (Brush)Application.Current.FindResource("Brush.Status.Neutral");
+            }
+        }
 
         public Brush ChipForeground
         {

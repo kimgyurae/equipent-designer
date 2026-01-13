@@ -61,8 +61,7 @@ namespace EquipmentDesigner.ViewModels
             try
             {
                 var apiService = ServiceLocator.GetService<IHardwareApiService>();
-                var response = await apiService.GetSessionsByStateAsync(
-                    ComponentState.Ready, ComponentState.Uploaded, ComponentState.Validated);
+                var response = await apiService.GetAllHardwaresWithUniqueHardwareKeyAsync();
 
                 Equipments.Clear();
                 Systems.Clear();
