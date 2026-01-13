@@ -8,6 +8,7 @@
              xmlns:models="clr-namespace:EquipmentDesigner.Models.ProcessEditor"
              xmlns:controls="clr-namespace:EquipmentDesigner.Views.Drawboard.Controls"
              xmlns:dataModels="clr-namespace:EquipmentDesigner.Models"
+             xmlns:drawboardControls="clr-namespace:EquipmentDesigner.Views.Drawboard.Controls"
              lex:LocalizeDictionary.DesignCulture="ko"
              lex:ResxLocalizationProvider.DefaultAssembly="EquipmentDesigner"
              lex:ResxLocalizationProvider.DefaultDictionary="Resources.Strings"
@@ -20,6 +21,18 @@
         <converters:ColorToBrushConverter x:Key="ColorToBrushConverter"/>
         <converters:TextFontSizeToDoubleConverter x:Key="TextFontSizeToDoubleConverter"/>
         <converters:TextAlignmentConverter x:Key="TextAlignmentConverter"/>
+
+        <!-- Violation Stroke Converters for each element type -->
+        <converters:ViolationStrokeBrushConverter x:Key="ViolationStrokeConverter.Default">
+            <converters:ViolationStrokeBrushConverter.DefaultBrush>
+                <StaticResource ResourceKey="Brush.DrawingElement.Stroke"/>
+            </converters:ViolationStrokeBrushConverter.DefaultBrush>
+        </converters:ViolationStrokeBrushConverter>
+        <converters:ViolationStrokeBrushConverter x:Key="ViolationStrokeConverter.Textbox">
+            <converters:ViolationStrokeBrushConverter.DefaultBrush>
+                <StaticResource ResourceKey="Brush.DrawingElement.Textbox.Stroke"/>
+            </converters:ViolationStrokeBrushConverter.DefaultBrush>
+        </converters:ViolationStrokeBrushConverter>
 
         <!-- Icon Path Style (Common) -->
         <Style x:Key="IconPathStyle" TargetType="Path">
@@ -152,15 +165,17 @@
 
         <!-- Shape Element Styles -->
         <Style x:Key="ShapeElementStyle" TargetType="Shape">
-            <Setter Property="Stroke" Value="#333333"/>
             <Setter Property="StrokeThickness" Value="2.5"/>
-            <Setter Property="Fill" Value="#FFFFFF"/>
+            <Setter Property="Fill" Value="{StaticResource Brush.Surface.Primary}"/>
         </Style>
 
         <!-- Drawing Element Data Templates -->
         <DataTemplate x:Key="InitialNodeTemplate">
             <Grid Width="{Binding Width}" Height="{Binding Height}" Opacity="{Binding Opacity}">
-                <Ellipse Style="{StaticResource ShapeElementStyle}" Fill="#E3F2FD"/>
+                <Ellipse Style="{StaticResource ShapeElementStyle}" 
+                         Fill="{StaticResource Brush.DrawingElement.Fill}"
+                         Stroke="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Default}}"
+                         StrokeThickness="0.5"/>
                 <TextBlock Text="{Binding Text}"
                            FontSize="{Binding FontSize, Converter={StaticResource TextFontSizeToDoubleConverter}}"
                            TextAlignment="{Binding TextAlign, Converter={StaticResource TextAlignmentConverter}}"
@@ -175,9 +190,9 @@
 
         <DataTemplate x:Key="ActionNodeTemplate">
             <Grid Width="{Binding Width}" Height="{Binding Height}" Opacity="{Binding Opacity}">
-                <Border Background="#FFF3E0"
-                        BorderBrush="#333333"
-                        BorderThickness="1.5"
+                <Border Background="{StaticResource Brush.DrawingElement.Fill}"
+                        BorderBrush="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Default}}"
+                        BorderThickness="0.5"
                         CornerRadius="4"/>
                 <TextBlock Text="{Binding Text}"
                            FontSize="{Binding FontSize, Converter={StaticResource TextFontSizeToDoubleConverter}}"
@@ -196,9 +211,9 @@
                   Opacity="{Binding Opacity}">
                 <Path Data="M 0.5,0 L 1,0.5 L 0.5,1 L 0,0.5 Z"
                       Stretch="Fill"
-                      Fill="#FFF9C4"
-                      Stroke="#333333"
-                      StrokeThickness="1.5"/>
+                      Fill="{StaticResource Brush.DrawingElement.Fill}"
+                      Stroke="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Default}}"
+                      StrokeThickness="0.5"/>
                 <TextBlock Text="{Binding Text}"
                            FontSize="{Binding FontSize, Converter={StaticResource TextFontSizeToDoubleConverter}}"
                            TextAlignment="{Binding TextAlign, Converter={StaticResource TextAlignmentConverter}}"
@@ -215,9 +230,11 @@
             <Grid Width="{Binding Width}" Height="{Binding Height}"
                   Opacity="{Binding Opacity}">
                 <Ellipse Style="{StaticResource ShapeElementStyle}"
-                         Fill="#FFEBEE"/>
-                <Ellipse Stroke="#333333"
-                         StrokeThickness="1.5"
+                         Fill="{StaticResource Brush.DrawingElement.Fill}"
+                         Stroke="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Default}}"
+                         StrokeThickness="0.5"/>
+                <Ellipse Stroke="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Default}}"
+                         StrokeThickness="0.5"
                          Fill="Transparent"
                          Margin="5"/>
                 <TextBlock Text="{Binding Text}"
@@ -235,13 +252,13 @@
         <DataTemplate x:Key="PredefinedActionNodeTemplate">
             <Grid Width="{Binding Width}" Height="{Binding Height}"
                   Opacity="{Binding Opacity}">
-                <Border Background="#E8F5E9"
-                        BorderBrush="#333333"
-                        BorderThickness="1.5"
+                <Border Background="{StaticResource Brush.DrawingElement.Fill}"
+                        BorderBrush="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Default}}"
+                        BorderThickness="0.5"
                         CornerRadius="4"/>
                 <Border Background="Transparent"
-                        BorderBrush="#333333"
-                        BorderThickness="1.5"
+                        BorderBrush="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Default}}"
+                        BorderThickness="0.5"
                         CornerRadius="2"
                         Margin="6"/>
                 <TextBlock Text="{Binding Text}"
@@ -260,8 +277,8 @@
         <DataTemplate x:Key="TextboxTemplate">
             <Grid Width="{Binding Width}" Height="{Binding Height}" Opacity="{Binding Opacity}">
                 <Border Background="Transparent"
-                        BorderBrush="#999999"
-                        BorderThickness="1"
+                        BorderBrush="{Binding HasViolations, Converter={StaticResource ViolationStrokeConverter.Textbox}}"
+                        BorderThickness="0.5"
                         CornerRadius="2"/>
                 <TextBlock Text="{Binding Text}"
                            FontSize="{Binding FontSize, Converter={StaticResource TextFontSizeToDoubleConverter}}"
@@ -407,7 +424,7 @@
                                  Visibility="Collapsed"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
-                                 BorderThickness="1"
+                                 BorderThickness="0.5"
                                  BorderBrush="#60A5FA"
                                  Background="Transparent"
                                  Padding="0"
@@ -458,6 +475,15 @@
                     </ControlTemplate>
                 </Button.Template>
             </Button>
+        </Canvas>
+
+        <!-- Floating Violation Popup (shows when single element with violations is selected) -->
+        <Canvas Panel.ZIndex="10002" IsHitTestVisible="False">
+            <drawboardControls:ViolationPopup
+                DataContext="{Binding ViolationPopupViewModel}"
+                Canvas.Left="{Binding X}"
+                Canvas.Top="{Binding Y}"
+                Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}}"/>
         </Canvas>
 
         <!-- Top Left: Back Button + State ComboBox -->
@@ -513,7 +539,7 @@
                     </Button.Background>
                     <Grid>
                         <Path Style="{StaticResource IconPathStyle}"
-                              Data="M12.6667,7.33337 H3.33333 C2.59695,7.33337 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33337 12.6667,7.33337 Z M4.6665,7.33337 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33337"/>
+                              Data="M12.6667,7.33329 H3.33333 C2.59695,7.33329 2,7.93033 2,8.66671 V13.3334 C2,14.0698 2.59695,14.6667 3.33333,14.6667 H12.6667 C13.403,14.6667 14,14.0698 14,13.3334 V8.66671 C14,7.93033 13.403,7.33329 12.6667,7.33329 Z M4.6665,7.33329 V4.66671 C4.6665,3.78265 5.01769,2.93481 5.64281,2.30968 C6.26794,1.68456 7.11578,1.33337 7.99984,1.33337 C8.88389,1.33337 9.73174,1.68456 10.3569,2.30968 C10.982,2.93481 11.3332,3.78265 11.3332,4.66671 V7.33329"/>
                         <TextBlock Style="{StaticResource ToolShortcutTextStyle}"
                                    Text="{Binding Tools[0].Shortcut}"/>
                     </Grid>

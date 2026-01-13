@@ -387,41 +387,48 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
         /// </summary>
         private void UpdateThumbPositions()
         {
-            // STRUCTURAL FIX: Derive positions from route endpoints (single source of truth)
-            // This ensures thumb CANNOT separate from arrow by design.
-            // Route endpoints ARE the arrow endpoints - using them directly guarantees alignment.
-
-            Point headVisualPosition;
-            Point tailVisualPosition;
-
-            if (_routePoints != null && _routePoints.Count >= 2)
+            try
             {
-                // Route endpoints ARE the arrow endpoints - use them directly
-                tailVisualPosition = _routePoints[0];                      // Arrow start (tail)
-                headVisualPosition = _routePoints[_routePoints.Count - 1]; // Arrow end (head)
+                // STRUCTURAL FIX: Derive positions from route endpoints (single source of truth)
+                // This ensures thumb CANNOT separate from arrow by design.
+                // Route endpoints ARE the arrow endpoints - using them directly guarantees alignment.
+
+                Point headVisualPosition;
+                Point tailVisualPosition;
+
+                if (_routePoints != null && _routePoints.Count >= 2)
+                {
+                    // Route endpoints ARE the arrow endpoints - use them directly
+                    tailVisualPosition = _routePoints[0];                      // Arrow start (tail)
+                    headVisualPosition = _routePoints[_routePoints.Count - 1]; // Arrow end (head)
+                }
+                else
+                {
+                    // Fallback when no route available (initial state or edge case)
+                    headVisualPosition = _headPosition;
+                    tailVisualPosition = _tailPosition;
+                }
+
+                Debug.WriteLine($"[ConnectionEditAdorner] UpdateThumbPositions called:");
+                Debug.WriteLine($"[ConnectionEditAdorner]   _isDraggingHead={_isDraggingHead}, _isHeadSnapped={_isHeadSnapped}");
+                Debug.WriteLine($"[ConnectionEditAdorner]   _headPosition: ({_headPosition.X:F1}, {_headPosition.Y:F1})");
+                Debug.WriteLine($"[ConnectionEditAdorner]   _currentDragPosition: ({_currentDragPosition.X:F1}, {_currentDragPosition.Y:F1})");
+                Debug.WriteLine($"[ConnectionEditAdorner]   RoutePoints count: {_routePoints?.Count ?? 0}");
+                Debug.WriteLine($"[ConnectionEditAdorner]   HeadThumb visual position: ({headVisualPosition.X:F1}, {headVisualPosition.Y:F1})");
+                Debug.WriteLine($"[ConnectionEditAdorner]   TailThumb visual position: ({tailVisualPosition.X:F1}, {tailVisualPosition.Y:F1})");
+
+                // Position head thumb centered on visual position
+                _headThumb.SetValue(System.Windows.Controls.Canvas.LeftProperty, headVisualPosition.X - ThumbSize / 2);
+                _headThumb.SetValue(System.Windows.Controls.Canvas.TopProperty, headVisualPosition.Y - ThumbSize / 2);
+
+                // Position tail thumb centered on visual position
+                _tailThumb.SetValue(System.Windows.Controls.Canvas.LeftProperty, tailVisualPosition.X - ThumbSize / 2);
+                _tailThumb.SetValue(System.Windows.Controls.Canvas.TopProperty, tailVisualPosition.Y - ThumbSize / 2);
             }
-            else
+            catch (Exception ex)
             {
-                // Fallback when no route available (initial state or edge case)
-                headVisualPosition = _headPosition;
-                tailVisualPosition = _tailPosition;
+                Debug.WriteLine($"[ConnectionEditAdorner] ERROR in UpdateThumbPositions: {ex.Message}");
             }
-
-            Debug.WriteLine($"[ConnectionEditAdorner] UpdateThumbPositions called:");
-            Debug.WriteLine($"[ConnectionEditAdorner]   _isDraggingHead={_isDraggingHead}, _isHeadSnapped={_isHeadSnapped}");
-            Debug.WriteLine($"[ConnectionEditAdorner]   _headPosition: ({_headPosition.X:F1}, {_headPosition.Y:F1})");
-            Debug.WriteLine($"[ConnectionEditAdorner]   _currentDragPosition: ({_currentDragPosition.X:F1}, {_currentDragPosition.Y:F1})");
-            Debug.WriteLine($"[ConnectionEditAdorner]   RoutePoints count: {_routePoints?.Count ?? 0}");
-            Debug.WriteLine($"[ConnectionEditAdorner]   HeadThumb visual position: ({headVisualPosition.X:F1}, {headVisualPosition.Y:F1})");
-            Debug.WriteLine($"[ConnectionEditAdorner]   TailThumb visual position: ({tailVisualPosition.X:F1}, {tailVisualPosition.Y:F1})");
-
-            // Position head thumb centered on visual position
-            _headThumb.SetValue(System.Windows.Controls.Canvas.LeftProperty, headVisualPosition.X - ThumbSize / 2);
-            _headThumb.SetValue(System.Windows.Controls.Canvas.TopProperty, headVisualPosition.Y - ThumbSize / 2);
-
-            // Position tail thumb centered on visual position
-            _tailThumb.SetValue(System.Windows.Controls.Canvas.LeftProperty, tailVisualPosition.X - ThumbSize / 2);
-            _tailThumb.SetValue(System.Windows.Controls.Canvas.TopProperty, tailVisualPosition.Y - ThumbSize / 2);
         }
 
         /// <summary>
@@ -543,37 +550,44 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
         /// </summary>
         protected override Size ArrangeOverride(Size finalSize)
         {
-            // Use same route-based positioning logic as UpdateThumbPositions for consistency
-            // Route endpoints ARE the arrow endpoints - using them directly guarantees alignment.
-            Point headVisualPosition;
-            Point tailVisualPosition;
-
-            if (_routePoints != null && _routePoints.Count >= 2)
+            try
             {
-                // Route endpoints ARE the arrow endpoints - use them directly
-                tailVisualPosition = _routePoints[0];                      // Arrow start (tail)
-                headVisualPosition = _routePoints[_routePoints.Count - 1]; // Arrow end (head)
+                // Use same route-based positioning logic as UpdateThumbPositions for consistency
+                // Route endpoints ARE the arrow endpoints - using them directly guarantees alignment.
+                Point headVisualPosition;
+                Point tailVisualPosition;
+
+                if (_routePoints != null && _routePoints.Count >= 2)
+                {
+                    // Route endpoints ARE the arrow endpoints - use them directly
+                    tailVisualPosition = _routePoints[0];                      // Arrow start (tail)
+                    headVisualPosition = _routePoints[_routePoints.Count - 1]; // Arrow end (head)
+                }
+                else
+                {
+                    // Fallback when no route available (initial state or edge case)
+                    headVisualPosition = _headPosition;
+                    tailVisualPosition = _tailPosition;
+                }
+
+                // Arrange head thumb
+                _headThumb.Arrange(new Rect(
+                    headVisualPosition.X - ThumbSize / 2,
+                    headVisualPosition.Y - ThumbSize / 2,
+                    ThumbSize,
+                    ThumbSize));
+
+                // Arrange tail thumb
+                _tailThumb.Arrange(new Rect(
+                    tailVisualPosition.X - ThumbSize / 2,
+                    tailVisualPosition.Y - ThumbSize / 2,
+                    ThumbSize,
+                    ThumbSize));
             }
-            else
+            catch (Exception ex)
             {
-                // Fallback when no route available (initial state or edge case)
-                headVisualPosition = _headPosition;
-                tailVisualPosition = _tailPosition;
+                Debug.WriteLine($"[ConnectionEditAdorner] ERROR in ArrangeOverride: {ex.Message}");
             }
-
-            // Arrange head thumb
-            _headThumb.Arrange(new Rect(
-                headVisualPosition.X - ThumbSize / 2,
-                headVisualPosition.Y - ThumbSize / 2,
-                ThumbSize,
-                ThumbSize));
-
-            // Arrange tail thumb
-            _tailThumb.Arrange(new Rect(
-                tailVisualPosition.X - ThumbSize / 2,
-                tailVisualPosition.Y - ThumbSize / 2,
-                ThumbSize,
-                ThumbSize));
 
             return finalSize;
         }

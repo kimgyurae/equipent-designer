@@ -208,4 +208,17 @@
     <SolidColorBrush x:Key="Brush.HardwareType.Device.Chip.Background" Color="{StaticResource Color.HardwareType.Device.Chip.Background}"/>
     <SolidColorBrush x:Key="Brush.HardwareType.Device.Chip.Foreground" Color="{StaticResource Color.HardwareType.Device.Chip.Foreground}"/>
 
+    <!-- =========================
+         Drawboard Elements
+         ========================= -->
+    
+    <!-- DrawingElement Fill (Primary.300 for all node types) -->
+    <SolidColorBrush x:Key="Brush.DrawingElement.Fill" Color="{StaticResource Color.Primary.100}"/>
+    
+    <!-- DrawingElement Stroke (default border color) -->
+    <SolidColorBrush x:Key="Brush.DrawingElement.Stroke" Color="{StaticResource Color.Gray.700}"/>
+    
+    <!-- DrawingElement Stroke for Textbox (lighter border) -->
+    <SolidColorBrush x:Key="Brush.DrawingElement.Textbox.Stroke" Color="{StaticResource Color.Gray.400}"/>
+
 </ResourceDictionary>

@@ -251,6 +251,7 @@ namespace EquipmentDesigner.ViewModels
                 Name = Name,
                 DisplayName = DisplayName,
                 Description = Description,
+                ProcessId = ProcessId,
                 ProcessInfo = Process,
                 Commands = Commands.Select(c => c.ToDto()).ToList(),
                 Version = Version,
@@ -284,7 +285,8 @@ namespace EquipmentDesigner.ViewModels
                 Description = hw.Description ?? string.Empty,
                 Process = hw.ProcessInfo ?? string.Empty,
                 Version = hw.Version ?? "undefined",
-                HardwareKey = hw.HardwareKey
+                HardwareKey = hw.HardwareKey,
+                ProcessId = hw.ProcessId ?? System.Guid.NewGuid().ToString()
             };
 
             if (hw.ImplementationInstructions != null && hw.ImplementationInstructions.Any())

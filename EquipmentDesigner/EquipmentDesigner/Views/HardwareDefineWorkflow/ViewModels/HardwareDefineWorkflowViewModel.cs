@@ -1130,6 +1130,7 @@ namespace EquipmentDesigner.ViewModels
                     HardwareType = StartType,
                     HardwareKey = HardwareKey,
                     Version = Version,
+                    ProcessId = ProcessId,
                     State = ComponentState.Draft,
                     LastModifiedAt = DateTime.Now,
                     CreatedAt = DateTime.Now
@@ -1140,6 +1141,7 @@ namespace EquipmentDesigner.ViewModels
             hw.Id = HardwareId;
             hw.HardwareKey = HardwareKey;
             hw.Version = Version;
+            hw.ProcessId = ProcessId;
             hw.State = ComponentState.Draft;
             hw.LastModifiedAt = DateTime.Now;
             return hw;

@@ -1,0 +1,69 @@
+<UserControl x:Class="EquipmentDesigner.Views.Drawboard.Controls.ViolationPopup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="280">
+
+    <Border Background="{StaticResource Brush.Surface.Primary}"
+            BorderBrush="{StaticResource Brush.Border.Primary}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Effect="{StaticResource Shadow.LG}"
+            MinWidth="220"
+            MaxWidth="300">
+
+        <ItemsControl x:Name="ViolationsItemsControl"
+                      ItemsSource="{Binding Violations}"
+                      Padding="0">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="12,10"
+                            BorderBrush="{StaticResource Brush.Border.Secondary}"
+                            BorderThickness="0,0,0,1">
+                        <StackPanel>
+                            <!-- Violation Description -->
+                            <TextBlock Text="{Binding Message}"
+                                       Style="{StaticResource Typography.Body.Small}"
+                                       Foreground="{StaticResource Brush.Text.Primary}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,6"/>
+
+                            <!-- Expected and Actual Values -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Expected -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <TextBlock Text="Expected:"
+                                               Style="{StaticResource Typography.Caption}"
+                                               Foreground="{StaticResource Brush.Text.Tertiary}"
+                                               Margin="0,0,4,0"/>
+                                    <TextBlock Text="{Binding ExpectedValue}"
+                                               Style="{StaticResource Typography.Caption}"
+                                               Foreground="{StaticResource Brush.Text.Secondary}"/>
+                                </StackPanel>
+
+                                <!-- Actual -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <TextBlock Text="Actual:"
+                                               Style="{StaticResource Typography.Caption}"
+                                               Foreground="{StaticResource Brush.Text.Tertiary}"
+                                               Margin="0,0,4,0"/>
+                                    <TextBlock Text="{Binding ActualValue}"
+                                               Style="{StaticResource Typography.Caption}"
+                                               Foreground="{StaticResource Brush.Status.Danger}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Border>
+</UserControl>

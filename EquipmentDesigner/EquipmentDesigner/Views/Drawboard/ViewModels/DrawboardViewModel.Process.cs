@@ -120,6 +120,12 @@ namespace EquipmentDesigner.ViewModels
                     }
                 }
             }
+
+            // Notify all elements of potential violation changes after rebuild
+            foreach (var element in CurrentSteps)
+            {
+                element.NotifyViolationsChanged();
+            }
         }
 
         /// <summary>
@@ -168,7 +174,7 @@ namespace EquipmentDesigner.ViewModels
                 var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == arrow.TargetId);
                 if (targetElement != null)
                 {
-                    targetElement.IncomingSourceIds.Remove(element.Id);
+                    targetElement.RemoveIncomingSource(element.Id);
                 }
             }
 

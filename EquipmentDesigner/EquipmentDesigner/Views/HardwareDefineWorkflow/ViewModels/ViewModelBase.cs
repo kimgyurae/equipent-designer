@@ -11,6 +11,7 @@ namespace EquipmentDesigner.ViewModels
         private bool _isEditable = true;
         private string _version = "1.0.0";
         private string _hardwareKey;
+        private string _processId = System.Guid.NewGuid().ToString();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -42,6 +43,16 @@ namespace EquipmentDesigner.ViewModels
         {
             get => _hardwareKey;
             set => SetProperty(ref _hardwareKey, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the process ID for this hardware component.
+        /// Auto-generated on creation. Used by Equipment, System, and Unit.
+        /// </summary>
+        public virtual string ProcessId
+        {
+            get => _processId;
+            set => SetProperty(ref _processId, value);
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

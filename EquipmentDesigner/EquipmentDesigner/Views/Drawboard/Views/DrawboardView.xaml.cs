@@ -1017,11 +1017,23 @@ namespace EquipmentDesigner.Views
             {
                 _isShiftPressed = true;
             }
-            else if (e.Key == Key.Delete)
+            else if (e.Key == Key.Delete || e.Key == Key.Back)
             {
-                // Delete all selected elements (uses ViewModel method which handles Process sync)
-                _viewModel.DeleteSelectedElements();
-                e.Handled = true;
+                // Delete/Backspace: Delete selected connection or elements
+                // Check connection first (more specific selection)
+                if (_viewModel.IsConnectionSelected)
+                {
+                    // Remove the connection edit adorner before deleting
+                    RemoveConnectionEditAdorner();
+                    _viewModel.DeleteSelectedConnection();
+                    e.Handled = true;
+                }
+                else if (_viewModel.SelectedElement != null || _viewModel.IsMultiSelectionMode)
+                {
+                    // Delete all selected elements (uses ViewModel method which handles Process sync)
+                    _viewModel.DeleteSelectedElements();
+                    e.Handled = true;
+                }
             }
             else if (e.Key == Key.L && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
             {
@@ -1139,6 +1151,9 @@ namespace EquipmentDesigner.Views
             }
 
             var position = e.GetPosition((IInputElement)sender);
+
+            // Update violation popup based on hover (always check, regardless of edit mode)
+            UpdateViolationPopupHover(position);
 
             // Handle edit mode operations
             switch (_viewModel.EditModeState)
@@ -1787,6 +1802,13 @@ namespace EquipmentDesigner.Views
         /// </summary>
         private void OnDrawboardLoaded(object sender, RoutedEventArgs e)
         {
+            // Set keyboard focus to enable shortcuts immediately when view is loaded
+            // Dispatcher.BeginInvoke ensures focus is set after layout is complete
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Keyboard.Focus(ZoomableGrid);
+            }), System.Windows.Threading.DispatcherPriority.Input);
+
             // Center the canvas in the viewport on initial load
             CenterCanvas();
         }
@@ -1844,6 +1866,20 @@ namespace EquipmentDesigner.Views
             _viewModel?.UnlockSingleSelectedElement();
             MainCanvasArea.Focus();  // Restore focus to enable keyboard shortcuts (Ctrl+Shift+L)
             e.Handled = true;  // Prevent event bubbling
+        }
+
+        #endregion
+
+        #region Violation Popup Hover
+
+        /// <summary>
+        /// Updates the violation popup based on the current mouse position.
+        /// Shows popup when hovering over an element with violations.
+        /// </summary>
+        private void UpdateViolationPopupHover(Point position)
+        {
+            var hoveredElement = _viewModel.FindElementAtPoint(position);
+            _viewModel.UpdateViolationPopupForHover(hoveredElement);
         }
 
         #endregion

@@ -215,6 +215,7 @@ namespace EquipmentDesigner.ViewModels
                 Description = Description,
                 EquipmentType = EquipmentType,
                 Customer = Customer,
+                ProcessId = ProcessId,
                 ProcessInfo = Process,
                 AttachedDocumentsIds = AttachedDocuments.ToList(),
                 Version = Version,
@@ -241,7 +242,8 @@ namespace EquipmentDesigner.ViewModels
                 Customer = hw.Customer ?? string.Empty,
                 Process = hw.ProcessInfo ?? string.Empty,
                 Version = hw.Version ?? "undefined",
-                HardwareKey = hw.HardwareKey
+                HardwareKey = hw.HardwareKey,
+                ProcessId = hw.ProcessId ?? System.Guid.NewGuid().ToString()
             };
 
             if (hw.AttachedDocumentsIds != null)

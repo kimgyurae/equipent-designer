@@ -10,6 +10,7 @@ using System.Windows.Input;
 using EquipmentDesigner.Controls;
 using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.ProcessEditor;
+using EquipmentDesigner.Models.Rules;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Views.Drawboard.UMLEngine;
 using EquipmentDesigner.Views.Drawboard.UMLEngine.Contexts;
@@ -59,6 +60,9 @@ namespace EquipmentDesigner.ViewModels
         private bool _isRubberbandSelecting;
         private Point _rubberbandStartPoint;
         private Rect _rubberbandRect;
+
+        // Violation popup state
+        private readonly ViolationPopupViewModel _violationPopupViewModel = new ViolationPopupViewModel();
 
         #endregion
 
@@ -367,6 +371,41 @@ namespace EquipmentDesigner.ViewModels
         public double UnlockButtonY => SelectedElement != null 
             ? SelectedElement.Y - 50  // 50 = 40px button height + 10px gap
             : 0;
+
+        /// <summary>
+        /// Whether to show the violation popup.
+        /// Shows only when a single element is selected (not multi-selection) and has violations.
+        /// </summary>
+        public bool ShowViolationPopup => !IsMultiSelectionMode 
+            && SelectedElement != null 
+            && SelectedElement.HasViolations;
+
+        /// <summary>
+        /// Gets the violations for the currently selected element.
+        /// </summary>
+        public IReadOnlyList<RuleViolation> SelectedElementViolations => 
+            SelectedElement?.Violations ?? Array.Empty<RuleViolation>();
+
+        /// <summary>
+        /// Gets the X position for the violation popup in screen coordinates.
+        /// Positioned to the right of the selected element with 8px gap.
+        /// </summary>
+        public double ViolationPopupX => SelectedElement != null
+            ? (SelectedElement.X + SelectedElement.Width + 8) * ZoomScale - ScrollOffsetX
+            : 0;
+
+        /// <summary>
+        /// Gets the Y position for the violation popup in screen coordinates.
+        /// Aligned with the top of the selected element.
+        /// </summary>
+        public double ViolationPopupY => SelectedElement != null
+            ? SelectedElement.Y * ZoomScale - ScrollOffsetY
+            : 0;
+
+        /// <summary>
+        /// ViewModel for the violation popup.
+        /// </summary>
+        public ViolationPopupViewModel ViolationPopupViewModel => _violationPopupViewModel;
 
         #endregion
 

@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
+using EquipmentDesigner.Models.Rules;
 
 namespace EquipmentDesigner.Models
 {
@@ -36,7 +38,7 @@ namespace EquipmentDesigner.Models
         /// 이 Element에서 나가는 화살표 목록.
         /// 이 Element가 소유하며, TargetId로 대상을 참조합니다.
         /// </summary>
-        public ObservableCollection<UMLConnection2> OutgoingArrows { get; private set; } = new ObservableCollection<UMLConnection2>();
+        public ObservableCollection<UMLConnection2> OutgoingArrows { get; private set; }
 
         /// <summary>
         /// 이 Element로 들어오는 화살표의 Source Element ID 집합.
@@ -300,13 +302,141 @@ namespace EquipmentDesigner.Models
             clone.Id = Guid.NewGuid().ToString();
             // 복제 시 연결 정보는 복사하지 않음 - 새 Element는 빈 연결 상태로 시작
             clone.OutgoingArrows = new ObservableCollection<UMLConnection2>();
+            clone.OutgoingArrows.CollectionChanged += clone.OnOutgoingArrowsChanged;
             clone.IncomingSourceIds = new HashSet<string>();
             return clone;
+        }
+
+        protected DrawingElement()
+        {
+            OutgoingArrows = new ObservableCollection<UMLConnection2>();
+            OutgoingArrows.CollectionChanged += OnOutgoingArrowsChanged;
+        }
+
+        private void OnOutgoingArrowsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            NotifyViolationsChanged();
+        }
+
+        /// <summary>
+        /// Adds an incoming source ID and notifies violation state change.
+        /// </summary>
+        /// <param name="sourceId">The source element ID to add.</param>
+        /// <returns>True if the ID was added; false if it already existed.</returns>
+        public bool AddIncomingSource(string sourceId)
+        {
+            var added = IncomingSourceIds.Add(sourceId);
+            if (added)
+            {
+                NotifyViolationsChanged();
+            }
+            return added;
+        }
+
+        /// <summary>
+        /// Removes an incoming source ID and notifies violation state change.
+        /// </summary>
+        /// <param name="sourceId">The source element ID to remove.</param>
+        /// <returns>True if the ID was removed; false if it didn't exist.</returns>
+        public bool RemoveIncomingSource(string sourceId)
+        {
+            var removed = IncomingSourceIds.Remove(sourceId);
+            if (removed)
+            {
+                NotifyViolationsChanged();
+            }
+            return removed;
+        }
+
+        /// <summary>
+        /// Notifies that violation-related properties have changed.
+        /// Call this when arrow connections are modified externally.
+        /// </summary>
+        public void NotifyViolationsChanged()
+        {
+            OnPropertyChanged(nameof(HasViolations));
+            OnPropertyChanged(nameof(Violations));
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        #region Rule Validation
+
+        /// <summary>
+        /// Gets the rules that apply to this element type.
+        /// Default implementation creates rules based on OutgoingArrowCount and IncomingArrowCount properties.
+        /// -1 means minimum 1, other values mean exact count.
+        /// </summary>
+        /// <returns>Collection of rules that apply to this element.</returns>
+        public virtual IReadOnlyList<IElementRule> GetRules()
+        {
+            var rules = new List<IElementRule>();
+
+            // Incoming arrow rule
+            if (IncomingArrowCount == -1)
+            {
+                // -1 means at least 1 incoming arrow required
+                rules.Add(ArrowCountRule.Minimum(ArrowDirection.Incoming, 1));
+            }
+            else
+            {
+                // Exact count required
+                rules.Add(ArrowCountRule.Exact(ArrowDirection.Incoming, IncomingArrowCount));
+            }
+
+            // Outgoing arrow rule
+            if (OutgoingArrowCount == -1)
+            {
+                // -1 means at least 1 outgoing arrow required
+                rules.Add(ArrowCountRule.Minimum(ArrowDirection.Outgoing, 1));
+            }
+            else
+            {
+                // Exact count required
+                rules.Add(ArrowCountRule.Exact(ArrowDirection.Outgoing, OutgoingArrowCount));
+            }
+
+            return rules;
+        }
+
+        /// <summary>
+        /// Evaluates all rules and returns any violations found.
+        /// </summary>
+        /// <returns>List of rule violations, empty if all rules pass.</returns>
+        public IReadOnlyList<RuleViolation> ValidateRules()
+        {
+            var violations = new List<RuleViolation>();
+            var rules = GetRules();
+
+            if (rules == null) return violations;
+
+            foreach (var rule in rules)
+            {
+                var violation = rule.Evaluate(this);
+                if (violation != null)
+                {
+                    violations.Add(violation);
+                }
+            }
+
+            return violations;
+        }
+
+        /// <summary>
+        /// Gets whether this element currently has any rule violations.
+        /// </summary>
+        [JsonIgnore]
+        public bool HasViolations => ValidateRules().Count > 0;
+
+        /// <summary>
+        /// Gets the current rule violations for this element.
+        /// </summary>
+        [JsonIgnore]
+        public IReadOnlyList<RuleViolation> Violations => ValidateRules();
+
+        #endregion
     }
 }

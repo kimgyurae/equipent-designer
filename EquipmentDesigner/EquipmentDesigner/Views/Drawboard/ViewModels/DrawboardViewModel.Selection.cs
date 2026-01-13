@@ -324,5 +324,28 @@ namespace EquipmentDesigner.ViewModels
         }
 
         #endregion
+
+        #region Violation Popup
+
+        /// <summary>
+        /// Updates the violation popup based on hovered element.
+        /// Called when mouse moves over a DrawingElement.
+        /// </summary>
+        /// <param name="element">The element being hovered, or null if not hovering over any element.</param>
+        public void UpdateViolationPopupForHover(DrawingElement element)
+        {
+            if (element != null && element.HasViolations)
+            {
+                double x = (element.X + element.Width + 8) * ZoomScale - ScrollOffsetX;
+                double y = element.Y * ZoomScale - ScrollOffsetY;
+                _violationPopupViewModel.Update(element, x, y);
+            }
+            else
+            {
+                _violationPopupViewModel.Hide();
+            }
+        }
+
+        #endregion
     }
 }

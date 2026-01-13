@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,7 +29,7 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
         private const double ArrowHeadLength = 10.0;
         private const double ArrowHeadWidth = 8.0;
         private const double LabelPadding = 4.0;
-        private const double HitTestTolerance = 8.0; // Additional hit-test area around the line
+        private const double HitTestTolerance = 20.0; // Increased hit-test area for better usability
 
         private static readonly Brush LineBrush;
         private static readonly Brush LineBrushSelected;
@@ -267,6 +268,7 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
         #region Fields
 
         private readonly Path _linePath;
+        private readonly Path _hitTestPath;  // Invisible wide path for hit testing
         private readonly Path _arrowPath;
         private readonly Border _labelBorder;
         private readonly TextBlock _labelText;
@@ -280,14 +282,27 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
 
         public ConnectionLine()
         {
-            // Create the line path
+            // Create invisible hit-test path (wider than visible line for easier clicking)
+            _hitTestPath = new Path
+            {
+                Stroke = Brushes.Transparent,
+                StrokeThickness = HitTestTolerance * 2,  // Wide transparent stroke for hit testing
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round,
+                StrokeLineJoin = PenLineJoin.Round,
+                IsHitTestVisible = true
+            };
+            Children.Add(_hitTestPath);
+
+            // Create the visible line path
             _linePath = new Path
             {
                 Stroke = LineBrush,
                 StrokeThickness = LineThickness,
                 StrokeStartLineCap = PenLineCap.Round,
                 StrokeEndLineCap = PenLineCap.Round,
-                StrokeLineJoin = PenLineJoin.Round
+                StrokeLineJoin = PenLineJoin.Round,
+                IsHitTestVisible = false  // Don't use for hit testing
             };
             Children.Add(_linePath);
 
@@ -295,7 +310,8 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             _arrowPath = new Path
             {
                 Fill = LineBrush,
-                Stroke = null
+                Stroke = null,
+                IsHitTestVisible = false  // Don't use for hit testing
             };
             Children.Add(_arrowPath);
 
@@ -337,14 +353,75 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
         /// </summary>
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Check if click is near the line path
-            var clickPoint = e.GetPosition(this);
+            // _routePoints are stored in absolute ZoomableGrid coordinates
+            // We need to get the click point directly in ZoomableGrid space
+            
+            Point clickPoint;
+            
+            // Find the ZoomableGrid by walking up the visual tree
+            var zoomableGrid = FindZoomableGrid() as IInputElement;
+            
+            if (zoomableGrid != null)
+            {
+                // Get click position directly relative to ZoomableGrid
+                // This avoids coordinate transformation issues in nested ItemsControl structure
+                clickPoint = e.GetPosition(zoomableGrid);
+                
+                Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown] Using direct GetPosition(ZoomableGrid)");
+                Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown]   clickPoint: ({clickPoint.X:F1}, {clickPoint.Y:F1})");
+            }
+            else
+            {
+                // Fallback: get position relative to this (may not work correctly)
+                clickPoint = e.GetPosition(this);
+                Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown] WARNING: ZoomableGrid not found, using fallback");
+                Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown]   clickPoint: ({clickPoint.X:F1}, {clickPoint.Y:F1})");
+            }
+            
+            Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown]   _routePoints.Count: {_routePoints.Count}");
+            for (int i = 0; i < _routePoints.Count; i++)
+            {
+                Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown]     RoutePoint[{i}]: ({_routePoints[i].X:F1}, {_routePoints[i].Y:F1})");
+            }
+            
             if (IsPointNearLine(clickPoint))
             {
+                Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown]   HIT! Raising selection event");
                 // Raise the selection event
                 RaiseEvent(new RoutedEventArgs(ConnectionSelectedEvent, this));
                 e.Handled = true;
             }
+            else
+            {
+                Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown]   MISS - point not near any segment");
+                // Log distances to each segment for debugging
+                for (int i = 0; i < _routePoints.Count - 1; i++)
+                {
+                    var distance = DistanceToLineSegment(clickPoint, _routePoints[i], _routePoints[i + 1]);
+                    Debug.WriteLine($"[ConnectionLine.OnMouseLeftButtonDown]     Distance to segment[{i}]: {distance:F1} (tolerance: {HitTestTolerance + LineThickness / 2})");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds the ZoomableGrid ancestor by walking up the visual tree.
+        /// </summary>
+        private Visual FindZoomableGrid()
+        {
+            DependencyObject current = this;
+            
+            while (current != null)
+            {
+                // Check for Grid with Name="ZoomableGrid"
+                if (current is FrameworkElement fe && fe.Name == "ZoomableGrid")
+                {
+                    return fe as Visual;
+                }
+                
+                current = VisualTreeHelper.GetParent(current);
+            }
+            
+            return null;
         }
 
         /// <summary>
@@ -638,6 +715,7 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             if (_routePoints.Count < 2)
             {
                 _linePath.Data = null;
+                _hitTestPath.Data = null;
                 return;
             }
 
@@ -651,6 +729,9 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
 
             geometry.Figures.Add(figure);
             _linePath.Data = geometry;
+            
+            // Use same geometry for hit-test path (it has wider stroke)
+            _hitTestPath.Data = geometry.Clone();
         }
 
         private void UpdateArrowHead()
@@ -809,6 +890,7 @@ namespace EquipmentDesigner.Views.Drawboard.Controls
             var visibility = IsEditing ? Visibility.Collapsed : Visibility.Visible;
             _linePath.Visibility = visibility;
             _arrowPath.Visibility = visibility;
+            _hitTestPath.Visibility = visibility;
             
             // Label visibility depends on both editing state and label content
             if (IsEditing)

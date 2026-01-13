@@ -8,8 +8,10 @@ namespace EquipmentDesigner.Models
         /// <inheritdoc />
         public override DrawingShapeType ShapeType => DrawingShapeType.Decision;
 
+        /// <inheritdoc />
         public override int OutgoingArrowCount => 2;
 
+        /// <inheritdoc />
         public override int IncomingArrowCount => -1;
     }
 }

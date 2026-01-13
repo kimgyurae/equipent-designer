@@ -492,10 +492,10 @@ namespace EquipmentDesigner.ViewModels
                 {
                     // Update target - remove from old target's IncomingSourceIds, add to new
                     var oldTargetElement = CurrentSteps.FirstOrDefault(e => e.Id == _selectedConnection.TargetId);
-                    oldTargetElement?.IncomingSourceIds.Remove(_selectedConnectionSource.Id);
+                    oldTargetElement?.RemoveIncomingSource(_selectedConnectionSource.Id);
 
                     var newTargetElement = CurrentSteps.FirstOrDefault(e => e.Id == _editSnapTargetId);
-                    newTargetElement?.IncomingSourceIds.Add(_selectedConnectionSource.Id);
+                    newTargetElement?.AddIncomingSource(_selectedConnectionSource.Id);
 
                     // Update connection
                     _selectedConnection.TargetId = _editSnapTargetId;
@@ -515,8 +515,8 @@ namespace EquipmentDesigner.ViewModels
                         var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == _selectedConnection.TargetId);
                         if (targetElement != null)
                         {
-                            targetElement.IncomingSourceIds.Remove(_selectedConnectionSource.Id);
-                            targetElement.IncomingSourceIds.Add(newSourceElement.Id);
+                            targetElement.RemoveIncomingSource(_selectedConnectionSource.Id);
+                            targetElement.AddIncomingSource(newSourceElement.Id);
                         }
 
                         // Update connection and add to new source
@@ -812,7 +812,7 @@ namespace EquipmentDesigner.ViewModels
 
                     // Update target element's IncomingSourceIds
                     var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == _snapTargetElementId);
-                    targetElement?.IncomingSourceIds.Add(_connectionSourceElement.Id);
+                    targetElement?.AddIncomingSource(_connectionSourceElement.Id);
 
                     // Notify success
                     ConnectionCreated?.Invoke(this, new ConnectionCreatedEventArgs(connection, _connectionSourceElement, true));
@@ -841,11 +841,23 @@ namespace EquipmentDesigner.ViewModels
         {
             if (!IsConnecting) return;
 
+            // Store the source element before clearing it
+            var sourceElement = _connectionSourceElement;
+
             // Notify cancellation
             ConnectionCancelled?.Invoke(this, EventArgs.Empty);
 
             // Exit connection mode
             ExitConnectionMode();
+
+            // Re-show connection ports on the source element if it's still selected
+            // (Textbox elements are excluded from connection ports per existing logic)
+            if (sourceElement != null && 
+                SelectedElement == sourceElement && 
+                sourceElement.ShapeType != DrawingShapeType.Textbox)
+            {
+                ShowConnectionPorts(sourceElement);
+            }
         }
 
         /// <summary>
@@ -888,7 +900,7 @@ namespace EquipmentDesigner.ViewModels
 
             // Remove source from target's IncomingSourceIds
             var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == connection.TargetId);
-            targetElement?.IncomingSourceIds.Remove(sourceElement.Id);
+            targetElement?.RemoveIncomingSource(sourceElement.Id);
         }
 
         /// <summary>
