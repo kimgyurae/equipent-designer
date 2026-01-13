@@ -7,5 +7,9 @@ namespace EquipmentDesigner.Models
     {
         /// <inheritdoc />
         public override DrawingShapeType ShapeType => DrawingShapeType.Terminal;
+
+        public override int OutgoingArrowCount => 0;
+
+        public override int IncomingArrowCount => 1;
     }
 }

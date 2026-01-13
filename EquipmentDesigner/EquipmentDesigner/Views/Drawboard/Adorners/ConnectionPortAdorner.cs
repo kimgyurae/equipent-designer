@@ -21,7 +21,7 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
         private const double PortSize = 24.0;
         private const double PortCornerRadius = 4.0;
         private const double IconSize = 12.0;
-        private const double PortOffsetFromEdge = 12.0; // Distance from element edge to port center
+        private const double VisualPortOffsetFromEdge = 8.0; // Visual distance from element edge to port center (in screen pixels, zoom-independent)
 
         private static readonly Brush PortBackgroundBrush;
         private static readonly Brush PortBackgroundHoverBrush;
@@ -107,11 +107,27 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
         /// </summary>
         private void CreatePortButton(PortPosition position, int index)
         {
-            // Create arrow icon path
-            var arrowPath = CreateArrowIcon(position);
+            // Create arrow icon (always pointing UP - rotation applied to Border)
+            var arrowPath = CreateArrowIcon();
 
-            // Create individual scale transform for this port (will be updated in ArrangeOverride)
+            // Calculate rotation angle based on port position
+            var rotateAngle = position switch
+            {
+                PortPosition.Top => 0,      // Arrow pointing up (out of element)
+                PortPosition.Right => 90,   // Arrow pointing right
+                PortPosition.Bottom => 180, // Arrow pointing down
+                PortPosition.Left => 270,   // Arrow pointing left
+                _ => 0
+            };
+
+            // Create combined transform: Scale + Rotate
+            // Scale is applied first, then rotation around Border center
             var scaleTransform = new ScaleTransform(1, 1);
+            var rotateTransform = new RotateTransform(rotateAngle);
+            var transformGroup = new TransformGroup();
+            transformGroup.Children.Add(scaleTransform);
+            transformGroup.Children.Add(rotateTransform);
+
             _portScaleTransforms[index] = scaleTransform;
 
             // Create port border (button-like appearance)
@@ -124,8 +140,8 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
                 Child = arrowPath,
                 Cursor = Cursors.Hand,
                 Tag = position,
-                RenderTransform = scaleTransform,
-                RenderTransformOrigin = new Point(0.5, 0.5) // Scale from center of port
+                RenderTransform = transformGroup,
+                RenderTransformOrigin = new Point(0.5, 0.5) // Rotate around Border center
             };
 
             // Wire up events
@@ -138,11 +154,12 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
         }
 
         /// <summary>
-        /// Creates an arrow icon path pointing in the direction of the port.
+        /// Creates an arrow icon path pointing upward (forward direction).
+        /// The arrow is always created pointing UP; rotation is applied to the parent Border.
         /// </summary>
-        private Path CreateArrowIcon(PortPosition position)
+        private Path CreateArrowIcon()
         {
-            // Arrow triangle geometry (pointing up by default)
+            // Arrow triangle geometry pointing UP (forward direction)
             // Triangle: M 0,-4 L 4,4 L -4,4 Z (centered at origin, symmetric bounding box)
             var geometry = new PathGeometry();
             var figure = new PathFigure { StartPoint = new Point(0, -4), IsClosed = true };
@@ -150,17 +167,7 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
             figure.Segments.Add(new LineSegment(new Point(-4, 4), true));
             geometry.Figures.Add(figure);
 
-            // Rotate based on port position
-            var rotateAngle = position switch
-            {
-                PortPosition.Top => 0,      // Arrow pointing up (out of element)
-                PortPosition.Right => 90,   // Arrow pointing right
-                PortPosition.Bottom => 180, // Arrow pointing down
-                PortPosition.Left => 270,   // Arrow pointing left
-                _ => 0
-            };
-
-            var path = new Path
+            return new Path
             {
                 Data = geometry,
                 Fill = IconFillBrush,
@@ -168,12 +175,9 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
                 Height = IconSize,
                 Stretch = Stretch.Uniform,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                RenderTransform = new RotateTransform(rotateAngle, IconSize / 2, IconSize / 2),
-                RenderTransformOrigin = new Point(0.5, 0.5)
+                VerticalAlignment = VerticalAlignment.Center
+                // No rotation here - rotation is applied to the parent Border
             };
-
-            return path;
         }
 
         #region Port Event Handlers
@@ -283,7 +287,13 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
                 _portScaleTransforms[i].ScaleY = inverseScale;
             }
 
-            // Calculate port positions using FIXED PortSize and PortOffset
+            // Calculate port offset in canvas coordinates to achieve constant visual gap
+            // The port is scaled by inverseScale, so its canvas half-size varies with zoom
+            // Visual gap = 8px, Port center offset = gap + scaled port half-size
+            var portCanvasHalfSize = (PortSize / 2) * inverseScale;
+            var canvasOffset = VisualPortOffsetFromEdge + portCanvasHalfSize;
+
+            // Calculate port positions using FIXED PortSize and dynamic canvasOffset
             // Positions are in element's coordinate system (before zoom transform)
             // Port center should be at: edge center + offset distance outside
             var centerX = elementWidth / 2;
@@ -294,22 +304,23 @@ namespace EquipmentDesigner.Views.Drawboard.Adorners
             // The port's RenderTransformOrigin is (0.5, 0.5), so it scales around its center
             var positions = new[]
             {
-                // Top: port center at (centerX, -PortOffsetFromEdge)
-                new Point(centerX - halfPort, -PortOffsetFromEdge - halfPort),
-                // Right: port center at (elementWidth + PortOffsetFromEdge, centerY)
-                new Point(elementWidth + PortOffsetFromEdge - halfPort, centerY - halfPort),
-                // Bottom: port center at (centerX, elementHeight + PortOffsetFromEdge)
-                new Point(centerX - halfPort, elementHeight + PortOffsetFromEdge - halfPort),
-                // Left: port center at (-PortOffsetFromEdge, centerY)
-                new Point(-PortOffsetFromEdge - halfPort, centerY - halfPort)
+                // Top: port center at (centerX, -canvasOffset)
+                new Point(centerX - halfPort, -canvasOffset - halfPort),
+                // Right: port center at (elementWidth + canvasOffset, centerY)
+                new Point(elementWidth + canvasOffset - halfPort, centerY - halfPort),
+                // Bottom: port center at (centerX, elementHeight + canvasOffset)
+                new Point(centerX - halfPort, elementHeight + canvasOffset - halfPort),
+                // Left: port center at (-canvasOffset, centerY)
+                new Point(-canvasOffset - halfPort, centerY - halfPort)
             };
 
             Debug.WriteLine($"[ConnectionPortAdorner] Element Center: ({centerX:F1}, {centerY:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner] Port Positions (fixed, before scale):");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Top:    ({positions[0].X:F1}, {positions[0].Y:F1}) -> center ({centerX:F1}, {-PortOffsetFromEdge:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Right:  ({positions[1].X:F1}, {positions[1].Y:F1}) -> center ({elementWidth + PortOffsetFromEdge:F1}, {centerY:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Bottom: ({positions[2].X:F1}, {positions[2].Y:F1}) -> center ({centerX:F1}, {elementHeight + PortOffsetFromEdge:F1})");
-            Debug.WriteLine($"[ConnectionPortAdorner]   Left:   ({positions[3].X:F1}, {positions[3].Y:F1}) -> center ({-PortOffsetFromEdge:F1}, {centerY:F1})");
+            Debug.WriteLine($"[ConnectionPortAdorner] Canvas Offset: {canvasOffset:F1} (visual: {VisualPortOffsetFromEdge:F1}px)");
+            Debug.WriteLine($"[ConnectionPortAdorner] Port Positions (canvas coords, scaled offset):");
+            Debug.WriteLine($"[ConnectionPortAdorner]   Top:    ({positions[0].X:F1}, {positions[0].Y:F1}) -> center ({centerX:F1}, {-canvasOffset:F1})");
+            Debug.WriteLine($"[ConnectionPortAdorner]   Right:  ({positions[1].X:F1}, {positions[1].Y:F1}) -> center ({elementWidth + canvasOffset:F1}, {centerY:F1})");
+            Debug.WriteLine($"[ConnectionPortAdorner]   Bottom: ({positions[2].X:F1}, {positions[2].Y:F1}) -> center ({centerX:F1}, {elementHeight + canvasOffset:F1})");
+            Debug.WriteLine($"[ConnectionPortAdorner]   Left:   ({positions[3].X:F1}, {positions[3].Y:F1}) -> center ({-canvasOffset:F1}, {centerY:F1})");
 
             for (int i = 0; i < 4; i++)
             {

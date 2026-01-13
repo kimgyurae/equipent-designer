@@ -250,6 +250,16 @@ namespace EquipmentDesigner.Models
         public abstract DrawingShapeType ShapeType { get; }
 
         /// <summary>
+        /// OutgoingArrowCount
+        /// </summary>
+        public abstract int OutgoingArrowCount { get; }
+
+        /// <summary>
+        /// OutgoingArrowCount
+        /// </summary>
+        public abstract int IncomingArrowCount { get; }
+
+        /// <summary>
         /// Gets the bounding rectangle of this element.
         /// </summary>
         public Rect Bounds => new Rect(X, Y, Width, Height);

@@ -196,9 +196,12 @@ namespace EquipmentDesigner.ViewModels
 
             // Enter connection mode
             EditModeState = EditModeState.ConnectingArrow;
+            
+            // Hide the port adorner - set all state before firing event
             IsShowingPorts = false;
+            HoverElement = null;
 
-            // Hide the port adorner (handled by view through PropertyChanged)
+            // Notify view to remove the port adorner
             ConnectionPortsHidden?.Invoke(this, EventArgs.Empty);
         }
 
