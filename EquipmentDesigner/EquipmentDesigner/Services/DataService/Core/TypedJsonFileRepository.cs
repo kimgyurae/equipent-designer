@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using EquipmentDesigner.Converters;
 
 namespace EquipmentDesigner.Services
 {
@@ -27,7 +28,8 @@ namespace EquipmentDesigner.Services
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
+                WriteIndented = true,
+                Converters = { new DrawingElementJsonConverter() }
             };
         }
 
@@ -67,7 +69,7 @@ namespace EquipmentDesigner.Services
                 _cachedData = new T();
                 return _cachedData;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 _cachedData = new T();
                 return _cachedData;

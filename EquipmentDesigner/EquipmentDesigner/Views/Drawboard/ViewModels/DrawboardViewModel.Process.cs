@@ -20,7 +20,24 @@ namespace EquipmentDesigner.ViewModels
         public Process Process
         {
             get => _process;
-            private set => SetProperty(ref _process, value);
+            private set
+            {
+                if (SetProperty(ref _process, value))
+                {
+                    SaveProcessAsync();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Process가 변경될 때 자동으로 저장합니다.
+        /// </summary>
+        private async void SaveProcessAsync()
+        {
+            if (Process != null)
+            {
+                await _processManager.UpdateProcessAsync(Process.Id, Process);
+            }
         }
 
         /// <summary>
@@ -33,19 +50,74 @@ namespace EquipmentDesigner.ViewModels
 
             if (process == null)
             {
-                _process = new Process
+                Process = new Process
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    Processes = new Dictionary<PackMlState, UMLWorkflow>()
+                    Id = processId,
+                    Processes = CreateAllPackMlWorkflows()
                 };
             }
             else
             {
-                _process = process;
-                _process.Processes ??= new Dictionary<PackMlState, UMLWorkflow>();
+                Process = process;
+                if (Process.Processes == null)
+                {
+                    Process.Processes = CreateAllPackMlWorkflows();
+                }
+                else
+                {
+                    // 기존 Processes에 누락된 PackML 상태가 있으면 추가
+                    EnsureAllPackMlWorkflowsExist(Process.Processes);
+                }
+            }
+            LoadWorkflowForCurrentState();
+        }
+
+        /// <summary>
+        /// Creates a dictionary with UMLWorkflow for all PackML states.
+        /// </summary>
+        /// <returns>Dictionary containing empty UMLWorkflow for each PackML state.</returns>
+        private static Dictionary<PackMlState, UMLWorkflow> CreateAllPackMlWorkflows()
+        {
+            var workflows = new Dictionary<PackMlState, UMLWorkflow>();
+
+            foreach (PackMlState state in Enum.GetValues(typeof(PackMlState)))
+            {
+                workflows[state] = CreateEmptyWorkflow(state);
             }
 
-            LoadWorkflowForCurrentState();
+            return workflows;
+        }
+
+        /// <summary>
+        /// Ensures all PackML states have a corresponding UMLWorkflow.
+        /// Adds missing workflows without overwriting existing ones.
+        /// </summary>
+        /// <param name="existingWorkflows">The existing workflows dictionary to supplement.</param>
+        private static void EnsureAllPackMlWorkflowsExist(Dictionary<PackMlState, UMLWorkflow> existingWorkflows)
+        {
+            foreach (PackMlState state in Enum.GetValues(typeof(PackMlState)))
+            {
+                if (!existingWorkflows.ContainsKey(state))
+                {
+                    existingWorkflows[state] = CreateEmptyWorkflow(state);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates an empty UMLWorkflow for the specified PackML state.
+        /// </summary>
+        /// <param name="state">The PackML state for the workflow.</param>
+        /// <returns>A new empty UMLWorkflow.</returns>
+        private static UMLWorkflow CreateEmptyWorkflow(PackMlState state)
+        {
+            return new UMLWorkflow
+            {
+                Id = Guid.NewGuid().ToString(),
+                State = state,
+                ImplementationInstructions = Array.Empty<string>(),
+                Steps = new List<DrawingElement>()
+            };
         }
 
         /// <summary>
@@ -59,9 +131,9 @@ namespace EquipmentDesigner.ViewModels
             CurrentSteps.Clear();
             _nextZIndex = 1;
 
-            if (_process?.Processes == null) return;
+            if (Process?.Processes == null) return;
 
-            if (_process.Processes.TryGetValue(SelectedState, out var workflow)
+            if (Process.Processes.TryGetValue(SelectedState, out var workflow)
                 && workflow?.Steps != null)
             {
                 foreach (var element in workflow.Steps)
@@ -135,10 +207,12 @@ namespace EquipmentDesigner.ViewModels
         /// <param name="element">The DrawingElement to add.</param>
         private void AddElementToCurrentWorkflow(DrawingElement element)
         {
-            if (_process == null) return;
+            if (Process == null) return;
 
             var workflow = GetOrCreateWorkflowForCurrentState();
             workflow.Steps.Add(element);
+
+            SaveProcessAsync();
         }
 
         /// <summary>
@@ -148,8 +222,8 @@ namespace EquipmentDesigner.ViewModels
         /// <param name="element">The DrawingElement to remove.</param>
         private void RemoveElementFromCurrentWorkflow(DrawingElement element)
         {
-            if (_process?.Processes == null) return;
-            if (!_process.Processes.TryGetValue(SelectedState, out var workflow)) return;
+            if (Process?.Processes == null) return;
+            if (!Process.Processes.TryGetValue(SelectedState, out var workflow)) return;
             if (workflow?.Steps == null) return;
 
             // 1. 이 element를 가리키는 모든 연결 정리 (IncomingSourceIds에서 source 찾기)
@@ -180,6 +254,8 @@ namespace EquipmentDesigner.ViewModels
 
             // 3. Workflow에서 element 제거
             workflow.Steps.Remove(element);
+
+            SaveProcessAsync();
         }
 
         /// <summary>
@@ -188,20 +264,18 @@ namespace EquipmentDesigner.ViewModels
         /// <returns>The UMLWorkflow for the current state.</returns>
         private UMLWorkflow GetOrCreateWorkflowForCurrentState()
         {
-            _process.Processes ??= new Dictionary<PackMlState, UMLWorkflow>();
+            Process.Processes ??= new Dictionary<PackMlState, UMLWorkflow>();
 
-            if (!_process.Processes.TryGetValue(SelectedState, out var workflow))
+            if (!Process.Processes.TryGetValue(SelectedState, out var workflow))
             {
                 workflow = new UMLWorkflow
                 {
                     Id = Guid.NewGuid().ToString(),
                     State = SelectedState,
-                    Name = string.Empty,
-                    Description = string.Empty,
                     ImplementationInstructions = Array.Empty<string>(),
                     Steps = new List<DrawingElement>()
                 };
-                _process.Processes[SelectedState] = workflow;
+                Process.Processes[SelectedState] = workflow;
             }
 
             workflow.Steps ??= new List<DrawingElement>();

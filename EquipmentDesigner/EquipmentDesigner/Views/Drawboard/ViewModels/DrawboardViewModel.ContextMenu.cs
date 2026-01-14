@@ -419,7 +419,7 @@ namespace EquipmentDesigner.ViewModels
             public string Text { get; }
             public TextFontSize FontSize { get; }
             public TextAlignment TextAlign { get; }
-            public System.Windows.Media.Color TextColor { get; }
+            public SupportedTextColor TextColor { get; }
             public double TextOpacity { get; }
             public DrawingShapeType ShapeType { get; }
 

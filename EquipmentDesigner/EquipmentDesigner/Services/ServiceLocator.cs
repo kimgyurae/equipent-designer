@@ -138,6 +138,21 @@ namespace EquipmentDesigner.Services
             // Hardware API Service (wraps UploadedWorkflowRepository for REST API semantics)
             var hardwareApiService = new MockHardwareApiService(uploadedWorkflowRepository);
             RegisterSingleton<IHardwareApiService>(hardwareApiService);
+
+            // Local process repository for process data storage
+            var localProcessRepo = new LocalProcessRepository();
+            var localProcessManager = new LocalProcessRepositoryManager(localProcessRepo);
+            RegisterSingleton<ILocalProcessRepositoryManager>(localProcessManager);
+
+            // Remote process repository and API service
+            var remoteProcessRepo = new RemoteProcessRepository();
+            RegisterSingleton<IRemoteProcessRepository>(remoteProcessRepo);
+            var processApiService = new MockProcessApiService(remoteProcessRepo);
+            RegisterSingleton<IProcessApiService>(processApiService);
+
+            // Process clone service for deep cloning processes during hardware copy
+            var processCloneService = new ProcessCloneService(localProcessManager, processApiService);
+            RegisterSingleton<IProcessCloneService>(processCloneService);
         }
 
         /// <summary>
@@ -156,6 +171,21 @@ namespace EquipmentDesigner.Services
             // Hardware API Service for testing
             var hardwareApiService = new MockHardwareApiService(uploadedWorkflowRepository);
             RegisterSingleton<IHardwareApiService>(hardwareApiService);
+
+            // Local process repository for testing
+            var localProcessRepo = new LocalProcessRepository();
+            var localProcessManager = new LocalProcessRepositoryManager(localProcessRepo);
+            RegisterSingleton<ILocalProcessRepositoryManager>(localProcessManager);
+
+            // Remote process repository and API service for testing
+            var remoteProcessRepo = new RemoteProcessRepository();
+            RegisterSingleton<IRemoteProcessRepository>(remoteProcessRepo);
+            var processApiService = new MockProcessApiService(remoteProcessRepo);
+            RegisterSingleton<IProcessApiService>(processApiService);
+
+            // Process clone service for testing
+            var processCloneService = new ProcessCloneService(localProcessManager, processApiService);
+            RegisterSingleton<IProcessCloneService>(processCloneService);
         }
     }
 }

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Windows;
 using EquipmentDesigner.Controls;
+using EquipmentDesigner.Models;
 using EquipmentDesigner.Models.ProcessEditor;
 using EquipmentDesigner.Services;
 using EquipmentDesigner.Views.Drawboard.UMLEngine;
@@ -13,8 +15,9 @@ namespace EquipmentDesigner.ViewModels
     {
         #region Command Handlers
 
-        private void ExecuteBackToHardwareDefine()
+        private async void ExecuteBackToHardwareDefine()
         {
+            await _processManager.SaveAsync(new List<Process> { Process });
             NavigationService.Instance.NavigateBackFromDrawboard();
         }
 

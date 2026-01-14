@@ -1,4 +1,5 @@
 <UserControl x:Class="EquipmentDesigner.Views.DashboardView"
+             x:Name="DashboardRoot"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -251,7 +252,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <controls:DefaultWhiteCard Command="{Binding DataContext.ResumeWorkflowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            <controls:DefaultWhiteCard Command="{Binding DataContext.ResumeWorkflowCommand, ElementName=DashboardRoot}"
                                                                        CommandParameter="{Binding}"
                                                                        CardPadding="12"
                                                                        CardCornerRadius="{StaticResource Radius.LG}"
@@ -281,7 +282,7 @@
 
                                                         <!-- Delete Button (visible on hover) -->
                                                         <Button Grid.Column="2"
-                                                                Command="{Binding DataContext.DeleteWorkflowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                Command="{Binding DataContext.DeleteWorkflowCommand, ElementName=DashboardRoot}"
                                                                 CommandParameter="{Binding}"
                                                                 Background="Transparent"
                                                                 BorderThickness="0"

@@ -52,18 +52,11 @@
                        Margin="0,8,0,0"/>
 
             <!-- Type confirmation instruction -->
-            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,16,0,0">
-                <TextBlock Text="Type "
-                           Foreground="{StaticResource Brush.Text.Primary}"
-                           FontSize="14"/>
-                <TextBlock x:Name="KeywordText"
-                           Foreground="{StaticResource Brush.Status.Danger}"
-                           FontWeight="Bold"
-                           FontSize="14"/>
-                <TextBlock Text=" to confirm:"
-                           Foreground="{StaticResource Brush.Text.Primary}"
-                           FontSize="14"/>
-            </StackPanel>
+            <TextBlock x:Name="TypeToConfirmText"
+                       Grid.Row="3"
+                       Margin="0,16,0,0"
+                       FontSize="14"
+                       Foreground="{StaticResource Brush.Text.Primary}"/>
 
             <!-- Text Input and Buttons -->
             <Grid Grid.Row="4" Margin="0,8,0,0">

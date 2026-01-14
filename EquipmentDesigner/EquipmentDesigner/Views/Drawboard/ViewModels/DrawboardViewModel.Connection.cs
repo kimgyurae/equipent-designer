@@ -530,6 +530,9 @@ namespace EquipmentDesigner.ViewModels
             }
             // If not snapped, keep the original endpoint (no change)
 
+            // Save process after connection edit
+            SaveProcessAsync();
+
             // Exit editing mode but keep selection
             ExitConnectionEditMode();
 
@@ -814,6 +817,9 @@ namespace EquipmentDesigner.ViewModels
                     var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == _snapTargetElementId);
                     targetElement?.AddIncomingSource(_connectionSourceElement.Id);
 
+                    // Save process after connection creation
+                    SaveProcessAsync();
+
                     // Notify success
                     ConnectionCreated?.Invoke(this, new ConnectionCreatedEventArgs(connection, _connectionSourceElement, true));
                 }
@@ -901,6 +907,9 @@ namespace EquipmentDesigner.ViewModels
             // Remove source from target's IncomingSourceIds
             var targetElement = CurrentSteps.FirstOrDefault(e => e.Id == connection.TargetId);
             targetElement?.RemoveIncomingSource(sourceElement.Id);
+
+            // Save process after connection removal
+            SaveProcessAsync();
         }
 
         /// <summary>

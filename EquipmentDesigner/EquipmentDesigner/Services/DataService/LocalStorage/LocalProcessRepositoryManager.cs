@@ -55,6 +55,14 @@ namespace EquipmentDesigner.Services
         /// <param name="id">The process identifier.</param>
         /// <returns>The Process if found; otherwise, null.</returns>
         Task<Process> GetProcessByIdAsync(string id);
+
+        /// <summary>
+        /// Updates an existing process by replacing it with a new value.
+        /// </summary>
+        /// <param name="processId">The identifier of the process to update.</param>
+        /// <param name="process">The new process value to replace the existing one.</param>
+        /// <returns>True if the process was found and updated; otherwise, false.</returns>
+        Task<bool> UpdateProcessAsync(string processId, Process process);
     }
 
     /// <summary>
@@ -135,6 +143,38 @@ namespace EquipmentDesigner.Services
 
             var processes = await _repository.LoadAsync();
             return processes?.FirstOrDefault(p => p.Id == id);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> UpdateProcessAsync(string processId, Process process)
+        {
+            if (string.IsNullOrEmpty(processId))
+            {
+                throw new ArgumentException("Process ID cannot be null or empty.", nameof(processId));
+            }
+
+            if (process == null)
+            {
+                throw new ArgumentNullException(nameof(process));
+            }
+
+            var processes = await _repository.LoadAsync();
+            if (processes == null)
+            {
+                return false;
+            }
+
+            var index = processes.FindIndex(p => p.Id == processId);
+            if (index < 0)
+            {
+                return false;
+            }
+
+            processes[index] = process;
+            await _repository.SaveAsync(processes);
+            _repository.MarkDirty();
+
+            return true;
         }
     }
 }

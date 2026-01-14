@@ -675,6 +675,9 @@
   <data name="ConfirmDialog_PlaceholderFormat" xml:space="preserve">
     <value>'{0}' 입력</value>
   </data>
+  <data name="ConfirmDialog_TypeToConfirmFormat" xml:space="preserve">
+    <value>확인하려면 {0}을(를) 입력하세요:</value>
+  </data>
   <data name="Drawboard_Tool_ToolLock_Instruction" xml:space="preserve">
     <value>그리기 후에도 선택된 도구 유지</value>
   </data>

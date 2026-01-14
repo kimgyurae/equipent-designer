@@ -121,7 +121,7 @@ namespace EquipmentDesigner.ViewModels
                 var sessionDto = ToHardwareDefinition();
 
                 // 2. Create a copy with new session ID but same HardwareKey
-                var copiedSession = CreateNewVersionSession(sessionDto, newVersion);
+                var copiedSession = await CreateNewVersionSessionAsync(sessionDto, newVersion);
 
                 // 3. Save to WorkflowRepository
                 var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -153,7 +153,7 @@ namespace EquipmentDesigner.ViewModels
                 var sessionDto = ToHardwareDefinition();
 
                 // 2. Create a copy with new HardwareKey and regenerated IDs
-                var copiedSession = CreateNewHardwareSession(sessionDto);
+                var copiedSession = await CreateNewHardwareSessionAsync(sessionDto);
 
                 // 3. Save to WorkflowRepository
                 var workflowRepo = ServiceLocator.GetService<IWorkflowRepository>();
@@ -226,10 +226,70 @@ namespace EquipmentDesigner.ViewModels
         /// <summary>
         /// Creates a new version of a workflow session with updated version number.
         /// The copied session has a new session ID but preserves the HardwareKey.
+        /// Also deep clones all associated Process data with new ProcessIds.
         /// </summary>
         /// <param name="originalSession">The original session to copy.</param>
         /// <param name="newVersion">The new version string to apply.</param>
-        /// <returns>A new HardwareDefinition with updated version.</returns>
+        /// <returns>A new HardwareDefinition with updated version and cloned processes.</returns>
+        public static async Task<HardwareDefinition> CreateNewVersionSessionAsync(HardwareDefinition originalSession, string newVersion)
+        {
+            // Create a deep copy
+            var copiedSession = DeepCopyHardwareDefinition(originalSession);
+            copiedSession.Id = Guid.NewGuid().ToString();
+            copiedSession.State = ComponentState.Draft;
+            copiedSession.LastModifiedAt = DateTime.Now;
+            copiedSession.Version = newVersion;
+
+            // Regenerate all node IDs but preserve HardwareKey
+            RegenerateNodeIds(copiedSession);
+
+            // Regenerate ProcessIds and deep clone Process data
+            if (ServiceLocator.TryGetService<IProcessCloneService>(out var processCloneService))
+            {
+                var processIdMapping = processCloneService.RegenerateProcessIds(copiedSession);
+                await processCloneService.CloneAllProcessesAsync(processIdMapping);
+            }
+
+            return copiedSession;
+        }
+
+        /// <summary>
+        /// Creates a completely new hardware session with new GUID and ID.
+        /// No version history is shared with the original.
+        /// Also deep clones all associated Process data with new ProcessIds.
+        /// </summary>
+        /// <param name="originalSession">The original session to copy.</param>
+        /// <returns>A new HardwareDefinition with new HardwareKey, IDs, and cloned processes.</returns>
+        public static async Task<HardwareDefinition> CreateNewHardwareSessionAsync(HardwareDefinition originalSession)
+        {
+            // Create a deep copy
+            var copiedSession = DeepCopyHardwareDefinition(originalSession);
+            copiedSession.Id = Guid.NewGuid().ToString();
+            copiedSession.State = ComponentState.Draft;
+            copiedSession.LastModifiedAt = DateTime.Now;
+            copiedSession.HardwareKey = Guid.NewGuid().ToString();
+
+            // Regenerate all node IDs
+            RegenerateNodeIds(copiedSession);
+
+            // Apply copy suffix to root node name
+            ApplyCopySuffixToNode(copiedSession);
+
+            // Regenerate ProcessIds and deep clone Process data
+            if (ServiceLocator.TryGetService<IProcessCloneService>(out var processCloneService))
+            {
+                var processIdMapping = processCloneService.RegenerateProcessIds(copiedSession);
+                await processCloneService.CloneAllProcessesAsync(processIdMapping);
+            }
+
+            return copiedSession;
+        }
+
+        /// <summary>
+        /// Creates a new version of a workflow session with updated version number.
+        /// Synchronous version for backward compatibility - does not clone processes.
+        /// </summary>
+        [Obsolete("Use CreateNewVersionSessionAsync for full process cloning support.")]
         public static HardwareDefinition CreateNewVersionSession(HardwareDefinition originalSession, string newVersion)
         {
             // Create a deep copy
@@ -247,16 +307,14 @@ namespace EquipmentDesigner.ViewModels
 
         /// <summary>
         /// Creates a completely new hardware session with new GUID and ID.
-        /// No version history is shared with the original.
+        /// Synchronous version for backward compatibility - does not clone processes.
         /// </summary>
-        /// <param name="originalSession">The original session to copy.</param>
-        /// <returns>A new HardwareDefinition with new HardwareKey and IDs.</returns>
+        [Obsolete("Use CreateNewHardwareSessionAsync for full process cloning support.")]
         public static HardwareDefinition CreateNewHardwareSession(HardwareDefinition originalSession)
         {
             // Create a deep copy
             var copiedSession = DeepCopyHardwareDefinition(originalSession);
             copiedSession.Id = Guid.NewGuid().ToString();
-            // TODO: Deepcopy Process with new Process ID
             copiedSession.State = ComponentState.Draft;
             copiedSession.LastModifiedAt = DateTime.Now;
             copiedSession.HardwareKey = Guid.NewGuid().ToString();

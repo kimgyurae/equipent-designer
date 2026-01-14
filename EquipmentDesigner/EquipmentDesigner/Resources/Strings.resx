@@ -675,6 +675,9 @@
   <data name="ConfirmDialog_PlaceholderFormat" xml:space="preserve">
     <value>Type '{0}'</value>
   </data>
+  <data name="ConfirmDialog_TypeToConfirmFormat" xml:space="preserve">
+    <value>Type {0} to confirm:</value>
+  </data>
   <data name="Drawboard_Tool_ToolLock_Instruction" xml:space="preserve">
     <value>Keep selected tool active after drawing</value>
   </data>

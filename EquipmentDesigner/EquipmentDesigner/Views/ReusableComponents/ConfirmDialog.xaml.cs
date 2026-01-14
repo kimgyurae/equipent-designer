@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 using EquipmentDesigner.Resources;
 
@@ -67,7 +68,7 @@ namespace EquipmentDesigner.Controls
             set
             {
                 _confirmationKeyword = value ?? "delete";
-                KeywordText.Text = _confirmationKeyword;
+                UpdateTypeToConfirmText();
                 UpdatePlaceholder();
             }
         }
@@ -128,6 +129,25 @@ namespace EquipmentDesigner.Controls
             ConfirmText = Strings.ConfirmDialog_DefaultConfirmButton;
             CancelText = Strings.Common_Cancel;
             ConfirmationKeyword = "delete";
+        }
+
+        private void UpdateTypeToConfirmText()
+        {
+            TypeToConfirmText.Inlines.Clear();
+            var format = Strings.ConfirmDialog_TypeToConfirmFormat;
+            var parts = format.Split(new[] { "{0}" }, System.StringSplitOptions.None);
+
+            if (parts.Length >= 1)
+                TypeToConfirmText.Inlines.Add(new Run(parts[0]));
+
+            TypeToConfirmText.Inlines.Add(new Run(_confirmationKeyword)
+            {
+                Foreground = (Brush)Application.Current.FindResource("Brush.Status.Danger"),
+                FontWeight = FontWeights.Bold
+            });
+
+            if (parts.Length >= 2)
+                TypeToConfirmText.Inlines.Add(new Run(parts[1]));
         }
 
         private void UpdatePlaceholder()

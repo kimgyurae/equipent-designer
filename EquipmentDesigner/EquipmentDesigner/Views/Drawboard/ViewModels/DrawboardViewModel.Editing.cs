@@ -45,6 +45,9 @@ namespace EquipmentDesigner.ViewModels
         {
             if (EditModeState != EditModeState.Moving) return;
             EditModeState = EditModeState.Selected;
+
+            // Save process after move completes
+            SaveProcessAsync();
         }
 
         #endregion
@@ -93,6 +96,9 @@ namespace EquipmentDesigner.ViewModels
             if (EditModeState != EditModeState.Resizing) return;
             EditModeState = EditModeState.Selected;
             ActiveResizeHandle = ResizeHandleType.None;
+
+            // Save process after resize completes
+            SaveProcessAsync();
         }
 
         #endregion
@@ -140,6 +146,9 @@ namespace EquipmentDesigner.ViewModels
             if (EditModeState != EditModeState.MultiMoving) return;
             EditModeState = EditModeState.MultiSelected;
             OnPropertyChanged(nameof(GroupBounds));
+
+            // Save process after multi-move completes
+            SaveProcessAsync();
         }
 
         #endregion
@@ -193,6 +202,9 @@ namespace EquipmentDesigner.ViewModels
             EditModeState = EditModeState.MultiSelected;
             ActiveResizeHandle = ResizeHandleType.None;
             OnPropertyChanged(nameof(GroupBounds));
+
+            // Save process after multi-resize completes
+            SaveProcessAsync();
         }
 
         #endregion

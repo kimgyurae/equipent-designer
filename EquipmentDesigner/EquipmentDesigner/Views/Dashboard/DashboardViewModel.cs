@@ -384,18 +384,24 @@ namespace EquipmentDesigner.ViewModels
                 var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 var appFolder = Path.Combine(appData, "EquipmentDesigner");
 
-                // Delete workflows.json
-                var workflowsPath = Path.Combine(appFolder, "local", "workflows.json");
-                if (File.Exists(workflowsPath))
+                // Delete all JSON files in local folder
+                var localFolder = Path.Combine(appFolder, "local");
+                if (Directory.Exists(localFolder))
                 {
-                    File.Delete(workflowsPath);
+                    foreach (var file in Directory.GetFiles(localFolder, "*.json"))
+                    {
+                        File.Delete(file);
+                    }
                 }
 
-                // Delete uploaded-hardwares.json
-                var uploadedHardwaresPath = Path.Combine(appFolder, "remote", "uploaded-hardwares.json");
-                if (File.Exists(uploadedHardwaresPath))
+                // Delete all JSON files in remote folder
+                var remoteFolder = Path.Combine(appFolder, "remote");
+                if (Directory.Exists(remoteFolder))
                 {
-                    File.Delete(uploadedHardwaresPath);
+                    foreach (var file in Directory.GetFiles(remoteFolder, "*.json"))
+                    {
+                        File.Delete(file);
+                    }
                 }
 
                 // Refresh the dashboard to reflect changes
