@@ -24,3 +24,10 @@ ToastService.Instance.ShowError(
 
 ### Mistake 5
 - WPF에서 모달리스 UI 요소(floating buttons, popups 등)를 사용할 때는 포커스 관리가 중요. 특히 키보드 단축키가 특정 컨테이너의 PreviewKeyDown에 바인딩되어 있을 때, 해당 컨테이너 외부 요소와 상호작용 후에는 명시적으로 포커스를 복원해야 함.
+
+
+### Mistake 6
+- 모든 ViewModel은 500줄 이상 넘어가는 경우, ViewModel의 코드를 기능을 기준으로 나눌 수 있는지 분석하여, 각각의 기능별로 Partial Class로 분리해야함.
+- Partial Class의 파일 이름은 {{원래 viewmodel 이름}.{{기능 이름}}}.cs.
+- 예시: `D:\SW\CodeGenTest\equipment-designer\EquipmentDesigner\EquipmentDesigner\Views\Drawboard\ViewModels\DrawboardViewModel.Selection.cs`
+- 예외: 이미 Partial Class로 분리된 ViewModel은 명시적인 지시가 있지 않다면 추가로 분리하지 않음.
