@@ -31,7 +31,7 @@ namespace EquipmentDesigner.Models
         private string _text = string.Empty;
         private TextFontSize _fontSize = TextFontSize.Base;
         private TextAlignment _textAlignment = TextAlignment.Center;
-        private Color _textColor = Colors.Black;
+        private SupportedTextColor _textColor = SupportedTextColor.Black;
         private double _textOpacity = 1.0;
 
         /// <summary>
@@ -242,9 +242,9 @@ namespace EquipmentDesigner.Models
         }
 
         /// <summary>
-        /// Text color
+        /// Text color from supported color options
         /// </summary>
-        public Color TextColor
+        public SupportedTextColor TextColor
         {
             get => _textColor;
             set

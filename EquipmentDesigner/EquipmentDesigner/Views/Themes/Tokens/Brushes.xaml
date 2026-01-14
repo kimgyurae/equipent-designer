@@ -220,5 +220,13 @@
     
     <!-- DrawingElement Stroke for Textbox (lighter border) -->
     <SolidColorBrush x:Key="Brush.DrawingElement.Textbox.Stroke" Color="{StaticResource Color.Gray.400}"/>
+    
+    <!-- DrawingElement Text Colors -->
+    <SolidColorBrush x:Key="Brush.DrawingElement.Text.Black" Color="{StaticResource Color.Black}"/>
+    <SolidColorBrush x:Key="Brush.DrawingElement.Text.Green" Color="{StaticResource Color.Success.600}"/>
+    <SolidColorBrush x:Key="Brush.DrawingElement.Text.Orange" Color="{StaticResource Color.Warning.600}"/>
+    <SolidColorBrush x:Key="Brush.DrawingElement.Text.Red" Color="{StaticResource Color.Danger.600}"/>
+    <SolidColorBrush x:Key="Brush.DrawingElement.Text.Purple" Color="{StaticResource Color.Accent.600}"/>
+    <SolidColorBrush x:Key="Brush.DrawingElement.Text.Blue" Color="{StaticResource Color.Primary.600}"/>
 
 </ResourceDictionary>
